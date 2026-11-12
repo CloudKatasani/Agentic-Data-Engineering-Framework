@@ -1,0 +1,54 @@
+# Domain Pack - Utilities (starter). Extend per client; have Security and Compliance
+# confirm the controls list against the client's own obligations before first use.
+pack_id: utilities
+pack_version: "0.1.0"
+status: starter-needs-client-review
+
+subdomains: [customer, metering, billing, distribution, transmission, generation,
+             asset, work, outage, procurement, safety]
+
+core_entities:
+  - { name: Customer,        subdomain: customer }
+  - { name: Premise,         subdomain: customer }
+  - { name: ServiceAccount,  subdomain: customer }
+  - { name: ServicePoint,    subdomain: metering }
+  - { name: Meter,           subdomain: metering }
+  - { name: IntervalRead,    subdomain: metering, note: "high volume, time series" }
+  - { name: Bill,            subdomain: billing }
+  - { name: Asset,           subdomain: asset }
+  - { name: WorkOrder,       subdomain: work }
+  - { name: Outage,          subdomain: outage }
+
+glossary_seed:
+  - { term: AMI, definition: "Advanced metering infrastructure" }
+  - { term: SAIDI, definition: "Average outage duration per customer served" }
+  - { term: SAIFI, definition: "Average number of interruptions per customer served" }
+
+classification_rules:
+  restricted:
+    - "Customer personal data (name, address, contact, account identifiers)"
+    - "Interval usage linked to a premise or person"
+    - "Protected cyber-system and critical-infrastructure information for bulk electric system assets"
+  confidential:
+    - "Asset condition, network topology, vendor pricing"
+
+controls:                      # each becomes a traceable requirement (NFR-###)
+  - id: UTL-C1
+    text: "Operational-technology and information-technology data stay segregated; no agent tool has a path into operational networks."
+  - id: UTL-C2
+    text: "Critical-infrastructure protected information is Restricted: metadata-only for agents, access changes need Security and Compliance."
+  - id: UTL-C3
+    text: "Regulatory reporting datasets need full lineage and reproducible point-in-time results."
+  - id: UTL-C4
+    text: "Customer usage data is shared outside the owning domain only in aggregated or masked form unless a documented basis exists."
+
+regulatory_context:            # pointers for the human reviewer, not legal advice
+  - "Reliability and critical-infrastructure protection standards for the bulk electric system"
+  - "Federal and state energy regulator reporting"
+  - "Applicable state and national privacy law"
+
+typical_use_cases:
+  - "Meter-to-cash data product"
+  - "Outage and reliability metrics"
+  - "Asset health and work management analytics"
+  - "Procurement spend and supplier quality"

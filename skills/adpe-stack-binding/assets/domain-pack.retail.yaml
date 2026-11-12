@@ -1,0 +1,49 @@
+# Domain Pack - Retail and Consumer Goods (starter). Extend per client; have Security and
+# Compliance confirm the controls list against the client's own obligations before first use.
+pack_id: retail
+pack_version: "0.1.0"
+status: starter-needs-client-review
+
+subdomains: [customer, product, store, order, inventory, pricing, promotion, supply-chain,
+             loyalty, finance]
+
+core_entities:
+  - { name: Customer,        subdomain: customer }
+  - { name: Product,         subdomain: product }
+  - { name: Store,           subdomain: store }
+  - { name: SalesOrder,      subdomain: order }
+  - { name: OrderLine,       subdomain: order, note: "high volume" }
+  - { name: InventoryPosition, subdomain: inventory, note: "daily snapshot" }
+  - { name: Promotion,       subdomain: promotion }
+  - { name: LoyaltyMember,   subdomain: loyalty }
+
+glossary_seed:
+  - { term: AOV, definition: "Average order value" }
+  - { term: Net Sales, definition: "Gross sales less returns, discounts and allowances" }
+  - { term: Sell-through, definition: "Units sold divided by units received for a period" }
+
+classification_rules:
+  restricted:
+    - "Customer personal data (name, email, phone, address, loyalty identifiers)"
+    - "Payment data"
+  confidential:
+    - "Supplier cost prices, margins, promotion plans"
+
+controls:
+  - id: RTL-C1
+    text: "Customer personal data is Restricted: metadata-only for agents; tests use synthetic records."
+  - id: RTL-C2
+    text: "Marketing use of customer data requires a recorded consent basis modelled as data."
+  - id: RTL-C3
+    text: "Payment data stays out of analytical stores unless tokenised."
+
+regulatory_context:
+  - "Applicable privacy and data-protection law"
+  - "Consumer marketing consent rules"
+  - "Payment card security standards"
+
+typical_use_cases:
+  - "Sales performance data product"
+  - "Customer 360 and loyalty analytics"
+  - "Inventory and sell-through analytics"
+  - "Promotion effectiveness"
