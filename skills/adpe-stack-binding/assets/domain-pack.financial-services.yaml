@@ -1,0 +1,54 @@
+# Domain Pack - Financial Services / Banking (starter). Extend per client; have Security and
+# Compliance confirm the controls list against the client's own obligations before first use.
+pack_id: financial-services
+pack_version: "0.1.0"
+status: starter-needs-client-review
+
+subdomains: [party, account, product, transaction, lending, deposits, payments, risk,
+             compliance, finance]
+
+core_entities:
+  - { name: Customer,        subdomain: party }
+  - { name: Account,         subdomain: account }
+  - { name: Product,         subdomain: product }
+  - { name: Transaction,     subdomain: transaction, note: "high volume, event data" }
+  - { name: Balance,         subdomain: deposits, note: "daily snapshot" }
+  - { name: Loan,            subdomain: lending }
+  - { name: Collateral,      subdomain: lending }
+  - { name: Branch,          subdomain: party }
+  - { name: RiskRating,      subdomain: risk }
+
+glossary_seed:
+  - { term: ADB, definition: "Average daily balance over a period" }
+  - { term: NIM, definition: "Net interest margin" }
+  - { term: KYC, definition: "Know your customer due-diligence status" }
+
+classification_rules:
+  restricted:
+    - "Customer personal data and identifiers (name, national ID, date of birth, address, contact)"
+    - "Account numbers and payment card data"
+    - "Transaction detail linked to a customer"
+  confidential:
+    - "Credit risk ratings, pricing, internal limits"
+
+controls:
+  - id: FIN-C1
+    text: "Customer and account identifiers are Restricted: metadata-only for agents; tests use synthetic records."
+  - id: FIN-C2
+    text: "Regulatory reporting datasets need full lineage and reproducible point-in-time results."
+  - id: FIN-C3
+    text: "Payment card data never lands in analytical stores unless tokenised."
+  - id: FIN-C4
+    text: "Access to customer-level data is role-based with masking for non-privileged consumers."
+
+regulatory_context:
+  - "Risk data aggregation and reporting principles"
+  - "Applicable privacy and data-protection law"
+  - "Payment card security standards"
+  - "Anti-money-laundering record keeping"
+
+typical_use_cases:
+  - "Deposit balances and average daily balance data product"
+  - "Customer 360 for relationship managers"
+  - "Loan portfolio and credit risk reporting"
+  - "Regulatory reporting data mart"

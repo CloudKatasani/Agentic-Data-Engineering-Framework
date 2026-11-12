@@ -1,0 +1,56 @@
+# Domain Pack - Telecommunications (starter). Extend per client; have Security and
+# Compliance confirm the controls list against the client's own obligations before first use.
+pack_id: telco
+pack_version: "0.1.0"
+status: starter-needs-client-review
+
+subdomains: [customer, product, order, billing, usage, network, service-assurance,
+             field-service, partner, revenue-assurance]
+
+core_entities:
+  - { name: Customer,        subdomain: customer }
+  - { name: Account,         subdomain: customer }
+  - { name: Subscription,    subdomain: product }
+  - { name: ProductOffering, subdomain: product }
+  - { name: Order,           subdomain: order }
+  - { name: UsageRecord,     subdomain: usage, note: "very high volume, event data" }
+  - { name: Invoice,         subdomain: billing }
+  - { name: NetworkElement,  subdomain: network }
+  - { name: TroubleTicket,   subdomain: service-assurance }
+  - { name: Interconnect,    subdomain: partner }
+
+glossary_seed:
+  - { term: ARPU, definition: "Average revenue per user for a period" }
+  - { term: Churn, definition: "Share of subscribers who leave in a period" }
+  - { term: CDR, definition: "Call or usage detail record" }
+
+classification_rules:
+  restricted:
+    - "Subscriber personal data and identifiers"
+    - "Call, message, and usage detail linked to a subscriber"
+    - "Location data derived from the network"
+    - "Payment data"
+  confidential:
+    - "Network topology and capacity, interconnect rates"
+
+controls:                      # each becomes a traceable requirement (NFR-###)
+  - id: TEL-C1
+    text: "Subscriber usage, call-detail, and location data are Restricted: metadata-only for agents; tests use synthetic records."
+  - id: TEL-C2
+    text: "Consent and purpose limits are modelled as data and enforced in consumption; marketing use requires a recorded consent basis."
+  - id: TEL-C3
+    text: "Retention periods for usage and billing data are explicit per dataset and enforced by the pipeline."
+  - id: TEL-C4
+    text: "Payment data stays out of analytical stores unless tokenised."
+
+regulatory_context:            # pointers for the human reviewer, not legal advice
+  - "Customer proprietary network information rules"
+  - "Applicable privacy and data-protection law"
+  - "Lawful-intercept and data-retention obligations"
+  - "Payment card security standards"
+
+typical_use_cases:
+  - "Customer 360 and churn data product"
+  - "Revenue assurance reconciliation"
+  - "Network performance and service-assurance analytics"
+  - "Usage mediation to billing pipeline"

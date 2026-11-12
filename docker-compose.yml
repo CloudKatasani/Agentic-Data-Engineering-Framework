@@ -1,0 +1,12 @@
+services:
+  adpe:
+    build: .
+    ports: ["8000:8000"]
+    volumes: ["adpe-data:/data"]
+    environment:
+      # Fernet key for the secret vault (generate: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
+      ADPE_MASTER_KEY: ${ADPE_MASTER_KEY:-}
+      # Bearer token required by the API/console when exposed beyond localhost
+      ADPE_API_TOKEN: ${ADPE_API_TOKEN:-}
+volumes:
+  adpe-data:

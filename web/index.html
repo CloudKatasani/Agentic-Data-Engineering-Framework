@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ADPE Console</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%232b59c3'/><path d='M8 22 L16 8 L24 22 Z' fill='none' stroke='white' stroke-width='3' stroke-linejoin='round'/></svg>">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">A</div>
+        <div><div class="brand-name">ADPE</div><div class="brand-sub">Agentic Data Engineering</div></div>
+      </div>
+      <nav id="nav">
+        <div class="nav-group">Delivery</div>
+        <a href="#/dashboard" data-route="dashboard">Dashboard</a>
+        <a href="#/new" data-route="new">New run</a>
+        <div class="nav-group">Configure</div>
+        <a href="#/agents" data-route="agents">Agents &amp; models</a>
+        <a href="#/providers" data-route="providers">Providers &amp; API keys</a>
+        <a href="#/stacks" data-route="stacks">Technology stacks</a>
+        <a href="#/integrations" data-route="integrations">Jira &amp; metadata</a>
+        <div class="nav-group">Tools</div>
+        <a href="#/studio" data-route="studio">Model &amp; catalog studio</a>
+        <a href="#/guardrails" data-route="guardrails">Guardrails</a>
+      </nav>
+      <div class="sidebar-foot">
+        <button class="btn ghost small" id="themeToggle" title="Toggle theme">Theme</button>
+        <span id="version" class="muted"></span>
+      </div>
+    </aside>
+    <main id="main"><div class="loading">Loading…</div></main>
+  </div>
+  <div id="toast"></div>
+  <div id="modal" class="modal hidden"><div class="modal-card"><div id="modalBody"></div></div></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

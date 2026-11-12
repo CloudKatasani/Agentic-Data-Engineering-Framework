@@ -1,0 +1,52 @@
+# Example Stack Profile B - lakehouse with pipeline and notebook tooling
+# Same logical design as Example A must bind to this profile without edits to logical files.
+profile_id: example-b
+profile_version: "1.0.0"
+portability_required: false
+
+variables:
+  org_prefix: "acme"
+  domain: "customer"
+
+environments:
+  dev:  { purpose: sandbox,    agent_max_class: A1, secrets_ref: "kv/adpe-dev" }
+  test: { purpose: shared,     agent_max_class: A2, secrets_ref: "kv/adpe-test" }
+  prod: { purpose: production, agent_max_class: A0, secrets_ref: "kv/adpe-prod" }
+
+slots:
+  cloud:              { tool: azure,       version: "n/a" }
+  object_storage:     { tool: adls,        version: "gen2" }
+  table_format:       { tool: delta,       version: "3" }
+  compute_engine:     { tool: databricks,  version: "current" }
+  ingestion:          { tool: azure-data-factory, version: "current" }
+  transformation:     { tool: spark-sql-pipelines, version: "current" }
+  orchestration:      { tool: platform-workflows, version: "current" }
+  data_quality:       { tool: pipeline-expectations, version: "current" }
+  catalog_governance: { tool: unity-catalog, version: "current" }
+  lineage:            { tool: catalog-native, version: "current" }
+  virtualization:     { tool: none, reason: "not required" }
+  semantic_layer:     { tool: none, reason: "metrics defined in BI model for v1" }
+  bi:                 { tool: power-bi,    version: "current" }
+  ai_consumption:     { tool: none, reason: "out of scope for v1" }
+  version_control:    { tool: azure-repos, version: "n/a" }
+  cicd:               { tool: azure-pipelines, version: "n/a" }
+  iac:                { tool: terraform,   version: "1" }
+  secrets:            { tool: azure-key-vault, version: "n/a" }
+  observability:      { tool: platform-native, version: "current" }
+  itsm:               { tool: jira,        version: "current" }
+  approval_channel:   { tool: pull-request-and-ticket, version: "n/a" }
+
+limits:
+  max_compute_size: "small"
+  auto_suspend_seconds: 600
+  query_timeout_seconds: 120
+  profiling_row_cap: 10000
+  monthly_cost_cap: 0
+
+standards:
+  layers: [bronze, silver, gold, data_product]
+  naming_case: lower_snake
+  history_default: type-2
+  timezone: UTC
+  branch_strategy: trunk-with-feature-branches
+  protected_branches: [main]
