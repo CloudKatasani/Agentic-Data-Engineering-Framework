@@ -1,4 +1,4 @@
-# Autonomous Data Platform Engineering (ADPE) - Build Specification
+# Agentic Data Engineering Framework (ADEF) - Build Specification
 
 Version 1.0 | Source: `one_shot_setup_DE_AI_team.pptx` | Model: Claude Fable 5.2 (`claude-fable-5-2`)
 
@@ -47,7 +47,7 @@ Business Intent -> Requirements -> Mapping -> Design -> Coding -> Testing -> Dep
                                        |
 +--------------------------------------v--------------------------------------+
 |  CONTROL PLANE                                                              |
-|  adpe-orchestrator  |  run workspace (files)  |  logs: decisions,           |
+|  adef-orchestrator  |  run workspace (files)  |  logs: decisions,           |
 |                     |  handoff envelopes      |  approvals, actions         |
 +----+-----------+-----------+-----------+-----------+-----------+------------+
      |           |           |           |           |           |
@@ -56,8 +56,8 @@ Business Intent -> Requirements -> Mapping -> Design -> Coding -> Testing -> Dep
      +-----------+-----+-----+-----------+-----------+-----------+-----+-------+
                        |                                   |
         SHARED SKILLS  |                                   |  ENFORCEMENT LAYER
-        adpe-shared-guardrails                             |  tool permissions, hooks,
-        adpe-stack-binding                                 |  branch protection, CI checks,
+        adef-shared-guardrails                             |  tool permissions, hooks,
+        adef-stack-binding                                 |  branch protection, CI checks,
                        |                                   |  least-privilege identities
         +--------------+---------------+
         | Stack Profile | Adapters | Domain Pack |
@@ -81,15 +81,15 @@ has exactly one writer.
 
 | # | Agent (skill name) | Owns | Receives | Produces | Gate | Hands to |
 |---|---|---|---|---|---|---|
-| 0 | `adpe-orchestrator` | Intake, routing, gates, assembly | Business request | Intake brief, run status, delivery pack | G0 | Requirements |
-| 1 | `adpe-intent-requirements` | What is needed | Intake brief | Requirements, acceptance criteria | G1 | Mapping |
-| 2 | `adpe-source-target-mapping` | Where it comes from | Requirements | Source inventory, mapping, quality rules, classification | G2 | Design |
-| 3 | `adpe-solution-design` | How it is structured | Mapping | Logical design, physical design, decision records, cost estimate, work packages | G3 | Build, Consumption |
-| 4 | `adpe-pipeline-build` | Code | Work packages | Code on a feature branch, unit tests, manifest, pull request | G4 | Test |
-| 5 | `adpe-test-quality` | Proof | Pull request | Test plan, results, defects, evidence pack | G5 | Release |
-| 6 | `adpe-release-deploy` | Promotion | Tested commit | Release plan, rollback, verification, notes | G6a, G6b | Operations, Consumption |
-| 7 | `adpe-operations-observability` | Running state | Live release | Monitors, runbook, incidents, cost reviews | G7 | Orchestrator |
-| 8 | `adpe-data-consumption` | Use of the data | Design, live release | Semantic model, metrics, BI dataset, contract, catalog entry, guide | G8 | Orchestrator |
+| 0 | `adef-orchestrator` | Intake, routing, gates, assembly | Business request | Intake brief, run status, delivery pack | G0 | Requirements |
+| 1 | `adef-intent-requirements` | What is needed | Intake brief | Requirements, acceptance criteria | G1 | Mapping |
+| 2 | `adef-source-target-mapping` | Where it comes from | Requirements | Source inventory, mapping, quality rules, classification | G2 | Design |
+| 3 | `adef-solution-design` | How it is structured | Mapping | Logical design, physical design, decision records, cost estimate, work packages | G3 | Build, Consumption |
+| 4 | `adef-pipeline-build` | Code | Work packages | Code on a feature branch, unit tests, manifest, pull request | G4 | Test |
+| 5 | `adef-test-quality` | Proof | Pull request | Test plan, results, defects, evidence pack | G5 | Release |
+| 6 | `adef-release-deploy` | Promotion | Tested commit | Release plan, rollback, verification, notes | G6a, G6b | Operations, Consumption |
+| 7 | `adef-operations-observability` | Running state | Live release | Monitors, runbook, incidents, cost reviews | G7 | Orchestrator |
+| 8 | `adef-data-consumption` | Use of the data | Design, live release | Semantic model, metrics, BI dataset, contract, catalog entry, guide | G8 | Orchestrator |
 
 Existing task-level agents or generators (for example mapping, modelling, classification,
 or quality-rule generators) should be registered as tools called by the owning stage
@@ -145,7 +145,7 @@ the traceability matrix. It adds no new content.
 Skills tell agents the rules. The platform must make the important ones impossible to
 break. Build each control below; a rule with no mechanism is only a suggestion.
 
-| Rule (from `adpe-shared-guardrails`) | Enforcement mechanism to build |
+| Rule (from `adef-shared-guardrails`) | Enforcement mechanism to build |
 |---|---|
 | One writer per stage folder | Per-agent file-write allowlist |
 | Action classes A0 to A3 | Pre-tool-call hook that classifies the call from the adapter's permission list and blocks A2 and A3 without a matching approval record |
@@ -190,7 +190,7 @@ Work top to bottom. Each task is done only when its acceptance criterion is met.
 
 | ID | Task | Acceptance criterion |
 |---|---|---|
-| E3-1 | Write the Stack Profile for the launch stack | `adpe-stack-binding` T1 reports no blocking gaps |
+| E3-1 | Write the Stack Profile for the launch stack | `adef-stack-binding` T1 reports no blocking gaps |
 | E3-2 | Write adapters for each bound slot of the launch stack, per the adapter contract | Each adapter passes its conformance test |
 | E3-3 | Connect tools for the bound slots (metadata read, repository, pipeline trigger, telemetry read) | Each tool call works with a sandbox identity |
 | E3-4 | Review the Domain Pack for the first client with Security and Compliance | Pack status changed from starter to reviewed |
@@ -338,7 +338,7 @@ If a day's exit check fails, fix it before moving on. Do not carry gaps forward.
       metadata access to the source? What is the cost cap?
    5. **Baseline.** How long, and how many person-hours, does a similar delivery take
       today? (Needed for section 8.4.)
-2. Read `skills/adpe-shared-guardrails/SKILL.md`. It is the contract everything else
+2. Read `skills/adef-shared-guardrails/SKILL.md`. It is the contract everything else
    depends on.
 3. Do backlog tasks E1-1 to E1-5.
 4. Build the enforcement in Epic E2 before giving any agent a tool that can change

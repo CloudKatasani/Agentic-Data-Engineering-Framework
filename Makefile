@@ -4,13 +4,13 @@ install:
 	$(PY) -m venv .venv && .venv/bin/pip install -r requirements.txt pytest
 
 run:
-	.venv/bin/python -m adpe serve
+	.venv/bin/python -m adef serve
 
 demo:
-	.venv/bin/python -m adpe demo --domain utilities --stack example-a
+	.venv/bin/python -m adef demo --domain utilities --stack example-a
 
 suite:
-	.venv/bin/python -m adpe suite
+	.venv/bin/python -m adef suite
 
 test:
 	.venv/bin/python -m pytest -q

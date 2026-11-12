@@ -4,12 +4,12 @@ import json
 
 from fastapi.testclient import TestClient
 
-from adpe.api.app import app
-from adpe.config import DEMO_DATA_DIR
-from adpe.connectors import jira_export
-from adpe.demo_data import build_pack, generate
-from adpe.engine.scenarios import SCENARIOS
-from adpe.modeling import importers
+from adef.api.app import app
+from adef.config import DEMO_DATA_DIR
+from adef.connectors import jira_export
+from adef.demo_data import build_pack, generate
+from adef.engine.scenarios import SCENARIOS
+from adef.modeling import importers
 from conftest import drive
 
 c = TestClient(app)
@@ -81,7 +81,7 @@ def test_run_from_demo_files_with_multi_vendor_fallback(engine):
     meta = importers.detect_and_parse("utilities-source-catalog.csv", files["source-metadata/utilities-source-catalog.csv"])
     rid = engine.create_run({"client_code": "DEMO", "domain_pack": "utilities", "jira_issues": issues, "source_metadata": meta})["run_id"]
     st = drive(engine, rid)
-    assert "has no API key configured" in st["usage"]["adpe-intent-requirements"]["fallback"]
+    assert "has no API key configured" in st["usage"]["adef-intent-requirements"]["fallback"]
     mp = engine.ws(rid).read_json("02-mapping/mapping.json")
     assert not [m for m in mp["mappings"] if m["confidence"] == "low"]
     c.post("/api/settings/agents/preset", json={"preset": "simulator"})

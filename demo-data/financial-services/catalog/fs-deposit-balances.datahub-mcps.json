@@ -11,7 +11,7 @@
         "customProperties": {
           "grain": "one row per customer version",
           "history": "type2",
-          "adpe_model": "fs-deposit-balances"
+          "adef_model": "fs-deposit-balances"
         }
       }
     }
@@ -104,7 +104,7 @@
         "customProperties": {
           "grain": "one row per product",
           "history": "type1",
-          "adpe_model": "fs-deposit-balances"
+          "adef_model": "fs-deposit-balances"
         }
       }
     }
@@ -178,7 +178,7 @@
         "customProperties": {
           "grain": "one row per account version",
           "history": "type2",
-          "adpe_model": "fs-deposit-balances"
+          "adef_model": "fs-deposit-balances"
         }
       }
     }
@@ -288,7 +288,7 @@
         "customProperties": {
           "grain": "one row per account per business day",
           "history": "none",
-          "adpe_model": "fs-deposit-balances"
+          "adef_model": "fs-deposit-balances"
         }
       }
     }

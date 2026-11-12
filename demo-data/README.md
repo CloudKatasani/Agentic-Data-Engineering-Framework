@@ -1,9 +1,9 @@
-# ADPE demo data packs
+# ADEF demo data packs
 
 Synthetic, deterministic demo files for each Domain Pack. Regenerate with:
 
 ```bash
-python -m adpe demo-data --out demo-data
+python -m adef demo-data --out demo-data
 ```
 
 | Domain | Jira project | Reference stack | Folder |

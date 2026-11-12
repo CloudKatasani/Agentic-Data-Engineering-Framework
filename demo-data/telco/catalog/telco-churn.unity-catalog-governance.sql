@@ -1,7 +1,7 @@
 -- Unity Catalog governance metadata for telco-churn (review; applying is A2, grants are A3)
 
 COMMENT ON TABLE main.acme_customer_gold.dim_subscriber IS 'Mobile subscriber';
-ALTER TABLE main.acme_customer_gold.dim_subscriber SET TAGS ('adpe_model' = 'telco-churn', 'grain' = 'one row per subscriber version');
+ALTER TABLE main.acme_customer_gold.dim_subscriber SET TAGS ('adef_model' = 'telco-churn', 'grain' = 'one row per subscriber version');
 ALTER TABLE main.acme_customer_gold.dim_subscriber ALTER COLUMN subscriber_id COMMENT 'Business key';
 ALTER TABLE main.acme_customer_gold.dim_subscriber ALTER COLUMN subscriber_id SET TAGS ('classification' = 'internal');
 ALTER TABLE main.acme_customer_gold.dim_subscriber ALTER COLUMN segment COMMENT 'Consumer, SME or Enterprise';
@@ -14,7 +14,7 @@ ALTER TABLE main.acme_customer_gold.dim_subscriber ALTER COLUMN msisdn COMMENT '
 ALTER TABLE main.acme_customer_gold.dim_subscriber ALTER COLUMN msisdn SET TAGS ('classification' = 'restricted');
 
 COMMENT ON TABLE main.acme_customer_gold.dim_product IS 'Product offering';
-ALTER TABLE main.acme_customer_gold.dim_product SET TAGS ('adpe_model' = 'telco-churn', 'grain' = 'one row per product');
+ALTER TABLE main.acme_customer_gold.dim_product SET TAGS ('adef_model' = 'telco-churn', 'grain' = 'one row per product');
 ALTER TABLE main.acme_customer_gold.dim_product ALTER COLUMN product_code COMMENT 'Business key';
 ALTER TABLE main.acme_customer_gold.dim_product ALTER COLUMN product_code SET TAGS ('classification' = 'internal');
 ALTER TABLE main.acme_customer_gold.dim_product ALTER COLUMN product_name COMMENT 'Product name';
@@ -23,7 +23,7 @@ ALTER TABLE main.acme_customer_gold.dim_product ALTER COLUMN product_family COMM
 ALTER TABLE main.acme_customer_gold.dim_product ALTER COLUMN product_family SET TAGS ('classification' = 'internal');
 
 COMMENT ON TABLE main.acme_customer_gold.fct_subscription_month IS 'Monthly revenue, usage and churn per subscriber';
-ALTER TABLE main.acme_customer_gold.fct_subscription_month SET TAGS ('adpe_model' = 'telco-churn', 'grain' = 'one row per subscriber per month');
+ALTER TABLE main.acme_customer_gold.fct_subscription_month SET TAGS ('adef_model' = 'telco-churn', 'grain' = 'one row per subscriber per month');
 ALTER TABLE main.acme_customer_gold.fct_subscription_month ALTER COLUMN subscription_month_id COMMENT 'Surrogate business key';
 ALTER TABLE main.acme_customer_gold.fct_subscription_month ALTER COLUMN subscription_month_id SET TAGS ('classification' = 'internal');
 ALTER TABLE main.acme_customer_gold.fct_subscription_month ALTER COLUMN subscriber_id COMMENT 'Subscriber';

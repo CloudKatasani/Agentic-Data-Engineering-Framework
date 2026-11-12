@@ -1,35 +1,35 @@
 [
   {
     "eventType": "COMPLETE",
-    "eventTime": "2026-11-12T19:20:16+00:00",
-    "producer": "https://adpe.local/adpe-framework",
+    "eventTime": "2026-11-12T19:52:54+00:00",
+    "producer": "https://adef.local/adef-framework",
     "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/definitions/RunEvent",
     "run": {
       "runId": "00000000-0000-4000-8000-000000000000"
     },
     "job": {
-      "namespace": "adpe://example-b",
+      "namespace": "adef://example-b",
       "name": "load_dim_subscriber"
     },
     "inputs": [
       {
-        "namespace": "adpe://example-b",
+        "namespace": "adef://example-b",
         "name": "crm.subscriber"
       }
     ],
     "outputs": [
       {
-        "namespace": "adpe://example-b",
+        "namespace": "adef://example-b",
         "name": "acme_customer_gold.dim_subscriber",
         "facets": {
           "columnLineage": {
-            "_producer": "https://adpe.local/adpe-framework",
+            "_producer": "https://adef.local/adef-framework",
             "_schemaURL": "https://openlineage.io/spec/facets/1-1-0/ColumnLineageDatasetFacet.json",
             "fields": {
               "subscriber_id": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://example-b",
+                    "namespace": "adef://example-b",
                     "name": "crm.subscriber",
                     "field": "subscriber_id"
                   }
@@ -39,7 +39,7 @@
               "segment": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://example-b",
+                    "namespace": "adef://example-b",
                     "name": "crm.subscriber",
                     "field": "segment"
                   }
@@ -49,7 +49,7 @@
               "status": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://example-b",
+                    "namespace": "adef://example-b",
                     "name": "crm.subscriber",
                     "field": "status"
                   }
@@ -59,7 +59,7 @@
               "activation_date": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://example-b",
+                    "namespace": "adef://example-b",
                     "name": "crm.subscriber",
                     "field": "activation_date"
                   }
@@ -69,7 +69,7 @@
               "msisdn": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://example-b",
+                    "namespace": "adef://example-b",
                     "name": "crm.subscriber",
                     "field": "msisdn"
                   }
@@ -84,35 +84,35 @@
   },
   {
     "eventType": "COMPLETE",
-    "eventTime": "2026-11-12T19:20:16+00:00",
-    "producer": "https://adpe.local/adpe-framework",
+    "eventTime": "2026-11-12T19:52:54+00:00",
+    "producer": "https://adef.local/adef-framework",
     "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/definitions/RunEvent",
     "run": {
       "runId": "00000000-0000-4000-8000-000000000000"
     },
     "job": {
-      "namespace": "adpe://example-b",
+      "namespace": "adef://example-b",
       "name": "load_dim_product"
     },
     "inputs": [
       {
-        "namespace": "adpe://example-b",
+        "namespace": "adef://example-b",
         "name": "bss.product_catalog"
       }
     ],
     "outputs": [
       {
-        "namespace": "adpe://example-b",
+        "namespace": "adef://example-b",
         "name": "acme_customer_gold.dim_product",
         "facets": {
           "columnLineage": {
-            "_producer": "https://adpe.local/adpe-framework",
+            "_producer": "https://adef.local/adef-framework",
             "_schemaURL": "https://openlineage.io/spec/facets/1-1-0/ColumnLineageDatasetFacet.json",
             "fields": {
               "product_code": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://example-b",
+                    "namespace": "adef://example-b",
                     "name": "bss.product_catalog",
                     "field": "product_code"
                   }
@@ -122,7 +122,7 @@
               "product_name": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://example-b",
+                    "namespace": "adef://example-b",
                     "name": "bss.product_catalog",
                     "field": "product_name"
                   }
@@ -132,7 +132,7 @@
               "product_family": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://example-b",
+                    "namespace": "adef://example-b",
                     "name": "bss.product_catalog",
                     "field": "product_family"
                   }
@@ -147,43 +147,43 @@
   },
   {
     "eventType": "COMPLETE",
-    "eventTime": "2026-11-12T19:20:16+00:00",
-    "producer": "https://adpe.local/adpe-framework",
+    "eventTime": "2026-11-12T19:52:54+00:00",
+    "producer": "https://adef.local/adef-framework",
     "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/definitions/RunEvent",
     "run": {
       "runId": "00000000-0000-4000-8000-000000000000"
     },
     "job": {
-      "namespace": "adpe://example-b",
+      "namespace": "adef://example-b",
       "name": "load_fct_subscription_month"
     },
     "inputs": [
       {
-        "namespace": "adpe://example-b",
+        "namespace": "adef://example-b",
         "name": "bss.subscription"
       },
       {
-        "namespace": "adpe://example-b",
+        "namespace": "adef://example-b",
         "name": "crm.churn_event"
       },
       {
-        "namespace": "adpe://example-b",
+        "namespace": "adef://example-b",
         "name": "usage.daily_usage_summary"
       }
     ],
     "outputs": [
       {
-        "namespace": "adpe://example-b",
+        "namespace": "adef://example-b",
         "name": "acme_customer_gold.fct_subscription_month",
         "facets": {
           "columnLineage": {
-            "_producer": "https://adpe.local/adpe-framework",
+            "_producer": "https://adef.local/adef-framework",
             "_schemaURL": "https://openlineage.io/spec/facets/1-1-0/ColumnLineageDatasetFacet.json",
             "fields": {
               "subscriber_id": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://example-b",
+                    "namespace": "adef://example-b",
                     "name": "bss.subscription",
                     "field": "subscriber_id"
                   }
@@ -193,7 +193,7 @@
               "product_code": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://example-b",
+                    "namespace": "adef://example-b",
                     "name": "bss.subscription",
                     "field": "product_code"
                   }
@@ -203,7 +203,7 @@
               "monthly_revenue": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://example-b",
+                    "namespace": "adef://example-b",
                     "name": "bss.subscription",
                     "field": "monthly_fee"
                   }
@@ -213,7 +213,7 @@
               "data_mb": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://example-b",
+                    "namespace": "adef://example-b",
                     "name": "usage.daily_usage_summary",
                     "field": "data_mb"
                   }
@@ -223,7 +223,7 @@
               "voice_min": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://example-b",
+                    "namespace": "adef://example-b",
                     "name": "usage.daily_usage_summary",
                     "field": "voice_min"
                   }
@@ -233,7 +233,7 @@
               "is_churned": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://example-b",
+                    "namespace": "adef://example-b",
                     "name": "crm.churn_event",
                     "field": "churn_date"
                   }

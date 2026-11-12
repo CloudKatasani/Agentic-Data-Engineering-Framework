@@ -11,7 +11,7 @@
         "customProperties": {
           "grain": "one row per store",
           "history": "type1",
-          "adpe_model": "retail-sales"
+          "adef_model": "retail-sales"
         }
       }
     }
@@ -97,7 +97,7 @@
         "customProperties": {
           "grain": "one row per product version",
           "history": "type2",
-          "adpe_model": "retail-sales"
+          "adef_model": "retail-sales"
         }
       }
     }
@@ -183,7 +183,7 @@
         "customProperties": {
           "grain": "one row per loyalty customer",
           "history": "type1",
-          "adpe_model": "retail-sales"
+          "adef_model": "retail-sales"
         }
       }
     }
@@ -264,7 +264,7 @@
         "customProperties": {
           "grain": "one row per order line",
           "history": "none",
-          "adpe_model": "retail-sales"
+          "adef_model": "retail-sales"
         }
       }
     }

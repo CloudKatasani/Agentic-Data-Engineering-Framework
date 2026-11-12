@@ -1,4 +1,4 @@
-/* ADPE console - dependency-free single-page app. */
+/* ADEF console - dependency-free single-page app. */
 "use strict";
 
 const $ = (s, el = document) => el.querySelector(s);
@@ -16,15 +16,15 @@ const store = {
 // ------------------------------------------------------------------ api + ui helpers
 async function api(method, path, body, raw = false) {
   const headers = {};
-  const token = store.get("adpe_token", "");
+  const token = store.get("adef_token", "");
   if (token) headers.Authorization = `Bearer ${token}`;
   const opts = { method, headers };
   if (body instanceof FormData) opts.body = body;
   else if (body !== undefined) { headers["Content-Type"] = "application/json"; opts.body = JSON.stringify(body); }
   const r = await fetch(`/api${path}`, opts);
   if (r.status === 401) {
-    const t = prompt("This console requires an API token (ADPE_API_TOKEN):");
-    if (t) { store.set("adpe_token", t); return api(method, path, body, raw); }
+    const t = prompt("This console requires an API token (ADEF_API_TOKEN):");
+    if (t) { store.set("adef_token", t); return api(method, path, body, raw); }
   }
   if (!r.ok) {
     let msg = r.statusText;
@@ -257,7 +257,7 @@ route("dashboard", async () => {
 // ------------------------------------------------------------------ new run wizard
 const WZ = { step: 0, data: null };
 function wizardDefaults() {
-  const meta = store.get("adpe_pending_metadata", null);
+  const meta = store.get("adef_pending_metadata", null);
   return {
     client_code: "ACME-ENERGY", domain_pack: "utilities", use_case: "", request: "", req_source: "jira",
     jql: SETTINGS.jira.default_jql && SETTINGS.jira.mode !== "demo" ? SETTINGS.jira.default_jql : "project = UTIL",
@@ -345,7 +345,7 @@ function wzStack(d) {
 }
 function wzMeta(d) {
   const m = d.source_metadata;
-  return `<p class="muted">Optional: import a data catalog or data-modelling export (CSV dictionary, ADPE/JSON model, DBML, or CREATE TABLE DDL from erwin, ER/Studio, SqlDBM, PowerDesigner, Collibra, Purview, Alation…). The Mapping agent reconciles every source against it.</p>
+  return `<p class="muted">Optional: import a data catalog or data-modelling export (CSV dictionary, ADEF/JSON model, DBML, or CREATE TABLE DDL from erwin, ER/Studio, SqlDBM, PowerDesigner, Collibra, Purview, Alation…). The Mapping agent reconciles every source against it.</p>
     <div class="row"><input type="file" id="metaFile" accept=".csv,.json,.dbml,.sql,.ddl,.txt" style="max-width:420px"><button class="btn" id="metaSample">Use sample source catalog (${esc(d.domain_pack)})</button></div>
     <div id="metaPreview" style="margin-top:12px">${m ? metaSummary(m) : '<div class="muted small">No metadata attached.</div>'}</div>`;
 }
@@ -390,7 +390,7 @@ function bindWizard() {
   const setMeta = (m) => { d.source_metadata = m; delete d.source_metadata.logical_model; $("#metaPreview").innerHTML = metaSummary(m); bindWizard(); };
   if ($("#metaFile")) $("#metaFile").onchange = async (e) => setMeta(await guard(() => uploadFile(e.target.files[0], "/metadata/import")));
   if ($("#metaSample")) $("#metaSample").onclick = async () => setMeta(await guard(() => importDemoFile(SAMPLE.catalog(d.domain_pack), "/metadata/import")));
-  if ($("#metaClear")) $("#metaClear").onclick = () => { d.source_metadata = null; store.set("adpe_pending_metadata", null); renderWizard(); };
+  if ($("#metaClear")) $("#metaClear").onclick = () => { d.source_metadata = null; store.set("adef_pending_metadata", null); renderWizard(); };
 }
 async function launch() {
   collect();
@@ -402,7 +402,7 @@ async function launch() {
     jira_issues: issues, stack_profile: allStacks().find((s) => s.profile_id === d.stack_id),
     source_metadata: d.source_metadata, approvers: d.approvers, compute_cost_cap: +d.compute_cost_cap, autopilot: d.autopilot };
   const r = await guard(() => api("POST", "/runs", body), "Run started");
-  store.set("adpe_pending_metadata", null);
+  store.set("adef_pending_metadata", null);
   WZ.data = null;
   location.hash = `#/run/${r.run_id}`;
 }
@@ -411,7 +411,7 @@ async function launch() {
 const RUN = { id: null, tab: "approvals", eventsNext: 0, file: null, status: null };
 route("run", async (rid) => {
   RUN.id = rid; RUN.eventsNext = 0; RUN.file = null;
-  RUN.tab = store.get("adpe_run_tab", "approvals");
+  RUN.tab = store.get("adef_run_tab", "approvals");
   main().innerHTML = `<div id="runHead"></div><div id="stepper" class="stepper"></div>
     <div class="run-layout"><div><div class="tabs" id="runTabs"></div><div id="runBody"></div></div>
     <div class="card"><div class="spread"><h2>Agent activity</h2><span class="badge b-info" id="liveBadge">live</span></div><div class="feed" id="feed"></div></div></div>`;
@@ -449,7 +449,7 @@ function renderRunHead(st) {
   }).join("");
   const tabs = [["approvals", "Approvals"], ["artifacts", "Artifacts"], ["model", "Data model & exports"], ["code", "Code"], ["handoffs", "Handoffs"], ["audit", "Audit logs"], ["metrics", "Agents & cost"]];
   $("#runTabs").innerHTML = tabs.map(([k, l]) => `<div class="tab ${RUN.tab === k ? "active" : ""}" data-tab="${k}">${l}</div>`).join("");
-  $$("#runTabs .tab").forEach((t) => (t.onclick = () => { RUN.tab = t.dataset.tab; store.set("adpe_run_tab", RUN.tab); renderRunHead(st); renderRunBody(); }));
+  $$("#runTabs .tab").forEach((t) => (t.onclick = () => { RUN.tab = t.dataset.tab; store.set("adef_run_tab", RUN.tab); renderRunHead(st); renderRunBody(); }));
 }
 async function renderRunBody() {
   const st = RUN.status; const el = $("#runBody");
@@ -605,14 +605,14 @@ route("agents", async () => {
   const rt = SETTINGS.runtime || {};
   const keyBadge = (pid) => pid === "demo" ? badge("", "offline") : ready[pid] ? badge("pass", "key configured") : badge(rt.simulate_unavailable_providers === false ? "fail" : "awaiting-approval", rt.simulate_unavailable_providers === false ? "no key - stage will fail" : "no key - simulated");
   const provOpts = (sel) => SETTINGS.providers.map((p) => `<option value="${esc(p.id)}" ${p.id === sel ? "selected" : ""}>${esc(p.label)}</option>`).join("");
-  const suggestions = (pid) => { const p = providerById(pid); return (CATALOG.provider_types[p?.type]?.models || []).map((m) => m.id).concat(store.get(`adpe_models_${pid}`, [])); };
+  const suggestions = (pid) => { const p = providerById(pid); return (CATALOG.provider_types[p?.type]?.models || []).map((m) => m.id).concat(store.get(`adef_models_${pid}`, [])); };
   main().innerHTML = `<div class="spread"><div><h1>Agents &amp; models</h1><div class="sub">Bind each of the nine agents to a provider and model. Mix providers freely - for example a top-tier model for Design and a fast model for Operations.</div></div>
     <div class="row"><button class="btn primary" id="saveAgents">Save bindings</button></div></div>
     <div class="card tight"><div class="row"><b>Team preset:</b><select id="presetSel" style="width:auto">${Object.entries(CATALOG.team_presets).map(([k, p]) => `<option value="${esc(k)}" ${k === rt.team_preset ? "selected" : ""}>${esc(p.label)}</option>`).join("")}</select>
       <span class="small muted" id="presetDesc"></span><button class="btn" id="applyPreset">Apply preset</button></div>
       <label style="display:flex;gap:8px;align-items:center;color:var(--text);font-weight:400;margin-top:10px"><input type="checkbox" id="simToggle" style="width:auto" ${rt.simulate_unavailable_providers !== false ? "checked" : ""}>
       Demo fallback: if an agent's provider has no key, can't be reached or rejects the key, run that stage on the Demo Simulator and label it as simulated. Turn this off for real client work.</label></div>
-    <div class="card tight"><div class="row"><b>Apply to all agents:</b><select id="allProv" style="width:auto">${provOpts(SETTINGS.agents["adpe-orchestrator"].provider_id)}</select><input id="allModel" list="dl-all" style="width:240px" placeholder="model"><datalist id="dl-all"></datalist><select id="allEffort" style="width:auto">${CATALOG.effort_levels.map((e) => `<option ${e === "medium" ? "selected" : ""}>${e}</option>`).join("")}</select><button class="btn" id="applyAll">Apply</button></div></div>
+    <div class="card tight"><div class="row"><b>Apply to all agents:</b><select id="allProv" style="width:auto">${provOpts(SETTINGS.agents["adef-orchestrator"].provider_id)}</select><input id="allModel" list="dl-all" style="width:240px" placeholder="model"><datalist id="dl-all"></datalist><select id="allEffort" style="width:auto">${CATALOG.effort_levels.map((e) => `<option ${e === "medium" ? "selected" : ""}>${e}</option>`).join("")}</select><button class="btn" id="applyAll">Apply</button></div></div>
     <div class="card"><div class="table-wrap"><table><thead><tr><th style="width:30%">Agent</th><th>Provider</th><th>Model</th><th>Effort</th><th>Max tokens</th><th>Key</th><th></th></tr></thead><tbody>
     ${CATALOG.agents.map((a) => { const b = SETTINGS.agents[a.name]; return `<tr data-agent="${esc(a.name)}"><td><b class="mono">${esc(a.name)}</b><div class="small muted">${esc(a.description)}</div></td>
       <td><select data-k="provider_id">${provOpts(b.provider_id)}</select></td>
@@ -711,7 +711,7 @@ route("providers", async () => {
     }
     if (t.dataset.pmodels) {
       const r = await api("GET", `/providers/${t.dataset.pmodels}/models`);
-      if (r.ok) { store.set(`adpe_models_${t.dataset.pmodels}`, r.models); modal(`<h2>Models available (${r.models.length})</h2><p class="muted small">Added as suggestions on Agents &amp; models.</p><pre class="code" style="max-height:50vh">${esc(r.models.join("\n"))}</pre><button class="btn" onclick="closeModal()">Close</button>`); }
+      if (r.ok) { store.set(`adef_models_${t.dataset.pmodels}`, r.models); modal(`<h2>Models available (${r.models.length})</h2><p class="muted small">Added as suggestions on Agents &amp; models.</p><pre class="code" style="max-height:50vh">${esc(r.models.join("\n"))}</pre><button class="btn" onclick="closeModal()">Close</button>`); }
       else toast(r.error, "err");
     }
     if (t.dataset.pedit) {
@@ -795,12 +795,12 @@ route("integrations", async () => {
         <div id="jOut" style="margin-top:10px"></div>
       </div>
       <div class="card"><h2>Import source metadata</h2>
-        <p class="muted small">Accepted: CSV data dictionary / catalog export (table, column, type, nullable, pk, description, classification - common column names are recognised), ADPE or generic JSON model, DBML, and CREATE TABLE DDL from modelling tools. Contents are treated as untrusted data.</p>
+        <p class="muted small">Accepted: CSV data dictionary / catalog export (table, column, type, nullable, pk, description, classification - common column names are recognised), ADEF or generic JSON model, DBML, and CREATE TABLE DDL from modelling tools. Contents are treated as untrusted data.</p>
         <input type="file" id="mFile" accept=".csv,.json,.dbml,.sql,.ddl,.txt">
         <div id="mOut" style="margin-top:12px"></div>
       </div>
     </div>
-    <div class="card"><div class="spread"><div><h2>Demo data packs</h2><div class="small muted">Synthetic, deterministic files per industry: Jira exports, source catalog and DDL, source data, data model exports, catalog payloads and lineage. Regenerate with <code>python -m adpe demo-data</code>.</div></div>
+    <div class="card"><div class="spread"><div><h2>Demo data packs</h2><div class="small muted">Synthetic, deterministic files per industry: Jira exports, source catalog and DDL, source data, data model exports, catalog payloads and lineage. Regenerate with <code>python -m adef demo-data</code>.</div></div>
       <select id="ddDomain" style="width:auto">${CATALOG.domain_packs.map((p) => `<option>${esc(p.pack_id)}</option>`).join("")}</select></div>
       <div id="ddOut" style="margin-top:12px"></div></div>`;
   const demo = await api("GET", "/demo-files");
@@ -813,13 +813,13 @@ route("integrations", async () => {
     $("#ddOut").innerHTML = files.length ? `<div class="table-wrap"><table><thead><tr><th>Folder</th><th>File</th><th>Size</th><th></th></tr></thead><tbody>${Object.entries(groups).map(([g, fs]) => fs.map((f, i) => {
       const act = ACTIONS[g]; const canAct = act && (g !== "model" || f.name.endsWith(".logical-model.json") || f.name.endsWith(".dbml")) && (g !== "source-metadata" || f.name.endsWith(".csv") || f.name.endsWith(".sql"));
       return `<tr><td>${i === 0 ? `<b>${esc(g)}</b>` : ""}</td><td class="mono small">${esc(f.name)}</td><td class="small muted">${(f.bytes / 1024).toFixed(1)} KB</td><td style="white-space:nowrap"><button class="btn small" data-dl="${esc(f.path)}">Download</button>${canAct ? ` <button class="btn small" data-act="${act[1]}" data-path="${esc(f.path)}">${act[0]}</button>` : ""}</td></tr>`;
-    }).join("")).join("")}</tbody></table></div>` : '<div class="empty">No demo files found. Run <code>python -m adpe demo-data</code>.</div>';
+    }).join("")).join("")}</tbody></table></div>` : '<div class="empty">No demo files found. Run <code>python -m adef demo-data</code>.</div>';
     $$("[data-dl]").forEach((b) => (b.onclick = () => download(`/demo-files/file?path=${encodeURIComponent(b.dataset.dl)}`, b.dataset.dl.split("/").pop())));
     $$("[data-act]").forEach((b) => (b.onclick = async () => {
       const path = b.dataset.path;
       if (b.dataset.act === "jira") showIssues(await guard(() => importDemoFile(path, "/jira/import")));
       if (b.dataset.act === "meta") showMeta(await guard(() => importDemoFile(path, "/metadata/import")));
-      if (b.dataset.act === "studio") { const m = await guard(() => importDemoFile(path, "/metadata/import")); store.set("adpe_studio_model", m.logical_model); location.hash = "#/studio"; }
+      if (b.dataset.act === "studio") { const m = await guard(() => importDemoFile(path, "/metadata/import")); store.set("adef_studio_model", m.logical_model); location.hash = "#/studio"; }
     }));
   };
   $("#ddDomain").onchange = renderDemo;
@@ -831,8 +831,8 @@ route("integrations", async () => {
   const showMeta = (m) => {
     const model = m.logical_model; delete m.logical_model;
     $("#mOut").innerHTML = metaSummary(m) + `<div class="row" style="margin-top:10px"><button class="btn primary" id="useMeta">Use in next run</button><button class="btn" id="toStudio">Open in model studio</button></div>`;
-    $("#useMeta").onclick = () => { store.set("adpe_pending_metadata", m); WZ.data = null; toast("Attached to the next run", "ok"); location.hash = "#/new"; };
-    $("#toStudio").onclick = () => { store.set("adpe_studio_model", model); location.hash = "#/studio"; };
+    $("#useMeta").onclick = () => { store.set("adef_pending_metadata", m); WZ.data = null; toast("Attached to the next run", "ok"); location.hash = "#/new"; };
+    $("#toStudio").onclick = () => { store.set("adef_studio_model", model); location.hash = "#/studio"; };
     if ($("#metaClear")) $("#metaClear").onclick = () => ($("#mOut").innerHTML = "");
   };
   $("#jFile").onchange = async (e) => showIssues(await guard(() => uploadFile(e.target.files[0], "/jira/import")));
@@ -852,7 +852,7 @@ route("integrations", async () => {
 // ------------------------------------------------------------------ model studio
 route("studio", async () => {
   const runs = (await api("GET", "/runs")).filter((r) => ["design", "build", "test", "release", "operations", "consumption", "assembly", null].includes(r.current) || r.status === "completed");
-  let model = store.get("adpe_studio_model", null);
+  let model = store.get("adef_studio_model", null);
   main().innerHTML = `<h1>Model &amp; catalog studio</h1><div class="sub">Convert between data-modelling and data-catalog formats: load a model from a run or import an export, then download it for another tool or stack.</div>
     <div class="card"><div class="field-row"><div><label>Load from a run</label><select id="stRun"><option value="">-</option>${runs.map((r) => `<option value="${esc(r.run_id)}">${esc(r.run_id)} · ${esc(r.use_case)}</option>`).join("")}</select></div>
       <div><label>…or import a file</label><input type="file" id="stFile" accept=".csv,.json,.dbml,.sql,.ddl,.txt"></div>
@@ -870,13 +870,13 @@ route("studio", async () => {
       a.download = (r.headers.get("content-disposition") || "").split("filename=")[1]?.replaceAll('"', "") || "export.txt"; a.click();
     }));
   };
-  $("#stRun").onchange = async () => { if (!$("#stRun").value) return; model = await guard(() => api("GET", `/runs/${$("#stRun").value}/model`)); store.set("adpe_studio_model", model); render(); };
-  $("#stFile").onchange = async (e) => { const m = await guard(() => uploadFile(e.target.files[0], "/metadata/import")); model = m.logical_model; store.set("adpe_studio_model", model); render(); };
+  $("#stRun").onchange = async () => { if (!$("#stRun").value) return; model = await guard(() => api("GET", `/runs/${$("#stRun").value}/model`)); store.set("adef_studio_model", model); render(); };
+  $("#stFile").onchange = async (e) => { const m = await guard(() => uploadFile(e.target.files[0], "/metadata/import")); model = m.logical_model; store.set("adef_studio_model", model); render(); };
   $("#stSample").onchange = async () => {
     const dom = $("#stSample").value; if (!dom) return;
     const f = (await api("GET", "/demo-files")).find((x) => x.domain === dom && x.name.endsWith(".logical-model.json"));
-    if (!f) { toast("No sample model found - run python -m adpe demo-data", "err"); return; }
-    model = (await guard(() => importDemoFile(f.path, "/metadata/import"))).logical_model; store.set("adpe_studio_model", model); render();
+    if (!f) { toast("No sample model found - run python -m adef demo-data", "err"); return; }
+    model = (await guard(() => importDemoFile(f.path, "/metadata/import"))).logical_model; store.set("adef_studio_model", model); render();
   };
   render();
 });
@@ -899,12 +899,12 @@ route("guardrails", async () => {
 
 // ------------------------------------------------------------------ boot
 (function theme() {
-  const saved = store.get("adpe_theme", null);
+  const saved = store.get("adef_theme", null);
   if (saved) document.documentElement.dataset.theme = saved;
   $("#themeToggle").onclick = () => {
     const dark = document.documentElement.dataset.theme === "dark" || (!document.documentElement.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
     document.documentElement.dataset.theme = dark ? "light" : "dark";
-    store.set("adpe_theme", document.documentElement.dataset.theme);
+    store.set("adef_theme", document.documentElement.dataset.theme);
   };
 })();
 window.closeModal = closeModal;
@@ -914,5 +914,5 @@ window.closeModal = closeModal;
     const h = await api("GET", "/health");
     $("#version").textContent = `v${h.version}`;
     await navigate();
-  } catch (e) { main().innerHTML = `<div class="card"><div class="notice bad">Cannot reach the ADPE API: ${esc(e.message)}</div></div>`; }
+  } catch (e) { main().innerHTML = `<div class="card"><div class="notice bad">Cannot reach the ADEF API: ${esc(e.message)}</div></div>`; }
 })();

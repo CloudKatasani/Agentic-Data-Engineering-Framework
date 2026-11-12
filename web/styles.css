@@ -1,12 +1,12 @@
 /* Calibri everywhere: the installed Calibri when present (Windows / Office), otherwise the bundled
    Carlito, which is metric-compatible with Calibri (SIL OFL 1.1, see fonts/OFL.txt). */
-@font-face { font-family: "ADPE Calibri"; font-style: normal; font-weight: 100 550; font-display: swap;
+@font-face { font-family: "ADEF Calibri"; font-style: normal; font-weight: 100 550; font-display: swap;
   src: local("Calibri"), local("Calibri Regular"), url("fonts/Carlito-Regular.woff2") format("woff2"); }
-@font-face { font-family: "ADPE Calibri"; font-style: normal; font-weight: 551 900; font-display: swap;
+@font-face { font-family: "ADEF Calibri"; font-style: normal; font-weight: 551 900; font-display: swap;
   src: local("Calibri Bold"), local("Calibri-Bold"), url("fonts/Carlito-Bold.woff2") format("woff2"); }
-@font-face { font-family: "ADPE Calibri"; font-style: italic; font-weight: 100 550; font-display: swap;
+@font-face { font-family: "ADEF Calibri"; font-style: italic; font-weight: 100 550; font-display: swap;
   src: local("Calibri Italic"), local("Calibri-Italic"), url("fonts/Carlito-Italic.woff2") format("woff2"); }
-@font-face { font-family: "ADPE Calibri"; font-style: italic; font-weight: 551 900; font-display: swap;
+@font-face { font-family: "ADEF Calibri"; font-style: italic; font-weight: 551 900; font-display: swap;
   src: local("Calibri Bold Italic"), local("Calibri-BoldItalic"), url("fonts/Carlito-BoldItalic.woff2") format("woff2"); }
 :root {
   --bg: #f5f7fb; --panel: #ffffff; --panel-2: #f0f3f9; --text: #172033; --muted: #5d6a82; --border: #dde3ee;
@@ -14,7 +14,7 @@
   --bad: #b42335; --bad-bg: #fde8eb; --info: #1d6fa5; --info-bg: #e3f1fb; --violet: #6b46c1; --violet-bg: #efe9fb;
   --code: #0f172a; --code-text: #e2e8f0; --shadow: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
   --radius: 10px; --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --sans: "ADPE Calibri", Calibri, Carlito, sans-serif;
+  --sans: "ADEF Calibri", Calibri, Carlito, sans-serif;
 }
 :root[data-theme="dark"] {
   --bg: #0d1220; --panel: #151b2c; --panel-2: #1b2337; --text: #e6eaf2; --muted: #98a3ba; --border: #2a3450;

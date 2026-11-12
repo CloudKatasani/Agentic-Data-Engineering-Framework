@@ -4,7 +4,7 @@
       "typeName": "rdbms_db",
       "guid": "-1",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold",
+        "qualifiedName": "adef.acme_customer_gold",
         "name": "acme_customer_gold",
         "description": "Subscriber churn and ARPU data product"
       }
@@ -13,7 +13,7 @@
       "typeName": "rdbms_table",
       "guid": "-2",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.dim_subscriber",
+        "qualifiedName": "adef.acme_customer_gold.dim_subscriber",
         "name": "dim_subscriber",
         "description": "Mobile subscriber",
         "comment": "grain: one row per subscriber version",
@@ -27,7 +27,7 @@
       "typeName": "rdbms_column",
       "guid": "-3",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.dim_subscriber.subscriber_id",
+        "qualifiedName": "adef.acme_customer_gold.dim_subscriber.subscriber_id",
         "name": "subscriber_id",
         "data_type": "STRING",
         "isPrimaryKey": true,
@@ -43,7 +43,7 @@
       "typeName": "rdbms_column",
       "guid": "-4",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.dim_subscriber.segment",
+        "qualifiedName": "adef.acme_customer_gold.dim_subscriber.segment",
         "name": "segment",
         "data_type": "STRING",
         "isPrimaryKey": false,
@@ -59,7 +59,7 @@
       "typeName": "rdbms_column",
       "guid": "-5",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.dim_subscriber.status",
+        "qualifiedName": "adef.acme_customer_gold.dim_subscriber.status",
         "name": "status",
         "data_type": "STRING",
         "isPrimaryKey": false,
@@ -75,7 +75,7 @@
       "typeName": "rdbms_column",
       "guid": "-6",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.dim_subscriber.activation_date",
+        "qualifiedName": "adef.acme_customer_gold.dim_subscriber.activation_date",
         "name": "activation_date",
         "data_type": "DATE",
         "isPrimaryKey": false,
@@ -91,7 +91,7 @@
       "typeName": "rdbms_column",
       "guid": "-7",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.dim_subscriber.msisdn",
+        "qualifiedName": "adef.acme_customer_gold.dim_subscriber.msisdn",
         "name": "msisdn",
         "data_type": "STRING",
         "isPrimaryKey": false,
@@ -104,7 +104,7 @@
       },
       "classifications": [
         {
-          "typeName": "ADPE_RESTRICTED"
+          "typeName": "ADEF_RESTRICTED"
         }
       ]
     },
@@ -112,7 +112,7 @@
       "typeName": "rdbms_table",
       "guid": "-8",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.dim_product",
+        "qualifiedName": "adef.acme_customer_gold.dim_product",
         "name": "dim_product",
         "description": "Product offering",
         "comment": "grain: one row per product",
@@ -126,7 +126,7 @@
       "typeName": "rdbms_column",
       "guid": "-9",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.dim_product.product_code",
+        "qualifiedName": "adef.acme_customer_gold.dim_product.product_code",
         "name": "product_code",
         "data_type": "STRING",
         "isPrimaryKey": true,
@@ -142,7 +142,7 @@
       "typeName": "rdbms_column",
       "guid": "-10",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.dim_product.product_name",
+        "qualifiedName": "adef.acme_customer_gold.dim_product.product_name",
         "name": "product_name",
         "data_type": "STRING",
         "isPrimaryKey": false,
@@ -158,7 +158,7 @@
       "typeName": "rdbms_column",
       "guid": "-11",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.dim_product.product_family",
+        "qualifiedName": "adef.acme_customer_gold.dim_product.product_family",
         "name": "product_family",
         "data_type": "STRING",
         "isPrimaryKey": false,
@@ -174,7 +174,7 @@
       "typeName": "rdbms_table",
       "guid": "-12",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.fct_subscription_month",
+        "qualifiedName": "adef.acme_customer_gold.fct_subscription_month",
         "name": "fct_subscription_month",
         "description": "Monthly revenue, usage and churn per subscriber",
         "comment": "grain: one row per subscriber per month",
@@ -188,7 +188,7 @@
       "typeName": "rdbms_column",
       "guid": "-13",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.fct_subscription_month.subscription_month_id",
+        "qualifiedName": "adef.acme_customer_gold.fct_subscription_month.subscription_month_id",
         "name": "subscription_month_id",
         "data_type": "STRING",
         "isPrimaryKey": true,
@@ -204,7 +204,7 @@
       "typeName": "rdbms_column",
       "guid": "-14",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.fct_subscription_month.subscriber_id",
+        "qualifiedName": "adef.acme_customer_gold.fct_subscription_month.subscriber_id",
         "name": "subscriber_id",
         "data_type": "STRING",
         "isPrimaryKey": false,
@@ -220,7 +220,7 @@
       "typeName": "rdbms_column",
       "guid": "-15",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.fct_subscription_month.product_code",
+        "qualifiedName": "adef.acme_customer_gold.fct_subscription_month.product_code",
         "name": "product_code",
         "data_type": "STRING",
         "isPrimaryKey": false,
@@ -236,7 +236,7 @@
       "typeName": "rdbms_column",
       "guid": "-16",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.fct_subscription_month.month_start",
+        "qualifiedName": "adef.acme_customer_gold.fct_subscription_month.month_start",
         "name": "month_start",
         "data_type": "DATE",
         "isPrimaryKey": false,
@@ -252,7 +252,7 @@
       "typeName": "rdbms_column",
       "guid": "-17",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.fct_subscription_month.monthly_revenue",
+        "qualifiedName": "adef.acme_customer_gold.fct_subscription_month.monthly_revenue",
         "name": "monthly_revenue",
         "data_type": "DECIMAL(12,2)",
         "isPrimaryKey": false,
@@ -268,7 +268,7 @@
       "typeName": "rdbms_column",
       "guid": "-18",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.fct_subscription_month.data_mb",
+        "qualifiedName": "adef.acme_customer_gold.fct_subscription_month.data_mb",
         "name": "data_mb",
         "data_type": "DECIMAL(14,2)",
         "isPrimaryKey": false,
@@ -284,7 +284,7 @@
       "typeName": "rdbms_column",
       "guid": "-19",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.fct_subscription_month.voice_min",
+        "qualifiedName": "adef.acme_customer_gold.fct_subscription_month.voice_min",
         "name": "voice_min",
         "data_type": "DECIMAL(10,2)",
         "isPrimaryKey": false,
@@ -300,7 +300,7 @@
       "typeName": "rdbms_column",
       "guid": "-20",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.fct_subscription_month.is_churned",
+        "qualifiedName": "adef.acme_customer_gold.fct_subscription_month.is_churned",
         "name": "is_churned",
         "data_type": "BOOLEAN",
         "isPrimaryKey": false,

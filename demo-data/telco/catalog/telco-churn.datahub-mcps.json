@@ -11,7 +11,7 @@
         "customProperties": {
           "grain": "one row per subscriber version",
           "history": "type2",
-          "adpe_model": "telco-churn"
+          "adef_model": "telco-churn"
         }
       }
     }
@@ -116,7 +116,7 @@
         "customProperties": {
           "grain": "one row per product",
           "history": "type1",
-          "adpe_model": "telco-churn"
+          "adef_model": "telco-churn"
         }
       }
     }
@@ -190,7 +190,7 @@
         "customProperties": {
           "grain": "one row per subscriber per month",
           "history": "none",
-          "adpe_model": "telco-churn"
+          "adef_model": "telco-churn"
         }
       }
     }

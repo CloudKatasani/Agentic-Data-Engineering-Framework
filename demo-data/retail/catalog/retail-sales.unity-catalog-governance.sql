@@ -1,7 +1,7 @@
 -- Unity Catalog governance metadata for retail-sales (review; applying is A2, grants are A3)
 
 COMMENT ON TABLE main.acme_customer_gold.dim_store IS 'Physical store';
-ALTER TABLE main.acme_customer_gold.dim_store SET TAGS ('adpe_model' = 'retail-sales', 'grain' = 'one row per store');
+ALTER TABLE main.acme_customer_gold.dim_store SET TAGS ('adef_model' = 'retail-sales', 'grain' = 'one row per store');
 ALTER TABLE main.acme_customer_gold.dim_store ALTER COLUMN store_id COMMENT 'Business key';
 ALTER TABLE main.acme_customer_gold.dim_store ALTER COLUMN store_id SET TAGS ('classification' = 'internal');
 ALTER TABLE main.acme_customer_gold.dim_store ALTER COLUMN store_name COMMENT 'Store name';
@@ -12,7 +12,7 @@ ALTER TABLE main.acme_customer_gold.dim_store ALTER COLUMN format COMMENT 'FLAGS
 ALTER TABLE main.acme_customer_gold.dim_store ALTER COLUMN format SET TAGS ('classification' = 'internal');
 
 COMMENT ON TABLE main.acme_customer_gold.dim_product IS 'Sellable product';
-ALTER TABLE main.acme_customer_gold.dim_product SET TAGS ('adpe_model' = 'retail-sales', 'grain' = 'one row per product version');
+ALTER TABLE main.acme_customer_gold.dim_product SET TAGS ('adef_model' = 'retail-sales', 'grain' = 'one row per product version');
 ALTER TABLE main.acme_customer_gold.dim_product ALTER COLUMN product_id COMMENT 'Business key';
 ALTER TABLE main.acme_customer_gold.dim_product ALTER COLUMN product_id SET TAGS ('classification' = 'internal');
 ALTER TABLE main.acme_customer_gold.dim_product ALTER COLUMN product_name COMMENT 'Product name';
@@ -23,7 +23,7 @@ ALTER TABLE main.acme_customer_gold.dim_product ALTER COLUMN brand COMMENT 'Bran
 ALTER TABLE main.acme_customer_gold.dim_product ALTER COLUMN brand SET TAGS ('classification' = 'internal');
 
 COMMENT ON TABLE main.acme_customer_gold.dim_customer IS 'Loyalty customer';
-ALTER TABLE main.acme_customer_gold.dim_customer SET TAGS ('adpe_model' = 'retail-sales', 'grain' = 'one row per loyalty customer');
+ALTER TABLE main.acme_customer_gold.dim_customer SET TAGS ('adef_model' = 'retail-sales', 'grain' = 'one row per loyalty customer');
 ALTER TABLE main.acme_customer_gold.dim_customer ALTER COLUMN customer_id COMMENT 'Business key';
 ALTER TABLE main.acme_customer_gold.dim_customer ALTER COLUMN customer_id SET TAGS ('classification' = 'internal');
 ALTER TABLE main.acme_customer_gold.dim_customer ALTER COLUMN loyalty_tier COMMENT 'NONE, BRONZE, SILVER or GOLD';
@@ -32,7 +32,7 @@ ALTER TABLE main.acme_customer_gold.dim_customer ALTER COLUMN email COMMENT 'Ema
 ALTER TABLE main.acme_customer_gold.dim_customer ALTER COLUMN email SET TAGS ('classification' = 'restricted');
 
 COMMENT ON TABLE main.acme_customer_gold.fct_sales_line IS 'Store sales line';
-ALTER TABLE main.acme_customer_gold.fct_sales_line SET TAGS ('adpe_model' = 'retail-sales', 'grain' = 'one row per order line');
+ALTER TABLE main.acme_customer_gold.fct_sales_line SET TAGS ('adef_model' = 'retail-sales', 'grain' = 'one row per order line');
 ALTER TABLE main.acme_customer_gold.fct_sales_line ALTER COLUMN order_line_id COMMENT 'Business key';
 ALTER TABLE main.acme_customer_gold.fct_sales_line ALTER COLUMN order_line_id SET TAGS ('classification' = 'internal');
 ALTER TABLE main.acme_customer_gold.fct_sales_line ALTER COLUMN order_id COMMENT 'Order (basket)';

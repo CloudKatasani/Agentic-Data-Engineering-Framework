@@ -1,35 +1,35 @@
 [
   {
     "eventType": "COMPLETE",
-    "eventTime": "2026-11-12T19:20:16+00:00",
-    "producer": "https://adpe.local/adpe-framework",
+    "eventTime": "2026-11-12T19:52:54+00:00",
+    "producer": "https://adef.local/adef-framework",
     "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/definitions/RunEvent",
     "run": {
       "runId": "00000000-0000-4000-8000-000000000000"
     },
     "job": {
-      "namespace": "adpe://azure-fabric",
+      "namespace": "adef://azure-fabric",
       "name": "load_dim_customer"
     },
     "inputs": [
       {
-        "namespace": "adpe://azure-fabric",
+        "namespace": "adef://azure-fabric",
         "name": "cbs.customer"
       }
     ],
     "outputs": [
       {
-        "namespace": "adpe://azure-fabric",
+        "namespace": "adef://azure-fabric",
         "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER",
         "facets": {
           "columnLineage": {
-            "_producer": "https://adpe.local/adpe-framework",
+            "_producer": "https://adef.local/adef-framework",
             "_schemaURL": "https://openlineage.io/spec/facets/1-1-0/ColumnLineageDatasetFacet.json",
             "fields": {
               "customer_id": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://azure-fabric",
+                    "namespace": "adef://azure-fabric",
                     "name": "cbs.customer",
                     "field": "customer_id"
                   }
@@ -39,7 +39,7 @@
               "segment": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://azure-fabric",
+                    "namespace": "adef://azure-fabric",
                     "name": "cbs.customer",
                     "field": "segment"
                   }
@@ -49,7 +49,7 @@
               "kyc_status": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://azure-fabric",
+                    "namespace": "adef://azure-fabric",
                     "name": "cbs.customer",
                     "field": "kyc_status"
                   }
@@ -59,7 +59,7 @@
               "full_name": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://azure-fabric",
+                    "namespace": "adef://azure-fabric",
                     "name": "cbs.customer",
                     "field": "full_name"
                   }
@@ -74,35 +74,35 @@
   },
   {
     "eventType": "COMPLETE",
-    "eventTime": "2026-11-12T19:20:16+00:00",
-    "producer": "https://adpe.local/adpe-framework",
+    "eventTime": "2026-11-12T19:52:54+00:00",
+    "producer": "https://adef.local/adef-framework",
     "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/definitions/RunEvent",
     "run": {
       "runId": "00000000-0000-4000-8000-000000000000"
     },
     "job": {
-      "namespace": "adpe://azure-fabric",
+      "namespace": "adef://azure-fabric",
       "name": "load_dim_product"
     },
     "inputs": [
       {
-        "namespace": "adpe://azure-fabric",
+        "namespace": "adef://azure-fabric",
         "name": "cbs.product"
       }
     ],
     "outputs": [
       {
-        "namespace": "adpe://azure-fabric",
+        "namespace": "adef://azure-fabric",
         "name": "ACME_CUSTOMER_CURATED.DIM_PRODUCT",
         "facets": {
           "columnLineage": {
-            "_producer": "https://adpe.local/adpe-framework",
+            "_producer": "https://adef.local/adef-framework",
             "_schemaURL": "https://openlineage.io/spec/facets/1-1-0/ColumnLineageDatasetFacet.json",
             "fields": {
               "product_code": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://azure-fabric",
+                    "namespace": "adef://azure-fabric",
                     "name": "cbs.product",
                     "field": "product_code"
                   }
@@ -112,7 +112,7 @@
               "product_name": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://azure-fabric",
+                    "namespace": "adef://azure-fabric",
                     "name": "cbs.product",
                     "field": "product_name"
                   }
@@ -122,7 +122,7 @@
               "product_type": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://azure-fabric",
+                    "namespace": "adef://azure-fabric",
                     "name": "cbs.product",
                     "field": "product_type"
                   }
@@ -137,35 +137,35 @@
   },
   {
     "eventType": "COMPLETE",
-    "eventTime": "2026-11-12T19:20:16+00:00",
-    "producer": "https://adpe.local/adpe-framework",
+    "eventTime": "2026-11-12T19:52:54+00:00",
+    "producer": "https://adef.local/adef-framework",
     "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/definitions/RunEvent",
     "run": {
       "runId": "00000000-0000-4000-8000-000000000000"
     },
     "job": {
-      "namespace": "adpe://azure-fabric",
+      "namespace": "adef://azure-fabric",
       "name": "load_dim_account"
     },
     "inputs": [
       {
-        "namespace": "adpe://azure-fabric",
+        "namespace": "adef://azure-fabric",
         "name": "cbs.account"
       }
     ],
     "outputs": [
       {
-        "namespace": "adpe://azure-fabric",
+        "namespace": "adef://azure-fabric",
         "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT",
         "facets": {
           "columnLineage": {
-            "_producer": "https://adpe.local/adpe-framework",
+            "_producer": "https://adef.local/adef-framework",
             "_schemaURL": "https://openlineage.io/spec/facets/1-1-0/ColumnLineageDatasetFacet.json",
             "fields": {
               "account_id": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://azure-fabric",
+                    "namespace": "adef://azure-fabric",
                     "name": "cbs.account",
                     "field": "account_id"
                   }
@@ -175,7 +175,7 @@
               "customer_id": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://azure-fabric",
+                    "namespace": "adef://azure-fabric",
                     "name": "cbs.account",
                     "field": "customer_id"
                   }
@@ -185,7 +185,7 @@
               "product_code": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://azure-fabric",
+                    "namespace": "adef://azure-fabric",
                     "name": "cbs.account",
                     "field": "product_code"
                   }
@@ -195,7 +195,7 @@
               "branch_code": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://azure-fabric",
+                    "namespace": "adef://azure-fabric",
                     "name": "cbs.account",
                     "field": "branch_code"
                   }
@@ -205,7 +205,7 @@
               "status": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://azure-fabric",
+                    "namespace": "adef://azure-fabric",
                     "name": "cbs.account",
                     "field": "status"
                   }
@@ -215,7 +215,7 @@
               "currency": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://azure-fabric",
+                    "namespace": "adef://azure-fabric",
                     "name": "cbs.account",
                     "field": "currency"
                   }
@@ -230,35 +230,35 @@
   },
   {
     "eventType": "COMPLETE",
-    "eventTime": "2026-11-12T19:20:16+00:00",
-    "producer": "https://adpe.local/adpe-framework",
+    "eventTime": "2026-11-12T19:52:54+00:00",
+    "producer": "https://adef.local/adef-framework",
     "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/definitions/RunEvent",
     "run": {
       "runId": "00000000-0000-4000-8000-000000000000"
     },
     "job": {
-      "namespace": "adpe://azure-fabric",
+      "namespace": "adef://azure-fabric",
       "name": "load_fct_daily_balance"
     },
     "inputs": [
       {
-        "namespace": "adpe://azure-fabric",
+        "namespace": "adef://azure-fabric",
         "name": "cbs.daily_balance"
       }
     ],
     "outputs": [
       {
-        "namespace": "adpe://azure-fabric",
+        "namespace": "adef://azure-fabric",
         "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE",
         "facets": {
           "columnLineage": {
-            "_producer": "https://adpe.local/adpe-framework",
+            "_producer": "https://adef.local/adef-framework",
             "_schemaURL": "https://openlineage.io/spec/facets/1-1-0/ColumnLineageDatasetFacet.json",
             "fields": {
               "account_id": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://azure-fabric",
+                    "namespace": "adef://azure-fabric",
                     "name": "cbs.daily_balance",
                     "field": "account_id"
                   }
@@ -268,7 +268,7 @@
               "balance_date": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://azure-fabric",
+                    "namespace": "adef://azure-fabric",
                     "name": "cbs.daily_balance",
                     "field": "balance_date"
                   }
@@ -278,7 +278,7 @@
               "ledger_balance": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://azure-fabric",
+                    "namespace": "adef://azure-fabric",
                     "name": "cbs.daily_balance",
                     "field": "ledger_balance"
                   }
@@ -288,7 +288,7 @@
               "available_balance": {
                 "inputFields": [
                   {
-                    "namespace": "adpe://azure-fabric",
+                    "namespace": "adef://azure-fabric",
                     "name": "cbs.daily_balance",
                     "field": "available_balance"
                   }
