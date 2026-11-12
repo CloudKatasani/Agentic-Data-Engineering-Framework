@@ -173,7 +173,7 @@ adpe/                 runtime (Python package)
   modeling/           logical model, physical binding, 16 exporters, importers
   connectors/jira.py  Jira Cloud / Data Center / demo
   catalog/            capability slots, Stack Profile presets, providers, Domain Packs
-web/                  console (no build step, no external assets)
+web/                  console (no build step, no external assets; fonts/ bundles Carlito, OFL 1.1)
 skills/ agents/       the specification pack (agent prompts and skills)
 docs/spec/            original build spec and spec-pack archive
 adapters/ evals/      adapter library (to be reviewed per client), evaluation notes
