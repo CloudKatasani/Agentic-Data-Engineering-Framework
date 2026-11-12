@@ -3,8 +3,8 @@ import sys
 import tempfile
 from pathlib import Path
 
-_HOME = tempfile.mkdtemp(prefix="adpe-test-")
-os.environ["ADPE_HOME"] = _HOME
+_HOME = tempfile.mkdtemp(prefix="adef-test-")
+os.environ["ADEF_HOME"] = _HOME
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import time  # noqa: E402
@@ -14,7 +14,7 @@ import pytest  # noqa: E402
 
 @pytest.fixture(scope="session")
 def engine():
-    from adpe.engine.orchestrator import get_engine
+    from adef.engine.orchestrator import get_engine
     return get_engine()
 
 

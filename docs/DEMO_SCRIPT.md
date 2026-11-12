@@ -7,7 +7,7 @@ make install
 ```
 
 ```bash
-ADPE_API_TOKEN=<choose-one> make run
+ADEF_API_TOKEN=<choose-one> make run
 ```
 
 Optionally add a real provider key on **Providers & API keys** and test it. The demo works fully

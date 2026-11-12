@@ -1,10 +1,10 @@
-# ADPE - Agentic Data Engineering Framework
+# ADEF - Agentic Data Engineering Framework
 
 An approval-gated team of nine AI agents that delivers a data product end to end:
 
 **Business intent → Requirements → Mapping → Design → Build → Test → Release → Operations → Consumption**
 
-This repository is the runtime for the ADPE specification pack (`skills/`, `agents/`, `docs/spec/`).
+This repository is the runtime for the ADEF specification pack (`skills/`, `agents/`, `docs/spec/`).
 It adds an enterprise web console and API with:
 
 - **Bring your own model, per agent.** Pick a provider and model for each of the nine agents:
@@ -43,10 +43,10 @@ produces the whole lifecycle. You approve each gate as the named approver.
 A headless run that auto-approves every gate:
 
 ```bash
-.venv/bin/python -m adpe demo --domain telco --stack gcp-bigquery
+.venv/bin/python -m adef demo --domain telco --stack gcp-bigquery
 ```
 
-To run with Docker, put `ADPE_API_TOKEN` and `ADPE_MASTER_KEY` in `.env` first:
+To run with Docker, put `ADEF_API_TOKEN` and `ADEF_MASTER_KEY` in `.env` first:
 
 ```bash
 docker compose up --build
@@ -87,15 +87,15 @@ New installations start with the **Multi-vendor enterprise team** preset:
 
 | Agent | Provider | Model | Effort |
 |---|---|---|---|
-| adpe-orchestrator | Anthropic | `claude-opus-5-5` | high |
-| adpe-intent-requirements | OpenAI | `gpt-5.6-sol` | high |
-| adpe-source-target-mapping | Google Gemini | `gemini-4-argon` | high |
-| adpe-solution-design | Anthropic | `claude-fable-5-2` | high |
-| adpe-pipeline-build | Azure OpenAI | deployment `gpt-5-6-terra-prod` | medium |
-| adpe-test-quality | Amazon Bedrock | `anthropic.claude-sonnet-5-5` | medium |
-| adpe-release-deploy | Anthropic | `claude-sonnet-5-5` | medium |
-| adpe-operations-observability | Ollama (local, open-weight) | `llama3.3` | low |
-| adpe-data-consumption | Google Gemini | `gemini-3.8-flash` | medium |
+| adef-orchestrator | Anthropic | `claude-opus-5-5` | high |
+| adef-intent-requirements | OpenAI | `gpt-5.6-sol` | high |
+| adef-source-target-mapping | Google Gemini | `gemini-4-argon` | high |
+| adef-solution-design | Anthropic | `claude-fable-5-2` | high |
+| adef-pipeline-build | Azure OpenAI | deployment `gpt-5-6-terra-prod` | medium |
+| adef-test-quality | Amazon Bedrock | `anthropic.claude-sonnet-5-5` | medium |
+| adef-release-deploy | Anthropic | `claude-sonnet-5-5` | medium |
+| adef-operations-observability | Ollama (local, open-weight) | `llama3.3` | low |
+| adef-data-consumption | Google Gemini | `gemini-3.8-flash` | medium |
 
 Other presets on **Agents & models**: *All Claude (tiered)*, *All OpenAI*, *Cost-optimised mix* and
 *Demo Simulator only*. Every value can still be edited per agent. Model names were current when written;
@@ -110,7 +110,7 @@ off on **Agents & models** for real client work; a missing key then stops the st
 ## Demo data packs
 
 `demo-data/` holds synthetic, deterministic files for each industry. Regenerate them with
-`python -m adpe demo-data`.
+`python -m adef demo-data`.
 
 | Folder | Contents |
 |---|---|
@@ -161,10 +161,18 @@ and Terraform. The choice follows the Stack Profile.
 | Audit | Hash-chained `approvals`, `action-log`, `decision-log` and `events` logs, with a verify button |
 | Loops and escalation | 3 returns or 2 rejections escalate to the human owner |
 
+## Upgrading from the ADPE name
+
+The framework was first called ADPE ("Autonomous Data Platform Engineering"). It is now ADEF, matching
+the project name. The package is `adef` (`python -m adef …`) and agent and skill IDs are `adef-*`.
+Older installations keep working: `ADPE_HOME`, `ADPE_MASTER_KEY` and `ADPE_API_TOKEN` are still read
+when the `ADEF_*` variables are unset, saved per-agent settings are migrated on load, and runs started
+before the rename can be viewed and continued.
+
 ## Project layout
 
 ```
-adpe/                 runtime (Python package)
+adef/                 runtime (Python package)
   api/app.py          REST API + console host
   engine/             orchestrator, stage agents, codegen, SQLite sandbox, golden scenarios
   llm/                providers: anthropic SDK, OpenAI, Azure OpenAI, Gemini, Bedrock, OpenAI-compatible, simulator
@@ -180,8 +188,8 @@ adapters/ evals/      adapter library (to be reviewed per client), evaluation no
 tests/                pytest suite
 ```
 
-Run workspaces live under `$ADPE_HOME/runs/<run_id>/` (default `./data`) and follow
-`skills/adpe-shared-guardrails/references/artifact-layout.md`. Each run also has a local git
+Run workspaces live under `$ADEF_HOME/runs/<run_id>/` (default `./data`) and follow
+`skills/adef-shared-guardrails/references/artifact-layout.md`. Each run also has a local git
 repository (`repo/`) standing in for the client's version-control slot.
 
 ## Honest limits of this release
@@ -195,4 +203,4 @@ repository (`repo/`) standing in for the client's version-control slot.
   reviewed adapter is added under `adapters/`.
 - **Domain Packs are starters.** Their controls are not legal or compliance advice.
 - **Single tenant.** One console per environment, file-based state, optional bearer-token auth
-  (`ADPE_API_TOKEN`). Put it behind your SSO proxy for shared use.
+  (`ADEF_API_TOKEN`). Put it behind your SSO proxy for shared use.

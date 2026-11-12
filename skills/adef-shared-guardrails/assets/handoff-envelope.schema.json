@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "adef/handoff-envelope.schema.json",
+  "title": "ADEF Handoff Envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id", "seq", "from_agent", "to_agent", "stage", "status", "summary",
+    "artifacts", "inputs_used", "assumptions", "open_questions", "risks",
+    "evidence", "constraints", "confidence", "budget_used"
+  ],
+  "properties": {
+    "run_id": { "type": "string", "pattern": "^RUN-[0-9]{4}-[0-9]{3,}$" },
+    "seq": { "type": "integer", "minimum": 1 },
+    "from_agent": { "$ref": "#/$defs/agent" },
+    "to_agent": { "$ref": "#/$defs/agent" },
+    "stage": {
+      "enum": ["intake", "requirements", "mapping", "design", "build", "test",
+               "release", "operations", "consumption", "assembly"]
+    },
+    "status": { "enum": ["ready", "needs-approval", "blocked", "returned"] },
+    "gate": { "enum": ["G0", "G1", "G2", "G3", "G4", "G5", "G6a", "G6b", "G7", "G8"] },
+    "summary": { "type": "string", "maxLength": 600 },
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256", "kind", "owner_agent"],
+        "properties": {
+          "path": { "type": "string" },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "kind": { "enum": ["logical", "physical", "code", "evidence", "config"] },
+          "owner_agent": { "$ref": "#/$defs/agent" }
+        }
+      }
+    },
+    "inputs_used": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256"],
+        "properties": {
+          "path": { "type": "string" },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        }
+      }
+    },
+    "requirement_ids": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^(REQ|BR|NFR)-[0-9]{3}$" }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "text", "impact_if_wrong", "owner_to_confirm"],
+        "properties": {
+          "id": { "type": "string" },
+          "text": { "type": "string" },
+          "impact_if_wrong": { "type": "string" },
+          "owner_to_confirm": { "type": "string" }
+        }
+      }
+    },
+    "open_questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "question", "blocking", "ask_whom"],
+        "properties": {
+          "id": { "type": "string" },
+          "question": { "type": "string" },
+          "blocking": { "type": "boolean" },
+          "ask_whom": { "type": "string" }
+        }
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "text", "likelihood", "impact", "mitigation"],
+        "properties": {
+          "id": { "type": "string" },
+          "text": { "type": "string" },
+          "likelihood": { "enum": ["low", "medium", "high"] },
+          "impact": { "enum": ["low", "medium", "high"] },
+          "mitigation": { "type": "string" }
+        }
+      }
+    },
+    "evidence": { "type": "array", "items": { "type": "string" } },
+    "constraints": { "type": "array", "items": { "type": "string" } },
+    "confidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "why"],
+      "properties": {
+        "level": { "enum": ["high", "medium", "low"] },
+        "why": { "type": "string" }
+      }
+    },
+    "return_reason": { "type": "string" },
+    "budget_used": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["compute_cost", "tokens", "elapsed_minutes"],
+      "properties": {
+        "compute_cost": { "type": "number", "minimum": 0 },
+        "tokens": { "type": "integer", "minimum": 0 },
+        "elapsed_minutes": { "type": "number", "minimum": 0 }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "needs-approval" } } },
+      "then": { "required": ["gate"] }
+    },
+    {
+      "if": { "properties": { "status": { "const": "returned" } } },
+      "then": { "required": ["return_reason"] }
+    }
+  ],
+  "$defs": {
+    "agent": {
+      "enum": [
+        "adef-orchestrator", "adef-intent-requirements", "adef-source-target-mapping",
+        "adef-solution-design", "adef-pipeline-build", "adef-test-quality",
+        "adef-release-deploy", "adef-operations-observability", "adef-data-consumption",
+        "human"
+      ]
+    }
+  }
+}

@@ -3,15 +3,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY adpe ./adpe
+COPY adef ./adef
 COPY web ./web
 COPY skills ./skills
 COPY agents ./agents
 COPY adapters ./adapters
 COPY demo-data ./demo-data
-ENV ADPE_HOME=/data PYTHONUNBUFFERED=1
-RUN useradd -m adpe && mkdir -p /data && chown adpe /data
-USER adpe
+ENV ADEF_HOME=/data PYTHONUNBUFFERED=1
+RUN useradd -m adef && mkdir -p /data && chown adef /data
+USER adef
 VOLUME ["/data"]
 EXPOSE 8000
-CMD ["python", "-m", "adpe", "serve", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "adef", "serve", "--host", "0.0.0.0", "--port", "8000"]

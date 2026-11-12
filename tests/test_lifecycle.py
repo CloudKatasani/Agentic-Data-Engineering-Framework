@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from adpe.connectors.jira import JiraClient
+from adef.connectors.jira import JiraClient
 from conftest import drive
 
 
@@ -26,7 +26,7 @@ def test_full_lifecycle_simulator(engine, domain, stack, project):
 
 
 def test_secret_in_request_rejected(engine):
-    from adpe.engine.orchestrator import InputRejected
+    from adef.engine.orchestrator import InputRejected
     with pytest.raises(InputRejected):
         engine.create_run({"request": "connect with password: Hunter2Hunter2"}, start=False)
 

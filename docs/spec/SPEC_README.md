@@ -1,4 +1,8 @@
-# Autonomous Data Platform Engineering (ADPE) Framework - Specification Pack
+# Agentic Data Engineering Framework (ADEF) - Specification Pack
+
+> **Naming.** This pack was first written as ADPE ("Autonomous Data Platform Engineering"). It was
+> renamed to ADEF to match the project name; agent and skill IDs changed from `adpe-*` to `adef-*`.
+> `adpe-framework-spec-pack.zip` is the original upload, kept unchanged for reference.
 
 A platform-agnostic, approval-gated team of nine AI agents that automates the data
 engineering lifecycle:
@@ -12,32 +16,32 @@ The specifications are written as Agent Skills (`SKILL.md` with YAML frontmatter
 ## What is in this pack
 
 ```
-adpe-framework/
+adef-framework/
 ├── README.md                     # this file
 ├── BUILD_SPEC.md                 # what to build, backlog, QA plan, 7-day launch plan
 ├── agents/                       # one short production prompt per agent (9)
-│   └── adpe-<agent>.md
+│   └── adef-<agent>.md
 └── skills/
-    ├── adpe-shared-guardrails/   # SHARED: action classes, gates, prohibited actions, handoffs
+    ├── adef-shared-guardrails/   # SHARED: action classes, gates, prohibited actions, handoffs
     │   ├── SKILL.md
     │   ├── references/approval-matrix.md
     │   ├── references/handoff-contract.md
     │   ├── references/artifact-layout.md
     │   └── assets/handoff-envelope.schema.json
-    ├── adpe-stack-binding/       # SHARED: capability slots, Stack Profile, adapters, Domain Packs
+    ├── adef-stack-binding/       # SHARED: capability slots, Stack Profile, adapters, Domain Packs
     │   ├── SKILL.md
     │   ├── references/capability-slots.md
     │   ├── references/adapter-contract.md
     │   └── assets/ (2 example Stack Profiles, Utilities and Telco Domain Packs)
-    ├── adpe-orchestrator/              # 0  intake, routing, gates, assembly      G0
-    ├── adpe-intent-requirements/       # 1  business intent -> requirements       G1
-    ├── adpe-source-target-mapping/     # 2  mapping, profiling, quality rules     G2
-    ├── adpe-solution-design/           # 3  logical then physical design          G3
-    ├── adpe-pipeline-build/            # 4  code on feature branch                G4
-    ├── adpe-test-quality/              # 5  independent verification              G5
-    ├── adpe-release-deploy/            # 6  promotion and rollback                G6a/G6b
-    ├── adpe-operations-observability/  # 7  monitoring, incidents, cost           G7
-    └── adpe-data-consumption/          # 8  semantic layer, BI, publication       G8
+    ├── adef-orchestrator/              # 0  intake, routing, gates, assembly      G0
+    ├── adef-intent-requirements/       # 1  business intent -> requirements       G1
+    ├── adef-source-target-mapping/     # 2  mapping, profiling, quality rules     G2
+    ├── adef-solution-design/           # 3  logical then physical design          G3
+    ├── adef-pipeline-build/            # 4  code on feature branch                G4
+    ├── adef-test-quality/              # 5  independent verification              G5
+    ├── adef-release-deploy/            # 6  promotion and rollback                G6a/G6b
+    ├── adef-operations-observability/  # 7  monitoring, incidents, cost           G7
+    └── adef-data-consumption/          # 8  semantic layer, BI, publication       G8
 ```
 
 ## How each skill is structured

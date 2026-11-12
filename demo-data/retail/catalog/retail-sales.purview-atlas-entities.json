@@ -4,7 +4,7 @@
       "typeName": "rdbms_db",
       "guid": "-1",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold",
+        "qualifiedName": "adef.acme_customer_gold",
         "name": "acme_customer_gold",
         "description": "Sales performance data product"
       }
@@ -13,7 +13,7 @@
       "typeName": "rdbms_table",
       "guid": "-2",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.dim_store",
+        "qualifiedName": "adef.acme_customer_gold.dim_store",
         "name": "dim_store",
         "description": "Physical store",
         "comment": "grain: one row per store",
@@ -27,7 +27,7 @@
       "typeName": "rdbms_column",
       "guid": "-3",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.dim_store.store_id",
+        "qualifiedName": "adef.acme_customer_gold.dim_store.store_id",
         "name": "store_id",
         "data_type": "VARCHAR(10)",
         "isPrimaryKey": true,
@@ -43,7 +43,7 @@
       "typeName": "rdbms_column",
       "guid": "-4",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.dim_store.store_name",
+        "qualifiedName": "adef.acme_customer_gold.dim_store.store_name",
         "name": "store_name",
         "data_type": "VARCHAR(100)",
         "isPrimaryKey": false,
@@ -59,7 +59,7 @@
       "typeName": "rdbms_column",
       "guid": "-5",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.dim_store.region",
+        "qualifiedName": "adef.acme_customer_gold.dim_store.region",
         "name": "region",
         "data_type": "VARCHAR(20)",
         "isPrimaryKey": false,
@@ -75,7 +75,7 @@
       "typeName": "rdbms_column",
       "guid": "-6",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.dim_store.format",
+        "qualifiedName": "adef.acme_customer_gold.dim_store.format",
         "name": "format",
         "data_type": "VARCHAR(12)",
         "isPrimaryKey": false,
@@ -91,7 +91,7 @@
       "typeName": "rdbms_table",
       "guid": "-7",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.dim_product",
+        "qualifiedName": "adef.acme_customer_gold.dim_product",
         "name": "dim_product",
         "description": "Sellable product",
         "comment": "grain: one row per product version",
@@ -105,7 +105,7 @@
       "typeName": "rdbms_column",
       "guid": "-8",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.dim_product.product_id",
+        "qualifiedName": "adef.acme_customer_gold.dim_product.product_id",
         "name": "product_id",
         "data_type": "VARCHAR(14)",
         "isPrimaryKey": true,
@@ -121,7 +121,7 @@
       "typeName": "rdbms_column",
       "guid": "-9",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.dim_product.product_name",
+        "qualifiedName": "adef.acme_customer_gold.dim_product.product_name",
         "name": "product_name",
         "data_type": "VARCHAR(200)",
         "isPrimaryKey": false,
@@ -137,7 +137,7 @@
       "typeName": "rdbms_column",
       "guid": "-10",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.dim_product.category",
+        "qualifiedName": "adef.acme_customer_gold.dim_product.category",
         "name": "category",
         "data_type": "VARCHAR(40)",
         "isPrimaryKey": false,
@@ -153,7 +153,7 @@
       "typeName": "rdbms_column",
       "guid": "-11",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.dim_product.brand",
+        "qualifiedName": "adef.acme_customer_gold.dim_product.brand",
         "name": "brand",
         "data_type": "VARCHAR(40)",
         "isPrimaryKey": false,
@@ -169,7 +169,7 @@
       "typeName": "rdbms_table",
       "guid": "-12",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.dim_customer",
+        "qualifiedName": "adef.acme_customer_gold.dim_customer",
         "name": "dim_customer",
         "description": "Loyalty customer",
         "comment": "grain: one row per loyalty customer",
@@ -183,7 +183,7 @@
       "typeName": "rdbms_column",
       "guid": "-13",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.dim_customer.customer_id",
+        "qualifiedName": "adef.acme_customer_gold.dim_customer.customer_id",
         "name": "customer_id",
         "data_type": "VARCHAR(20)",
         "isPrimaryKey": true,
@@ -199,7 +199,7 @@
       "typeName": "rdbms_column",
       "guid": "-14",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.dim_customer.loyalty_tier",
+        "qualifiedName": "adef.acme_customer_gold.dim_customer.loyalty_tier",
         "name": "loyalty_tier",
         "data_type": "VARCHAR(10)",
         "isPrimaryKey": false,
@@ -215,7 +215,7 @@
       "typeName": "rdbms_column",
       "guid": "-15",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.dim_customer.email",
+        "qualifiedName": "adef.acme_customer_gold.dim_customer.email",
         "name": "email",
         "data_type": "VARCHAR(200)",
         "isPrimaryKey": false,
@@ -228,7 +228,7 @@
       },
       "classifications": [
         {
-          "typeName": "ADPE_RESTRICTED"
+          "typeName": "ADEF_RESTRICTED"
         }
       ]
     },
@@ -236,7 +236,7 @@
       "typeName": "rdbms_table",
       "guid": "-16",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.fct_sales_line",
+        "qualifiedName": "adef.acme_customer_gold.fct_sales_line",
         "name": "fct_sales_line",
         "description": "Store sales line",
         "comment": "grain: one row per order line",
@@ -250,7 +250,7 @@
       "typeName": "rdbms_column",
       "guid": "-17",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.fct_sales_line.order_line_id",
+        "qualifiedName": "adef.acme_customer_gold.fct_sales_line.order_line_id",
         "name": "order_line_id",
         "data_type": "VARCHAR(24)",
         "isPrimaryKey": true,
@@ -266,7 +266,7 @@
       "typeName": "rdbms_column",
       "guid": "-18",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.fct_sales_line.order_id",
+        "qualifiedName": "adef.acme_customer_gold.fct_sales_line.order_id",
         "name": "order_id",
         "data_type": "VARCHAR(20)",
         "isPrimaryKey": false,
@@ -282,7 +282,7 @@
       "typeName": "rdbms_column",
       "guid": "-19",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.fct_sales_line.store_id",
+        "qualifiedName": "adef.acme_customer_gold.fct_sales_line.store_id",
         "name": "store_id",
         "data_type": "VARCHAR(10)",
         "isPrimaryKey": false,
@@ -298,7 +298,7 @@
       "typeName": "rdbms_column",
       "guid": "-20",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.fct_sales_line.product_id",
+        "qualifiedName": "adef.acme_customer_gold.fct_sales_line.product_id",
         "name": "product_id",
         "data_type": "VARCHAR(14)",
         "isPrimaryKey": false,
@@ -314,7 +314,7 @@
       "typeName": "rdbms_column",
       "guid": "-21",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.fct_sales_line.customer_id",
+        "qualifiedName": "adef.acme_customer_gold.fct_sales_line.customer_id",
         "name": "customer_id",
         "data_type": "VARCHAR(20)",
         "isPrimaryKey": false,
@@ -330,7 +330,7 @@
       "typeName": "rdbms_column",
       "guid": "-22",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.fct_sales_line.order_date",
+        "qualifiedName": "adef.acme_customer_gold.fct_sales_line.order_date",
         "name": "order_date",
         "data_type": "DATE",
         "isPrimaryKey": false,
@@ -346,7 +346,7 @@
       "typeName": "rdbms_column",
       "guid": "-23",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.fct_sales_line.quantity",
+        "qualifiedName": "adef.acme_customer_gold.fct_sales_line.quantity",
         "name": "quantity",
         "data_type": "INTEGER",
         "isPrimaryKey": false,
@@ -362,7 +362,7 @@
       "typeName": "rdbms_column",
       "guid": "-24",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.fct_sales_line.net_amount",
+        "qualifiedName": "adef.acme_customer_gold.fct_sales_line.net_amount",
         "name": "net_amount",
         "data_type": "DECIMAL(12,2)",
         "isPrimaryKey": false,
@@ -378,7 +378,7 @@
       "typeName": "rdbms_column",
       "guid": "-25",
       "attributes": {
-        "qualifiedName": "adpe.acme_customer_gold.fct_sales_line.discount_amount",
+        "qualifiedName": "adef.acme_customer_gold.fct_sales_line.discount_amount",
         "name": "discount_amount",
         "data_type": "DECIMAL(12,2)",
         "isPrimaryKey": false,

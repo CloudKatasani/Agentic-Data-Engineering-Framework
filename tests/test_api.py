@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from adpe.api.app import app
+from adef.api.app import app
 
 c = TestClient(app)
 
@@ -22,10 +22,10 @@ def test_secrets_are_write_only():
 
 
 def test_agent_binding_validation():
-    r = c.put("/api/settings/agents", json={"adpe-solution-design": {"provider_id": "nope", "model": "m"}})
+    r = c.put("/api/settings/agents", json={"adef-solution-design": {"provider_id": "nope", "model": "m"}})
     assert r.status_code == 400
-    r = c.put("/api/settings/agents", json={"adpe-solution-design": {"provider_id": "demo", "model": "adpe-simulator-1", "effort": "high"}})
-    assert r.status_code == 200 and r.json()["adpe-solution-design"]["effort"] == "high"
+    r = c.put("/api/settings/agents", json={"adef-solution-design": {"provider_id": "demo", "model": "adef-simulator-1", "effort": "high"}})
+    assert r.status_code == 200 and r.json()["adef-solution-design"]["effort"] == "high"
 
 
 def test_jira_demo_and_metadata_import():

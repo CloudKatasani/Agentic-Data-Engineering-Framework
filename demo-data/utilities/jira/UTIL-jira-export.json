@@ -54,7 +54,7 @@
           "name": "High"
         },
         "labels": [
-          "adpe"
+          "adef"
         ],
         "parent": {
           "key": "UTIL-1"
@@ -124,7 +124,7 @@
           "name": "High"
         },
         "labels": [
-          "adpe"
+          "adef"
         ],
         "parent": {
           "key": "UTIL-1"
@@ -194,7 +194,7 @@
           "name": "Medium"
         },
         "labels": [
-          "adpe"
+          "adef"
         ],
         "parent": {
           "key": "UTIL-1"
@@ -264,7 +264,7 @@
           "name": "Medium"
         },
         "labels": [
-          "adpe"
+          "adef"
         ],
         "parent": {
           "key": "UTIL-1"
@@ -334,7 +334,7 @@
           "name": "Medium"
         },
         "labels": [
-          "adpe"
+          "adef"
         ],
         "parent": {
           "key": "UTIL-1"
@@ -404,7 +404,7 @@
           "name": "Medium"
         },
         "labels": [
-          "adpe"
+          "adef"
         ],
         "parent": {
           "key": "UTIL-1"
@@ -512,7 +512,7 @@
         },
         "labels": [
           "nfr",
-          "adpe"
+          "adef"
         ],
         "parent": {
           "key": "UTIL-1"
@@ -583,7 +583,7 @@
         },
         "labels": [
           "nfr",
-          "adpe"
+          "adef"
         ],
         "parent": {
           "key": "UTIL-1"
@@ -654,7 +654,7 @@
         },
         "labels": [
           "nfr",
-          "adpe"
+          "adef"
         ],
         "parent": {
           "key": "UTIL-1"

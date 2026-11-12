@@ -1,11 +1,11 @@
 {
   "utilities/jira/UTIL-jira-export.csv": {
     "bytes": 6604,
-    "sha256": "6b63d5e7016075a277e5de4b0022d60c873eadca63e19edf4fbc46c059c0171e"
+    "sha256": "ba73f00737305e69d1990e3bb5220a0987a18a39c0eb71d8825e81504d4dd79e"
   },
   "utilities/jira/UTIL-jira-export.json": {
     "bytes": 22429,
-    "sha256": "d10aa9cab30befdcf3ef8340c85a39b8b491c7fd584a74bd9526c2b30a447ad1"
+    "sha256": "59cd13372e4114b830132650daca159ed4fb15ae66a4c2d82d24a7e9fd95da13"
   },
   "utilities/source-metadata/utilities-source-catalog.csv": {
     "bytes": 4261,
@@ -37,19 +37,19 @@
   },
   "utilities/model/utilities-meter-to-cash.ddl.snowflake.sql": {
     "bytes": 4243,
-    "sha256": "42f37794dc60cd6aacb6d6e74e0fe9dd63aff1363333cd7451d70494b55b5705"
+    "sha256": "bec9f578def58fe7fe164b6bb85dada8a76bb8ae29ad80c82109b822718ecf30"
   },
   "utilities/model/utilities-meter-to-cash.ddl.databricks.sql": {
     "bytes": 3971,
-    "sha256": "5b3c445c741ec3f0c5465077151c3979790f159930f1bb7eb761fe774663ee79"
+    "sha256": "ae37e96512a18b8e2377a5f8e31fa50db54d47a0ff0e8e2488ac9d6a787c2071"
   },
   "utilities/model/utilities-meter-to-cash.ddl.bigquery.sql": {
     "bytes": 3531,
-    "sha256": "721c3a0074031932e4802ce4bcf2c0ae23f7d356920df326b69a749c0f78006a"
+    "sha256": "c6f72dc1d0b345b365259faaed7a9c7aa636e4c2fdaa5ea560d5de479413b5ae"
   },
   "utilities/model/utilities-meter-to-cash.ddl.tsql.sql": {
     "bytes": 3044,
-    "sha256": "b8afaa258ed7b04a324ae5ea6ee9b0b737b4d97a68cb05e9a0d92fd997b05124"
+    "sha256": "2a0382dd247d9b74c99d07c15b60d05a06c9707fe01a6b06e55eff50c7ad2ed8"
   },
   "utilities/model/utilities-meter-to-cash.model.dbml": {
     "bytes": 2226,
@@ -85,11 +85,11 @@
   },
   "utilities/catalog/utilities-meter-to-cash.purview-atlas-entities.json": {
     "bytes": 11851,
-    "sha256": "26205449a923cec9bd6d0e32dd14d055e22f9b94fc7243904ff63d0bf9e48819"
+    "sha256": "d1b0e6313569e3d8ae94e5464372c897aa03dc40c681f4431d9a1e5caf869f91"
   },
   "utilities/catalog/utilities-meter-to-cash.datahub-mcps.json": {
     "bytes": 13115,
-    "sha256": "ae336970843fa9153cefd114aef5aba324524481bee4ff6f1e45dd8e4dc04cdd"
+    "sha256": "ae44adc4d985dc3b1bac429cde44081f5ebbe454a792c90b9bad5eebf8b7e8f9"
   },
   "utilities/catalog/utilities-meter-to-cash.alation-bulk.csv": {
     "bytes": 2667,
@@ -101,7 +101,7 @@
   },
   "utilities/catalog/utilities-meter-to-cash.unity-catalog-governance.sql": {
     "bytes": 6855,
-    "sha256": "00ef1524d8849e912c1dae129c9c62dfc765f0fb67b279bd99826aa69fa0ec48"
+    "sha256": "941da1d1c17deec91a13aea7a3a092d7113781bb89fa5c60b9c58e2b335c3c40"
   },
   "utilities/catalog/utilities-meter-to-cash.snowflake-governance.sql": {
     "bytes": 3978,
@@ -109,7 +109,7 @@
   },
   "utilities/lineage/utilities-meter-to-cash.openlineage-events.json": {
     "bytes": 10864,
-    "sha256": "1f6ab2e9528bb0d6ee543150822095161b7f4a913fea00fac1098aeb23967a06"
+    "sha256": "e501dc531c10d3a681d1fca59a97d3573fa8fb1edd9e0f777adbae3bb1a30f18"
   },
   "utilities/lineage/utilities-meter-to-cash.column-lineage.csv": {
     "bytes": 4096,
@@ -125,15 +125,15 @@
   },
   "utilities/README.md": {
     "bytes": 1619,
-    "sha256": "abe776aae3d1ddea510067e172384c4e30dc6ea9037cafeed1ffd73dfa329e14"
+    "sha256": "ccc49fca4044a51a60cccd5fb50ef6f05ef685e3b6a8799c19b542b01075d1c8"
   },
   "telco/jira/TEL-jira-export.csv": {
     "bytes": 4806,
-    "sha256": "e4111c239b9a715f9538e47940c8bf3eebdf0d1c34743863209ef834389cb683"
+    "sha256": "639b6d07bb274ce8fcfc14d910ba1241b3da53d09ba6dc136f6d14c119ffda3c"
   },
   "telco/jira/TEL-jira-export.json": {
     "bytes": 17662,
-    "sha256": "e9ce38bd7bfd00b0c2a8cbd38828e2f9db4b007a326f72f45f62aa74ea266bd1"
+    "sha256": "5512120ae322af32ba21370cae8716ffb909344932d7818ca386589643ec9f4b"
   },
   "telco/source-metadata/telco-source-catalog.csv": {
     "bytes": 3031,
@@ -165,19 +165,19 @@
   },
   "telco/model/telco-churn.ddl.snowflake.sql": {
     "bytes": 3090,
-    "sha256": "2d6f5163e8d3db074948f971e23050862e0860e605391e53783b4277557f8414"
+    "sha256": "c9e2afbead229a2b5869e7047afc92eff35bfb9504d93b87c51fda58e2fcf505"
   },
   "telco/model/telco-churn.ddl.databricks.sql": {
     "bytes": 2865,
-    "sha256": "9375c244f71437cfee94af7101aca8606f206d5a3dbe641892106045fdf34cf3"
+    "sha256": "3924e9062d14b1531f0ae249e660ffd7e0562336ab3e194ff72a3668fe7e4688"
   },
   "telco/model/telco-churn.ddl.bigquery.sql": {
     "bytes": 2602,
-    "sha256": "ad602c677ff09a3ad744135224399b9dc9c6385e506adcf29a54e18c8fa74a47"
+    "sha256": "6a7bcb0e88cbc67bd1d4f2cf8ab2b674d4a864dac1495406a9587a38d581e9b2"
   },
   "telco/model/telco-churn.ddl.tsql.sql": {
     "bytes": 2273,
-    "sha256": "c9f2d1fb53465c8bcf8fe96305af0b5d023c9f68a0dfc906f00832e4a537d01c"
+    "sha256": "efd11871f552e32d11fd5c10be87e95656f222b6dbfc30f4eb345d3cecd4853f"
   },
   "telco/model/telco-churn.model.dbml": {
     "bytes": 1504,
@@ -213,11 +213,11 @@
   },
   "telco/catalog/telco-churn.purview-atlas-entities.json": {
     "bytes": 8505,
-    "sha256": "57561ccd277af47667da04b7bb0f6378444efd7289a4222c116499b6c3eeb072"
+    "sha256": "a216a29cdd16aa3f512e52ac21a45c2e36c2a40c8ea449b16c7cf8ec0fe172b0"
   },
   "telco/catalog/telco-churn.datahub-mcps.json": {
     "bytes": 9611,
-    "sha256": "ecb94634207e21e56d697b082e1d4933fecf887c4bbc1d4269a75419c6a5a1ed"
+    "sha256": "cc816eeaf458186bab87fd81c1afe86d4ba848963605e171fb5e782520f95d9f"
   },
   "telco/catalog/telco-churn.alation-bulk.csv": {
     "bytes": 1762,
@@ -229,7 +229,7 @@
   },
   "telco/catalog/telco-churn.unity-catalog-governance.sql": {
     "bytes": 4836,
-    "sha256": "dc98acb8de7578cbd341b9707c64d161d6b99551a9f32d1bb2bc5b7393ce6561"
+    "sha256": "66136b3ee8b7fa904a0218106c706109d8e59f7788883f62858de602f154be2e"
   },
   "telco/catalog/telco-churn.snowflake-governance.sql": {
     "bytes": 2903,
@@ -237,7 +237,7 @@
   },
   "telco/lineage/telco-churn.openlineage-events.json": {
     "bytes": 7746,
-    "sha256": "9566fcae0571c97ee1e704d483b0f36ec831d120f4e34c3a2a76029042e181fa"
+    "sha256": "668cad7015689fb2553244e2c67dc406bb9445d19355f0562e408e74aa63f741"
   },
   "telco/lineage/telco-churn.column-lineage.csv": {
     "bytes": 2443,
@@ -253,15 +253,15 @@
   },
   "telco/README.md": {
     "bytes": 1456,
-    "sha256": "1f77d6800f5963bcb3e49ccb209817fa473eb050ab621e39abec2c20a22682ad"
+    "sha256": "0c5e8f0ab92aa48e63a98233e54d460e309b7629d8d0c91e27ddca64c6cc7a0a"
   },
   "financial-services/jira/FIN-jira-export.csv": {
     "bytes": 4973,
-    "sha256": "75d6e4a706723d27e6b70620fbc3ff2332221b2d7726712bf471676b54e28f1b"
+    "sha256": "18f86a75ef8b4607a4f1dc226a360f4ccd9b6a0200056a06b43920cd22fb45e2"
   },
   "financial-services/jira/FIN-jira-export.json": {
     "bytes": 17972,
-    "sha256": "c12da5a16ba797908014635a71502c950a569e7847cf1d16ffe3d47d9b68215d"
+    "sha256": "cab61a90c9a4c714a937ee2affe695101e7603ef81a66f18499111333b115930"
   },
   "financial-services/source-metadata/financial-services-source-catalog.csv": {
     "bytes": 2770,
@@ -289,19 +289,19 @@
   },
   "financial-services/model/fs-deposit-balances.ddl.snowflake.sql": {
     "bytes": 4051,
-    "sha256": "870c953f1f0bd6bbf9eda918af15436d4aa10ad2835947c64a3cc6f32e9632fc"
+    "sha256": "3325e360f3cfb225d779cc3e0de14af43c0ec22588a7b4a45785cf9a7b9d8458"
   },
   "financial-services/model/fs-deposit-balances.ddl.databricks.sql": {
     "bytes": 3758,
-    "sha256": "db89f1ee826127bb328c2cbb8764362db18c557fafda299fa3c144e44c5a5a08"
+    "sha256": "27dfa41c1056135c5ccc45fa893a2f12d094df527ea7a7d83ad3c1fbcd1b13f2"
   },
   "financial-services/model/fs-deposit-balances.ddl.bigquery.sql": {
     "bytes": 3415,
-    "sha256": "c0830cf1816d51477a745c0a04fa634eaa8492747ca03e7f5f476fc9352d697e"
+    "sha256": "505b631864ace737b4633e3181011dcd134ac6eb8b58643c8879a69ddffcb156"
   },
   "financial-services/model/fs-deposit-balances.ddl.tsql.sql": {
     "bytes": 2915,
-    "sha256": "72a6753f84cc5d924a82f98d37d533d989b48d920a7cd3277eea0d1927c88db1"
+    "sha256": "10e1d69906bb6f801644d1bdee058d74acacb359dc81a406309dbb461b307ae7"
   },
   "financial-services/model/fs-deposit-balances.model.dbml": {
     "bytes": 1789,
@@ -337,11 +337,11 @@
   },
   "financial-services/catalog/fs-deposit-balances.purview-atlas-entities.json": {
     "bytes": 9979,
-    "sha256": "2c64fac85df2befa453ac40e1a81a44bf8ed6e32f1e2e3e06f622bd1adbb2575"
+    "sha256": "10f2706592f6e038eb276753688718e82cdb48d96cf17ca2e543a05bc07d8e50"
   },
   "financial-services/catalog/fs-deposit-balances.datahub-mcps.json": {
     "bytes": 11712,
-    "sha256": "ecc88bd759b25de67df6e9417b2d4afb227ed97a5ad22f9aabad16f83ee670e1"
+    "sha256": "b256bc41b80bd8db650c0aaf521b1b04898b759eee00cad90439bd7b876bfbae"
   },
   "financial-services/catalog/fs-deposit-balances.alation-bulk.csv": {
     "bytes": 1944,
@@ -353,7 +353,7 @@
   },
   "financial-services/catalog/fs-deposit-balances.unity-catalog-governance.sql": {
     "bytes": 5484,
-    "sha256": "9fada752ef18b15446cd88836469d72e38a20950b7bea2bf0237ab5b8a9245e8"
+    "sha256": "eb4ebecfbd86297e9c518b4412ddc53cc4961a0ead4a024bbced7a42b3bc6b36"
   },
   "financial-services/catalog/fs-deposit-balances.snowflake-governance.sql": {
     "bytes": 3266,
@@ -361,7 +361,7 @@
   },
   "financial-services/lineage/fs-deposit-balances.openlineage-events.json": {
     "bytes": 9433,
-    "sha256": "83b989c81c81400200d509169e2437f9c39cb8a608a612bd35790b72c013c586"
+    "sha256": "fbb98093565d6de2a46260743d0cdc33c0a98b4f585fcc7d7f1376d4b2839af2"
   },
   "financial-services/lineage/fs-deposit-balances.column-lineage.csv": {
     "bytes": 2097,
@@ -377,15 +377,15 @@
   },
   "financial-services/README.md": {
     "bytes": 1456,
-    "sha256": "62ea08ec8cde287cdede69e1b4ed13417222c3249e9f64c88f50dac795f3312b"
+    "sha256": "e99829219e9974303220cf4f12e5f3fe399eec457c5cc0695a132c739c9c66a7"
   },
   "retail/jira/RET-jira-export.csv": {
     "bytes": 4693,
-    "sha256": "dd95b61bc50d227285add48f81a4f3e9dd0e51d7f3200398b80a1f1ce648bdaa"
+    "sha256": "ed3356dd61b0ed960a3b90e54fdc1e728699a62824737863dffcaea076a03eba"
   },
   "retail/jira/RET-jira-export.json": {
     "bytes": 17558,
-    "sha256": "bffad98ede19c7b3944b88ebf716cad9cda6cedd9a46574c22d47400031311e9"
+    "sha256": "55645f2af285688562ad5abd2b8062e7666717f9e119e4b97a28a28648395c33"
   },
   "retail/source-metadata/retail-source-catalog.csv": {
     "bytes": 2783,
@@ -413,19 +413,19 @@
   },
   "retail/model/retail-sales.ddl.snowflake.sql": {
     "bytes": 3670,
-    "sha256": "c9d8c8cd16388793f9fc0f1e042c96fe82a20b2f38f2357ad6f25db68b2779ee"
+    "sha256": "6ea6307d8ee0de829286e67910295a974c59e8b6992c4ebf18a76909f0b28d01"
   },
   "retail/model/retail-sales.ddl.databricks.sql": {
     "bytes": 3386,
-    "sha256": "2a064cd09dcf72fafe79e588b2142f54784ce4f76bd5ef91ee6f406a53da973f"
+    "sha256": "1d4422bc4428beedf2927b9ed014d56ee7108bc199a4f0616f18d28f530ae780"
   },
   "retail/model/retail-sales.ddl.bigquery.sql": {
     "bytes": 3056,
-    "sha256": "5abc14bbf357f2332884e7318d8b28685d503e615680640504f534546a8dbf29"
+    "sha256": "1faa67b429cf0f6035b9e9c912eb7b644b71a532560f862ddbf27e277020a636"
   },
   "retail/model/retail-sales.ddl.tsql.sql": {
     "bytes": 2717,
-    "sha256": "992e013cad6b06790eacd8a2e923a4fe60300247fcba2e97986eb8d53f677277"
+    "sha256": "e10fa6cc1e033924e3333a11338268a2d96c499ac9dba2026d2c10fec5000944"
   },
   "retail/model/retail-sales.model.dbml": {
     "bytes": 1756,
@@ -461,11 +461,11 @@
   },
   "retail/catalog/retail-sales.purview-atlas-entities.json": {
     "bytes": 10386,
-    "sha256": "575b9477f192b417a5c2f2e8fecc684becda8caa06aaea1df3be5b582160e4c9"
+    "sha256": "5951dcc62074aa1bb66bbcc5bddc8065a73f907fcd87c4895dd9915c3e852b99"
   },
   "retail/catalog/retail-sales.datahub-mcps.json": {
     "bytes": 11914,
-    "sha256": "2d34cf384d3f5f147687218b558dc289f60622fd0af4eb7dc22f2d3ecff3d773"
+    "sha256": "f8ea15c6c5873f51703df781f1fcd2cd9234c2b06401897885efc41f0f48ea04"
   },
   "retail/catalog/retail-sales.alation-bulk.csv": {
     "bytes": 1884,
@@ -477,7 +477,7 @@
   },
   "retail/catalog/retail-sales.unity-catalog-governance.sql": {
     "bytes": 5552,
-    "sha256": "c772624890c81be07cc7ceb34b5b31786735d40fb00c8dc8ac6569cae36753bb"
+    "sha256": "c32b02b2c9771468215ab15371978db9ade4d28dc0b4a60bf2b9cac73bd2d6b3"
   },
   "retail/catalog/retail-sales.snowflake-governance.sql": {
     "bytes": 3305,
@@ -485,7 +485,7 @@
   },
   "retail/lineage/retail-sales.openlineage-events.json": {
     "bytes": 10417,
-    "sha256": "f4832979b8944e7247202fedd5441e3a31e3c0d4ae1b22621d547bcc8215010b"
+    "sha256": "325d8cc79668e0b76277ca039f4bd15128e3e47f481101b594e2c29ae339dd9d"
   },
   "retail/lineage/retail-sales.column-lineage.csv": {
     "bytes": 2206,
@@ -501,6 +501,6 @@
   },
   "retail/README.md": {
     "bytes": 1436,
-    "sha256": "2d2e6c8c95529f14503ae461552319f97f24e0394c5bd174299e8860edc8a36f"
+    "sha256": "ce79f1ae6db7cc89dfaef7dc25a0482e30e5371721915319cf2d46a3b1284a92"
   }
 }

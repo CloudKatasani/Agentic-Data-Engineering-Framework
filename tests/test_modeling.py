@@ -2,10 +2,10 @@ import copy
 
 import pytest
 
-from adpe.catalog.stacks import PRESETS, preset, validate
-from adpe.engine.scenarios import SCENARIOS
-from adpe.modeling import exports, importers
-from adpe.modeling.logical import normalize, validate_model
+from adef.catalog.stacks import PRESETS, preset, validate
+from adef.engine.scenarios import SCENARIOS
+from adef.modeling import exports, importers
+from adef.modeling.logical import normalize, validate_model
 
 
 def model_for(pack):

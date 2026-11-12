@@ -1,10 +1,10 @@
 """Exercise the live-LLM code path with a scripted provider (no network, no key)."""
 import json
 
-from adpe.engine.scenarios import EXPRESSIONS, SCENARIOS
-from adpe.llm import router
-from adpe.llm.base import LLMResult, Provider
-from adpe.settings_store import AGENT_NAMES, SettingsStore
+from adef.engine.scenarios import EXPRESSIONS, SCENARIOS
+from adef.llm import router
+from adef.llm.base import LLMResult, Provider
+from adef.settings_store import AGENT_NAMES, SettingsStore
 from conftest import drive
 
 SC = SCENARIOS["utilities"]
@@ -48,7 +48,7 @@ class Scripted(Provider):
     type = "scripted"
 
     def complete(self, *, system, prompt, model, max_tokens=16000, effort="medium", context=None):
-        assert "adpe-shared-guardrails" in system
+        assert "adef-shared-guardrails" in system
         if "intake brief" in prompt:
             out = {"use_case": "Meter to cash", "slice_scope": "one region", "out_of_scope": [], "consumers": [{"name": "Finance", "question": "q"}],
                    "sources_hint": [], "constraints": [], "sensitivity": "restricted", "success_measure": "reconciles"}
@@ -81,12 +81,12 @@ def test_llm_path_end_to_end(engine):
     try:
         rid = engine.create_run({"client_code": "LLM", "domain_pack": "utilities"})["run_id"]
         st = drive(engine, rid)
-        assert st["usage"]["adpe-intent-requirements"]["calls"] == 2  # one rejected (vendor term), one repaired
+        assert st["usage"]["adef-intent-requirements"]["calls"] == 2  # one rejected (vendor term), one repaired
         assert "Snowflake" not in engine.ws(rid).read("01-requirements/requirements.md")
         assert "Agent review notes" in engine.ws(rid).read("04-build/build-plan.md")
     finally:
         data = s.load()
         data["providers"] = [p for p in data["providers"] if p["id"] != "scripted"]
         for a in AGENT_NAMES:
-            data["agents"][a] = {"provider_id": "demo", "model": "adpe-simulator-1", "effort": "medium", "max_tokens": 16000}
+            data["agents"][a] = {"provider_id": "demo", "model": "adef-simulator-1", "effort": "medium", "max_tokens": 16000}
         s.save(data)
