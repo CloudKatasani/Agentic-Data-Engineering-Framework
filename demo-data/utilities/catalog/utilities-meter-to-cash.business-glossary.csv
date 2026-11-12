@@ -1,0 +1,6 @@
+term,definition,source,reference
+AMI,Advanced metering infrastructure,domain-pack,
+SAIDI,Average outage duration per customer served,domain-pack,
+SAIFI,Average number of interruptions per customer served,domain-pack,
+Average billed kWh per account,Total billed kWh divided by number of distinct billed accounts in the period.,metric,BR-001
+Total billed kWh,Sum of billed kWh on final bills.,metric,BR-003

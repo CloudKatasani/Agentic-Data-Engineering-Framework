@@ -161,3 +161,6 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 16px 0; }
 .grid > .card + .card { margin-top: 0; }
 select[data-k="effort"] { min-width: 96px; }
 select[data-k="provider_id"] { min-width: 200px; }
+input[data-k="model"] { min-width: 210px; font-family: var(--mono); font-size: 12.5px; }
+select[data-k="provider_id"] { min-width: 180px; }
+td.mono { white-space: nowrap; }

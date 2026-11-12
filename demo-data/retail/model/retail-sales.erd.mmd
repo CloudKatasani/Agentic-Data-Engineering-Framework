@@ -1,0 +1,32 @@
+erDiagram
+    STORE ||--o{ SALES_LINE : "store_id"
+    PRODUCT ||--o{ SALES_LINE : "product_id"
+    CUSTOMER ||--o{ SALES_LINE : "customer_id"
+    STORE {
+        string store_id PK
+        string store_name
+        string region
+        string format
+    }
+    PRODUCT {
+        string product_id PK
+        string product_name
+        string category
+        string brand
+    }
+    CUSTOMER {
+        string customer_id PK
+        string loyalty_tier
+        string email
+    }
+    SALES_LINE {
+        string order_line_id PK
+        string order_id
+        string store_id FK
+        string product_id FK
+        string customer_id FK
+        date order_date
+        integer quantity
+        decimal net_amount
+        decimal discount_amount
+    }

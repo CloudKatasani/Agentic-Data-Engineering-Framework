@@ -1,0 +1,20 @@
+key_table,key_column,title,description,classification,business_rule
+acme_customer_gold.dim_subscriber,,Subscriber,Mobile subscriber,,
+acme_customer_gold.dim_subscriber,subscriber_id,Subscriber Id,Business key,Internal,
+acme_customer_gold.dim_subscriber,segment,Segment,"Consumer, SME or Enterprise",Internal,
+acme_customer_gold.dim_subscriber,status,Status,"ACTIVE, SUSPENDED or CHURNED",Internal,
+acme_customer_gold.dim_subscriber,activation_date,Activation Date,Activation date,Internal,
+acme_customer_gold.dim_subscriber,msisdn,Msisdn,Phone number (masked),Restricted,
+acme_customer_gold.dim_product,,Product,Product offering,,
+acme_customer_gold.dim_product,product_code,Product Code,Business key,Internal,
+acme_customer_gold.dim_product,product_name,Product Name,Product name,Internal,
+acme_customer_gold.dim_product,product_family,Product Family,Product family,Internal,
+acme_customer_gold.fct_subscription_month,,Subscription Month,"Monthly revenue, usage and churn per subscriber",,
+acme_customer_gold.fct_subscription_month,subscription_month_id,Subscription Month Id,Surrogate business key,Internal,
+acme_customer_gold.fct_subscription_month,subscriber_id,Subscriber Id,Subscriber,Internal,
+acme_customer_gold.fct_subscription_month,product_code,Product Code,Main product,Internal,
+acme_customer_gold.fct_subscription_month,month_start,Month Start,Month,Internal,
+acme_customer_gold.fct_subscription_month,monthly_revenue,Monthly Revenue,Revenue in month,Internal,BR-001
+acme_customer_gold.fct_subscription_month,data_mb,Data Mb,Data used,Internal,
+acme_customer_gold.fct_subscription_month,voice_min,Voice Min,Voice minutes,Internal,
+acme_customer_gold.fct_subscription_month,is_churned,Is Churned,Churned in month,Internal,BR-002

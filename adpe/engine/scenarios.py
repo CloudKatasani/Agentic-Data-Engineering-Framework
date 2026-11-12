@@ -452,3 +452,25 @@ EXPRESSIONS = {
 }
 ENTITY_FILTERS = {("utilities", "billed_consumption"): "src.bill_status = 'FINAL'",
                   ("financial-services", "daily_balance"): "src.ledger_balance IS NOT NULL"}
+
+
+def scenario_mapping(pack_id: str) -> dict:
+    """Source-to-target mapping for a golden scenario (used by the simulator and the demo-data generator)."""
+    sc = for_domain(pack_id)
+    rows, n = [], 0
+    for e in sc["entities"]:
+        for a in e["attributes"]:
+            n += 1
+            rows.append({"id": f"MAP-{n:03d}", "target_entity": e["name"], "target_attribute": a["name"],
+                         "target_type": a["type"], "source": a["source"], "transformation": a["transformation"],
+                         "expression": EXPRESSIONS.get((pack_id, e["name"], a["name"])),
+                         "business_rule": a.get("business_rule"), "classification": a["classification"],
+                         "confidence": "high" if a["transformation"] == "direct" else "medium",
+                         "req_ids": a.get("req_ids") or [], "pk": a["pk"], "fk": a.get("fk"),
+                         "description": a["description"], "evidence": "source metadata (scenario inventory)"})
+    return {"sources": sc["sources"],
+            "targets": [{"entity": e["name"], "kind": e["kind"], "grain": e["grain"], "history": e["history"],
+                         "description": e["description"], "subject_area": e.get("subject_area", "")} for e in sc["entities"]],
+            "mappings": rows, "dq_rules": sc["dq"],
+            "entity_filters": {k[1]: v for k, v in ENTITY_FILTERS.items() if k[0] == pack_id},
+            "gaps": [], "assumptions": [], "open_questions": []}

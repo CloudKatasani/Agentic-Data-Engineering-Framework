@@ -1,0 +1,184 @@
+version: 2
+models:
+- name: dim_customer_account
+  description: Billing account of a customer
+  meta:
+    grain: one row per customer account version
+    history: type2
+    owner: ''
+  config:
+    contract:
+      enforced: true
+  columns:
+  - name: CUSTOMER_ACCOUNT_ID
+    description: Business key of the account
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - not_null
+  - name: ACCOUNT_STATUS
+    description: A=active, I=inactive, C=closed
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - accepted_values:
+        values:
+        - A
+        - I
+        - C
+  - name: RATE_CLASS
+    description: Tariff rate class
+    meta:
+      classification: internal
+      business_rule: null
+  - name: CUSTOMER_NAME
+    description: Account holder name (masked for consumers)
+    meta:
+      classification: restricted
+      business_rule: null
+    tags:
+    - pii
+    - restricted
+  - name: OPEN_DATE
+    description: Account open date
+    meta:
+      classification: internal
+      business_rule: null
+- name: dim_premise
+  description: Service location
+  meta:
+    grain: one row per premise
+    history: type1
+    owner: ''
+  config:
+    contract:
+      enforced: true
+  columns:
+  - name: PREMISE_ID
+    description: Business key of the premise
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - unique
+    - not_null
+  - name: CUSTOMER_ACCOUNT_ID
+    description: Owning account
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - relationships:
+        to: ref('dim_customer_account')
+        field: customer_account_id
+  - name: PREMISE_TYPE
+    description: Residential, commercial, industrial
+    meta:
+      classification: internal
+      business_rule: null
+  - name: REGION_CODE
+    description: Operating region
+    meta:
+      classification: internal
+      business_rule: null
+- name: dim_meter
+  description: Installed meter
+  meta:
+    grain: one row per meter
+    history: type1
+    owner: ''
+  config:
+    contract:
+      enforced: true
+  columns:
+  - name: METER_ID
+    description: Business key of the meter
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - unique
+    - not_null
+  - name: PREMISE_ID
+    description: Premise where installed
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - relationships:
+        to: ref('dim_premise')
+        field: premise_id
+  - name: METER_TYPE
+    description: AMI or legacy
+    meta:
+      classification: internal
+      business_rule: null
+  - name: INSTALL_DATE
+    description: Installation date
+    meta:
+      classification: internal
+      business_rule: null
+- name: fct_billed_consumption
+  description: Billed versus metered consumption per bill
+  meta:
+    grain: one row per final bill
+    history: none
+    owner: ''
+  config:
+    contract:
+      enforced: true
+  columns:
+  - name: BILL_ID
+    description: Business key of the bill
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - unique
+    - not_null
+  - name: CUSTOMER_ACCOUNT_ID
+    description: Billed account
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - relationships:
+        to: ref('dim_customer_account')
+        field: customer_account_id
+  - name: BILL_PERIOD_START
+    description: First day of bill period
+    meta:
+      classification: internal
+      business_rule: null
+  - name: BILL_PERIOD_END
+    description: Last day of bill period
+    meta:
+      classification: internal
+      business_rule: null
+  - name: BILLED_KWH
+    description: kWh on the bill
+    meta:
+      classification: internal
+      business_rule: BR-003
+  - name: METERED_KWH
+    description: Metered kWh in the bill period
+    meta:
+      classification: internal
+      business_rule: BR-001
+  - name: ESTIMATED_READ_SHARE
+    description: Share of estimated reads
+    meta:
+      classification: internal
+      business_rule: BR-002
+  - name: VARIANCE_KWH
+    description: Billed minus metered kWh
+    meta:
+      classification: internal
+      business_rule: BR-004
+  - name: AMOUNT_DUE
+    description: Amount billed
+    meta:
+      classification: internal
+      business_rule: null

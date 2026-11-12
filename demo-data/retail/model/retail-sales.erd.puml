@@ -1,0 +1,40 @@
+@startuml
+hide circle
+skinparam linetype ortho
+
+entity "Store" as store {
+  * store_id : string(10)
+  --
+  store_name : string(100)
+  region : string(20)
+  format : string(12)
+}
+entity "Product" as product {
+  * product_id : string(14)
+  --
+  product_name : string(200)
+  category : string(40)
+  brand : string(40)
+}
+entity "Customer" as customer {
+  * customer_id : string(20)
+  --
+  loyalty_tier : string(10)
+  email : string(200)
+}
+entity "Sales Line" as sales_line {
+  * order_line_id : string(24)
+  --
+  order_id : string(20)
+  store_id : string(10) <<FK>>
+  product_id : string(14) <<FK>>
+  customer_id : string(20) <<FK>>
+  order_date : date
+  quantity : integer
+  net_amount : decimal(12,2)
+  discount_amount : decimal(12,2)
+}
+store ||..o{ sales_line
+product ||..o{ sales_line
+customer ||..o{ sales_line
+@enduml

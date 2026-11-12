@@ -1,0 +1,348 @@
+[
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-11-12T19:20:16+00:00",
+    "producer": "https://adpe.local/adpe-framework",
+    "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/definitions/RunEvent",
+    "run": {
+      "runId": "00000000-0000-4000-8000-000000000000"
+    },
+    "job": {
+      "namespace": "adpe://example-a",
+      "name": "load_dim_customer_account"
+    },
+    "inputs": [
+      {
+        "namespace": "adpe://example-a",
+        "name": "cis.account"
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "adpe://example-a",
+        "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT",
+        "facets": {
+          "columnLineage": {
+            "_producer": "https://adpe.local/adpe-framework",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-1-0/ColumnLineageDatasetFacet.json",
+            "fields": {
+              "customer_account_id": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://example-a",
+                    "name": "cis.account",
+                    "field": "account_id"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "account_status": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://example-a",
+                    "name": "cis.account",
+                    "field": "account_status"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "rate_class": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://example-a",
+                    "name": "cis.account",
+                    "field": "rate_class"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "customer_name": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://example-a",
+                    "name": "cis.account",
+                    "field": "customer_name"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "open_date": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://example-a",
+                    "name": "cis.account",
+                    "field": "open_date"
+                  }
+                ],
+                "transformationDescription": "direct"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-11-12T19:20:16+00:00",
+    "producer": "https://adpe.local/adpe-framework",
+    "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/definitions/RunEvent",
+    "run": {
+      "runId": "00000000-0000-4000-8000-000000000000"
+    },
+    "job": {
+      "namespace": "adpe://example-a",
+      "name": "load_dim_premise"
+    },
+    "inputs": [
+      {
+        "namespace": "adpe://example-a",
+        "name": "cis.premise"
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "adpe://example-a",
+        "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE",
+        "facets": {
+          "columnLineage": {
+            "_producer": "https://adpe.local/adpe-framework",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-1-0/ColumnLineageDatasetFacet.json",
+            "fields": {
+              "premise_id": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://example-a",
+                    "name": "cis.premise",
+                    "field": "premise_id"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "customer_account_id": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://example-a",
+                    "name": "cis.premise",
+                    "field": "account_id"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "premise_type": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://example-a",
+                    "name": "cis.premise",
+                    "field": "premise_type"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "region_code": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://example-a",
+                    "name": "cis.premise",
+                    "field": "region_code"
+                  }
+                ],
+                "transformationDescription": "direct"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-11-12T19:20:16+00:00",
+    "producer": "https://adpe.local/adpe-framework",
+    "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/definitions/RunEvent",
+    "run": {
+      "runId": "00000000-0000-4000-8000-000000000000"
+    },
+    "job": {
+      "namespace": "adpe://example-a",
+      "name": "load_dim_meter"
+    },
+    "inputs": [
+      {
+        "namespace": "adpe://example-a",
+        "name": "mdm.meter"
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "adpe://example-a",
+        "name": "ACME_CUSTOMER_CURATED.DIM_METER",
+        "facets": {
+          "columnLineage": {
+            "_producer": "https://adpe.local/adpe-framework",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-1-0/ColumnLineageDatasetFacet.json",
+            "fields": {
+              "meter_id": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://example-a",
+                    "name": "mdm.meter",
+                    "field": "meter_id"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "premise_id": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://example-a",
+                    "name": "mdm.meter",
+                    "field": "premise_id"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "meter_type": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://example-a",
+                    "name": "mdm.meter",
+                    "field": "meter_type"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "install_date": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://example-a",
+                    "name": "mdm.meter",
+                    "field": "install_date"
+                  }
+                ],
+                "transformationDescription": "direct"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-11-12T19:20:16+00:00",
+    "producer": "https://adpe.local/adpe-framework",
+    "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/definitions/RunEvent",
+    "run": {
+      "runId": "00000000-0000-4000-8000-000000000000"
+    },
+    "job": {
+      "namespace": "adpe://example-a",
+      "name": "load_fct_billed_consumption"
+    },
+    "inputs": [
+      {
+        "namespace": "adpe://example-a",
+        "name": "cis.bill"
+      },
+      {
+        "namespace": "adpe://example-a",
+        "name": "mdm.daily_read"
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "adpe://example-a",
+        "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION",
+        "facets": {
+          "columnLineage": {
+            "_producer": "https://adpe.local/adpe-framework",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-1-0/ColumnLineageDatasetFacet.json",
+            "fields": {
+              "bill_id": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://example-a",
+                    "name": "cis.bill",
+                    "field": "bill_id"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "customer_account_id": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://example-a",
+                    "name": "cis.bill",
+                    "field": "account_id"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "bill_period_start": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://example-a",
+                    "name": "cis.bill",
+                    "field": "period_start"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "bill_period_end": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://example-a",
+                    "name": "cis.bill",
+                    "field": "period_end"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "billed_kwh": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://example-a",
+                    "name": "cis.bill",
+                    "field": "billed_kwh"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "metered_kwh": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://example-a",
+                    "name": "mdm.daily_read",
+                    "field": "kwh"
+                  }
+                ],
+                "transformationDescription": "SUM(kwh) of reads for the account's meters within the bill period"
+              },
+              "estimated_read_share": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://example-a",
+                    "name": "mdm.daily_read",
+                    "field": "read_quality"
+                  }
+                ],
+                "transformationDescription": "COUNT(read_quality='E') / COUNT(*) within the bill period"
+              },
+              "amount_due": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://example-a",
+                    "name": "cis.bill",
+                    "field": "amount_due"
+                  }
+                ],
+                "transformationDescription": "direct"
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+]

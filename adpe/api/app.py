@@ -16,8 +16,9 @@ from fastapi.staticfiles import StaticFiles
 from .. import __version__
 from ..catalog import stacks
 from ..catalog.domains import list_packs, load_pack
-from ..catalog.providers import EFFORT_LEVELS, PROVIDER_TYPES
-from ..config import AGENTS_DIR, WEB_DIR
+from ..catalog.providers import EFFORT_LEVELS, PROVIDER_TYPES, SEED_PROVIDERS, TEAM_PRESETS, provider_ready
+from ..config import AGENTS_DIR, DEMO_DATA_DIR, WEB_DIR
+from ..connectors import jira_export
 from ..connectors.jira import JiraClient, JiraError
 from ..engine.orchestrator import InputRejected, get_engine
 from ..engine.stages import GATE_LABELS, STAGES
@@ -86,7 +87,7 @@ def health():
 
 @app.get("/api/catalog")
 def catalog():
-    return {"provider_types": PROVIDER_TYPES, "effort_levels": EFFORT_LEVELS, "slots": stacks.SLOTS,
+    return {"provider_types": PROVIDER_TYPES, "effort_levels": EFFORT_LEVELS, "team_presets": TEAM_PRESETS, "slots": stacks.SLOTS,
             "presets": stacks.PRESETS, "domain_packs": list_packs(), "exporters": exports.list_exporters(),
             "dialects": list(exports.ph.DIALECT_LABELS.items()), "stages": STAGES, "gate_labels": GATE_LABELS,
             "gate_roles": GATE_ROLES, "role_labels": ROLE_LABELS, "agents": _agent_defs(),
@@ -139,6 +140,37 @@ def put_agents(agents: dict = Body(...)):
         data["agents"][name] = {"provider_id": b["provider_id"], "model": b["model"].strip(),
                                 "effort": b.get("effort", "medium"), "max_tokens": int(b.get("max_tokens") or 16000)}
     return settings.save(data)["agents"]
+
+
+@app.post("/api/settings/agents/preset")
+def apply_team_preset(body: dict = Body(...)):
+    preset = TEAM_PRESETS.get(body.get("preset", ""))
+    if not preset:
+        raise HTTPException(400, "unknown team preset")
+    data = settings.load()
+    have = {p["id"] for p in data["providers"]}
+    for b in preset["agents"].values():
+        if b["provider_id"] not in have:
+            seed = next(p for p in SEED_PROVIDERS if p["id"] == b["provider_id"])
+            data["providers"].append(dict(seed))
+            have.add(seed["id"])
+    data["agents"] = {k: dict(v) for k, v in preset["agents"].items()}
+    data.setdefault("runtime", {})["team_preset"] = body["preset"]
+    return settings.save(data)
+
+
+@app.put("/api/settings/runtime")
+def put_runtime(body: dict = Body(...)):
+    data = settings.load()
+    rt = data.setdefault("runtime", {})
+    if "simulate_unavailable_providers" in body:
+        rt["simulate_unavailable_providers"] = bool(body["simulate_unavailable_providers"])
+    return settings.save(data)["runtime"]
+
+
+@app.get("/api/providers/readiness")
+def providers_readiness():
+    return {p["id"]: provider_ready(p) for p in settings.load()["providers"]}
 
 
 @app.put("/api/settings/approvers")
@@ -224,6 +256,41 @@ def jira_search(body: dict = Body(...)):
         return JiraClient(settings.load()["jira"], vault).search(body.get("jql", ""), int(body.get("max_results", 50)))
     except JiraError as e:
         raise HTTPException(502, str(e)) from e
+
+
+@app.post("/api/jira/import")
+async def jira_import(file: UploadFile = File(...)):
+    raw = await file.read()
+    if len(raw) > 10_000_000:
+        raise HTTPException(413, "file larger than 10 MB")
+    try:
+        return jira_export.parse(file.filename or "export.csv", raw.decode("utf-8-sig", errors="replace"))
+    except (ValueError, json.JSONDecodeError, KeyError) as e:
+        raise HTTPException(400, f"could not read the Jira export: {e}") from e
+
+
+# ----------------------------------------------------------------------------- demo data packs
+@app.get("/api/demo-files")
+def demo_files():
+    if not DEMO_DATA_DIR.exists():
+        return []
+    out = []
+    for p in sorted(DEMO_DATA_DIR.rglob("*")):
+        if p.is_file():
+            rel = p.relative_to(DEMO_DATA_DIR)
+            parts = rel.parts
+            out.append({"path": str(rel), "domain": parts[0] if len(parts) > 1 else "", "folder": parts[1] if len(parts) > 2 else "",
+                        "name": p.name, "bytes": p.stat().st_size})
+    return out
+
+
+@app.get("/api/demo-files/file")
+def demo_file(path: str):
+    p = (DEMO_DATA_DIR / path).resolve()
+    if not str(p).startswith(str(DEMO_DATA_DIR.resolve()) + "/") or not p.is_file():
+        raise HTTPException(404, "no such demo file")
+    return Response(p.read_text(errors="replace"), media_type="text/plain; charset=utf-8",
+                    headers={"Content-Disposition": f'attachment; filename="{p.name}"'})
 
 
 # ----------------------------------------------------------------------------- stacks

@@ -1,0 +1,388 @@
+{
+  "name": "utilities-meter-to-cash",
+  "version": "1.0.0",
+  "domain": "utilities",
+  "entities": [
+    {
+      "name": "customer_account",
+      "kind": "dimension",
+      "history": "type2",
+      "grain": "one row per customer account version",
+      "description": "Billing account of a customer",
+      "subject_area": "customer",
+      "attributes": [
+        {
+          "name": "customer_account_id",
+          "type": "string(20)",
+          "pk": true,
+          "fk": null,
+          "classification": "internal",
+          "description": "Business key of the account",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-001"
+          ],
+          "nullable": false,
+          "label": "Customer Account Id"
+        },
+        {
+          "name": "account_status",
+          "type": "string(1)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "A=active, I=inactive, C=closed",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-001"
+          ],
+          "nullable": true,
+          "label": "Account Status"
+        },
+        {
+          "name": "rate_class",
+          "type": "string(10)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Tariff rate class",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-004"
+          ],
+          "nullable": true,
+          "label": "Rate Class"
+        },
+        {
+          "name": "customer_name",
+          "type": "string(200)",
+          "pk": false,
+          "fk": null,
+          "classification": "restricted",
+          "description": "Account holder name (masked for consumers)",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-005"
+          ],
+          "nullable": true,
+          "label": "Customer Name"
+        },
+        {
+          "name": "open_date",
+          "type": "date",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Account open date",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": true,
+          "label": "Open Date"
+        }
+      ],
+      "label": "Customer Account"
+    },
+    {
+      "name": "premise",
+      "kind": "dimension",
+      "history": "type1",
+      "grain": "one row per premise",
+      "description": "Service location",
+      "subject_area": "customer",
+      "attributes": [
+        {
+          "name": "premise_id",
+          "type": "string(20)",
+          "pk": true,
+          "fk": null,
+          "classification": "internal",
+          "description": "Business key of the premise",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": false,
+          "label": "Premise Id"
+        },
+        {
+          "name": "customer_account_id",
+          "type": "string(20)",
+          "pk": false,
+          "fk": {
+            "entity": "customer_account",
+            "attribute": "customer_account_id"
+          },
+          "classification": "internal",
+          "description": "Owning account",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": true,
+          "label": "Customer Account Id"
+        },
+        {
+          "name": "premise_type",
+          "type": "string(20)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Residential, commercial, industrial",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-004"
+          ],
+          "nullable": true,
+          "label": "Premise Type"
+        },
+        {
+          "name": "region_code",
+          "type": "string(10)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Operating region",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-004"
+          ],
+          "nullable": true,
+          "label": "Region Code"
+        }
+      ],
+      "label": "Premise"
+    },
+    {
+      "name": "meter",
+      "kind": "dimension",
+      "history": "type1",
+      "grain": "one row per meter",
+      "description": "Installed meter",
+      "subject_area": "metering",
+      "attributes": [
+        {
+          "name": "meter_id",
+          "type": "string(20)",
+          "pk": true,
+          "fk": null,
+          "classification": "internal",
+          "description": "Business key of the meter",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": false,
+          "label": "Meter Id"
+        },
+        {
+          "name": "premise_id",
+          "type": "string(20)",
+          "pk": false,
+          "fk": {
+            "entity": "premise",
+            "attribute": "premise_id"
+          },
+          "classification": "internal",
+          "description": "Premise where installed",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": true,
+          "label": "Premise Id"
+        },
+        {
+          "name": "meter_type",
+          "type": "string(10)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "AMI or legacy",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": true,
+          "label": "Meter Type"
+        },
+        {
+          "name": "install_date",
+          "type": "date",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Installation date",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": true,
+          "label": "Install Date"
+        }
+      ],
+      "label": "Meter"
+    },
+    {
+      "name": "billed_consumption",
+      "kind": "fact",
+      "history": "none",
+      "grain": "one row per final bill",
+      "description": "Billed versus metered consumption per bill",
+      "subject_area": "billing",
+      "attributes": [
+        {
+          "name": "bill_id",
+          "type": "string(20)",
+          "pk": true,
+          "fk": null,
+          "classification": "internal",
+          "description": "Business key of the bill",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-001"
+          ],
+          "nullable": false,
+          "label": "Bill Id"
+        },
+        {
+          "name": "customer_account_id",
+          "type": "string(20)",
+          "pk": false,
+          "fk": {
+            "entity": "customer_account",
+            "attribute": "customer_account_id"
+          },
+          "classification": "internal",
+          "description": "Billed account",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-001"
+          ],
+          "nullable": true,
+          "label": "Customer Account Id"
+        },
+        {
+          "name": "bill_period_start",
+          "type": "date",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "First day of bill period",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-001"
+          ],
+          "nullable": true,
+          "label": "Bill Period Start"
+        },
+        {
+          "name": "bill_period_end",
+          "type": "date",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Last day of bill period",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-001"
+          ],
+          "nullable": true,
+          "label": "Bill Period End"
+        },
+        {
+          "name": "billed_kwh",
+          "type": "decimal(18,3)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "kWh on the bill",
+          "business_rule": "BR-003",
+          "req_ids": [
+            "REQ-001"
+          ],
+          "nullable": true,
+          "label": "Billed Kwh"
+        },
+        {
+          "name": "metered_kwh",
+          "type": "decimal(18,3)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Metered kWh in the bill period",
+          "business_rule": "BR-001",
+          "req_ids": [
+            "REQ-002"
+          ],
+          "nullable": true,
+          "label": "Metered Kwh"
+        },
+        {
+          "name": "estimated_read_share",
+          "type": "decimal(5,4)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Share of estimated reads",
+          "business_rule": "BR-002",
+          "req_ids": [
+            "REQ-003"
+          ],
+          "nullable": true,
+          "label": "Estimated Read Share"
+        },
+        {
+          "name": "variance_kwh",
+          "type": "decimal(18,3)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Billed minus metered kWh",
+          "business_rule": "BR-004",
+          "req_ids": [
+            "REQ-002"
+          ],
+          "nullable": true,
+          "label": "Variance Kwh"
+        },
+        {
+          "name": "amount_due",
+          "type": "decimal(18,2)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Amount billed",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-006"
+          ],
+          "nullable": true,
+          "label": "Amount Due"
+        }
+      ],
+      "label": "Billed Consumption"
+    }
+  ],
+  "metrics": [
+    {
+      "name": "avg_billed_kwh_per_account",
+      "label": "Average billed kWh per account",
+      "entity": "billed_consumption",
+      "measure": {
+        "agg": "sum",
+        "attribute": "billed_kwh"
+      },
+      "denominator": {
+        "agg": "count_distinct",
+        "attribute": "customer_account_id"
+      },
+      "unit": "kWh",
+      "business_rule": "BR-001",
+      "grain": "month",
+      "definition": "Total billed kWh divided by number of distinct billed accounts in the period."
+    },
+    {
+      "name": "total_billed_kwh",
+      "label": "Total billed kWh",
+      "entity": "billed_consumption",
+      "measure": {
+        "agg": "sum",
+        "attribute": "billed_kwh"
+      },
+      "denominator": null,
+      "unit": "kWh",
+      "business_rule": "BR-003",
+      "grain": "month",
+      "definition": "Sum of billed kWh on final bills."
+    }
+  ],
+  "description": "Meter-to-cash billed consumption data product"
+}

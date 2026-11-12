@@ -10,6 +10,7 @@ import threading
 from pathlib import Path
 from typing import Any
 
+from .catalog.providers import SEED_PROVIDERS, TEAM_PRESETS
 from .config import adpe_home
 
 AGENT_NAMES = [
@@ -19,12 +20,9 @@ AGENT_NAMES = [
 ]
 
 DEFAULTS: dict[str, Any] = {
-    "providers": [
-        {"id": "demo", "type": "simulator", "label": "ADPE Demo Simulator (offline)",
-         "base_url": "", "api_key_ref": "", "options": {}},
-    ],
-    "agents": {name: {"provider_id": "demo", "model": "adpe-simulator-1", "effort": "medium",
-                      "max_tokens": 16000} for name in AGENT_NAMES},
+    "providers": copy.deepcopy(SEED_PROVIDERS),
+    "agents": copy.deepcopy(TEAM_PRESETS["multi-vendor"]["agents"]),
+    "runtime": {"simulate_unavailable_providers": True, "team_preset": "multi-vendor"},
     "jira": {"mode": "demo", "base_url": "", "deployment": "cloud", "email": "",
              "token_ref": "", "default_jql": "project = DATA AND issuetype in (Story, Epic) ORDER BY key"},
     "stack_profiles": [],
@@ -56,6 +54,11 @@ class SettingsStore:
             data["providers"].insert(0, copy.deepcopy(DEFAULTS["providers"][0]))
         for name in AGENT_NAMES:
             data["agents"].setdefault(name, copy.deepcopy(DEFAULTS["agents"][name]))
+        # make sure every provider referenced by an agent exists (older settings files)
+        have = {p["id"] for p in data["providers"]}
+        for seed in SEED_PROVIDERS:
+            if seed["id"] not in have and any(b.get("provider_id") == seed["id"] for b in data["agents"].values()):
+                data["providers"].append(copy.deepcopy(seed))
         return data
 
     def save(self, data: dict) -> dict:

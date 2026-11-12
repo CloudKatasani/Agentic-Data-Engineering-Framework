@@ -1,0 +1,5 @@
+source_table,staging_object,target_table
+crm.customer,stg_crm__customer,acme_customer_gold.dim_customer
+pim.product,stg_pim__product,acme_customer_gold.dim_product
+pos.order_line,stg_pos__order_line,acme_customer_gold.fct_sales_line
+pos.store,stg_pos__store,acme_customer_gold.dim_store

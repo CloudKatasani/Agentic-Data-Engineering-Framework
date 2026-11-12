@@ -1,0 +1,169 @@
+version: 2
+models:
+- name: dim_customer
+  description: Bank customer
+  meta:
+    grain: one row per customer version
+    history: type2
+    owner: ''
+  config:
+    contract:
+      enforced: true
+  columns:
+  - name: CUSTOMER_ID
+    description: Business key
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - not_null
+  - name: SEGMENT
+    description: Mass, affluent or private
+    meta:
+      classification: internal
+      business_rule: null
+  - name: KYC_STATUS
+    description: VERIFIED, PENDING or EXPIRED
+    meta:
+      classification: internal
+      business_rule: null
+  - name: FULL_NAME
+    description: Customer name (masked)
+    meta:
+      classification: restricted
+      business_rule: null
+    tags:
+    - pii
+    - restricted
+- name: dim_product
+  description: Deposit product
+  meta:
+    grain: one row per product
+    history: type1
+    owner: ''
+  config:
+    contract:
+      enforced: true
+  columns:
+  - name: PRODUCT_CODE
+    description: Business key
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - unique
+    - not_null
+  - name: PRODUCT_NAME
+    description: Product name
+    meta:
+      classification: internal
+      business_rule: null
+  - name: PRODUCT_TYPE
+    description: Current, savings or term
+    meta:
+      classification: internal
+      business_rule: null
+- name: dim_account
+  description: Deposit account
+  meta:
+    grain: one row per account version
+    history: type2
+    owner: ''
+  config:
+    contract:
+      enforced: true
+  columns:
+  - name: ACCOUNT_ID
+    description: Business key
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - not_null
+  - name: CUSTOMER_ID
+    description: Account holder
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - relationships:
+        to: ref('dim_customer')
+        field: customer_id
+  - name: PRODUCT_CODE
+    description: Product
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - relationships:
+        to: ref('dim_product')
+        field: product_code
+  - name: BRANCH_CODE
+    description: Servicing branch
+    meta:
+      classification: internal
+      business_rule: null
+  - name: STATUS
+    description: OPEN, DORMANT or CLOSED
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - accepted_values:
+        values:
+        - OPEN
+        - DORMANT
+        - CLOSED
+  - name: CURRENCY
+    description: ISO currency
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - accepted_values:
+        values:
+        - USD
+        - EUR
+        - GBP
+- name: fct_daily_balance
+  description: End-of-day deposit balance
+  meta:
+    grain: one row per account per business day
+    history: none
+    owner: ''
+  config:
+    contract:
+      enforced: true
+  columns:
+  - name: DAILY_BALANCE_ID
+    description: Business key
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - unique
+    - not_null
+  - name: ACCOUNT_ID
+    description: Account
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - relationships:
+        to: ref('dim_account')
+        field: account_id
+  - name: BALANCE_DATE
+    description: Business date
+    meta:
+      classification: internal
+      business_rule: null
+  - name: LEDGER_BALANCE
+    description: Ledger balance
+    meta:
+      classification: confidential
+      business_rule: BR-001
+  - name: AVAILABLE_BALANCE
+    description: Available balance
+    meta:
+      classification: confidential
+      business_rule: null

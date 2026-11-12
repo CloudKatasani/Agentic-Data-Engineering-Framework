@@ -1,0 +1,32 @@
+@startuml
+hide circle
+skinparam linetype ortho
+
+entity "Subscriber" as subscriber {
+  * subscriber_id : string(20)
+  --
+  segment : string(20)
+  status : string(12)
+  activation_date : date
+  msisdn : string(15)
+}
+entity "Product" as product {
+  * product_code : string(12)
+  --
+  product_name : string(100)
+  product_family : string(30)
+}
+entity "Subscription Month" as subscription_month {
+  * subscription_month_id : string(30)
+  --
+  subscriber_id : string(20) <<FK>>
+  product_code : string(12) <<FK>>
+  month_start : date
+  monthly_revenue : decimal(12,2)
+  data_mb : decimal(14,2)
+  voice_min : decimal(10,2)
+  is_churned : boolean
+}
+subscriber ||..o{ subscription_month
+product ||..o{ subscription_month
+@enduml

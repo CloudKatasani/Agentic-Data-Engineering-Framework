@@ -1,0 +1,38 @@
+@startuml
+hide circle
+skinparam linetype ortho
+
+entity "Customer" as customer {
+  * customer_id : string(20)
+  --
+  segment : string(20)
+  kyc_status : string(10)
+  full_name : string(200)
+}
+entity "Product" as product {
+  * product_code : string(10)
+  --
+  product_name : string(100)
+  product_type : string(20)
+}
+entity "Account" as account {
+  * account_id : string(20)
+  --
+  customer_id : string(20) <<FK>>
+  product_code : string(10) <<FK>>
+  branch_code : string(8)
+  status : string(10)
+  currency : string(3)
+}
+entity "Daily Balance" as daily_balance {
+  * daily_balance_id : string(32)
+  --
+  account_id : string(20) <<FK>>
+  balance_date : date
+  ledger_balance : decimal(18,2)
+  available_balance : decimal(18,2)
+}
+customer ||..o{ account
+product ||..o{ account
+account ||..o{ daily_balance
+@enduml

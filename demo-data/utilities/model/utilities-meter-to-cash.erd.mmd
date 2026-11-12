@@ -1,0 +1,34 @@
+erDiagram
+    CUSTOMER_ACCOUNT ||--o{ PREMISE : "customer_account_id"
+    PREMISE ||--o{ METER : "premise_id"
+    CUSTOMER_ACCOUNT ||--o{ BILLED_CONSUMPTION : "customer_account_id"
+    CUSTOMER_ACCOUNT {
+        string customer_account_id PK
+        string account_status
+        string rate_class
+        string customer_name
+        date open_date
+    }
+    PREMISE {
+        string premise_id PK
+        string customer_account_id FK
+        string premise_type
+        string region_code
+    }
+    METER {
+        string meter_id PK
+        string premise_id FK
+        string meter_type
+        date install_date
+    }
+    BILLED_CONSUMPTION {
+        string bill_id PK
+        string customer_account_id FK
+        date bill_period_start
+        date bill_period_end
+        decimal billed_kwh
+        decimal metered_kwh
+        decimal estimated_read_share
+        decimal variance_kwh
+        decimal amount_due
+    }

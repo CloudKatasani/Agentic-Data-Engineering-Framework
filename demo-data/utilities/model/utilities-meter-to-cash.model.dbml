@@ -1,0 +1,39 @@
+// utilities-meter-to-cash v1.0.0 - logical model (dbdiagram.io / dbdocs)
+Project utilities_meter_to_cash {
+  database_type: 'Logical'
+  Note: 'Meter-to-cash billed consumption data product'
+}
+
+Table customer_account [note: 'dimension | history type2 | grain: one row per customer account version'] {
+  customer_account_id string(20) [pk, note: 'internal: Business key of the account']
+  account_status string(1) [note: 'internal: A=active, I=inactive, C=closed']
+  rate_class string(10) [note: 'internal: Tariff rate class']
+  customer_name string(200) [note: 'restricted: Account holder name (masked for consumers)']
+  open_date date [note: 'internal: Account open date']
+}
+
+Table premise [note: 'dimension | history type1 | grain: one row per premise'] {
+  premise_id string(20) [pk, note: 'internal: Business key of the premise']
+  customer_account_id string(20) [ref: > customer_account.customer_account_id, note: 'internal: Owning account']
+  premise_type string(20) [note: 'internal: Residential, commercial, industrial']
+  region_code string(10) [note: 'internal: Operating region']
+}
+
+Table meter [note: 'dimension | history type1 | grain: one row per meter'] {
+  meter_id string(20) [pk, note: 'internal: Business key of the meter']
+  premise_id string(20) [ref: > premise.premise_id, note: 'internal: Premise where installed']
+  meter_type string(10) [note: 'internal: AMI or legacy']
+  install_date date [note: 'internal: Installation date']
+}
+
+Table billed_consumption [note: 'fact | history none | grain: one row per final bill'] {
+  bill_id string(20) [pk, note: 'internal: Business key of the bill']
+  customer_account_id string(20) [ref: > customer_account.customer_account_id, note: 'internal: Billed account']
+  bill_period_start date [note: 'internal: First day of bill period']
+  bill_period_end date [note: 'internal: Last day of bill period']
+  billed_kwh decimal(18,3) [note: 'internal: kWh on the bill']
+  metered_kwh decimal(18,3) [note: 'internal: Metered kWh in the bill period']
+  estimated_read_share decimal(5,4) [note: 'internal: Share of estimated reads']
+  variance_kwh decimal(18,3) [note: 'internal: Billed minus metered kWh']
+  amount_due decimal(18,2) [note: 'internal: Amount billed']
+}

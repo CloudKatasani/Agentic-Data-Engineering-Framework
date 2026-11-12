@@ -14,6 +14,7 @@ SKILLS_DIR = REPO_ROOT / "skills"
 AGENTS_DIR = REPO_ROOT / "agents"
 ADAPTERS_DIR = REPO_ROOT / "adapters"
 WEB_DIR = REPO_ROOT / "web"
+DEMO_DATA_DIR = REPO_ROOT / "demo-data"
 FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
 
 

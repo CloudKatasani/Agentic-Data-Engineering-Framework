@@ -1,0 +1,30 @@
+erDiagram
+    CUSTOMER ||--o{ ACCOUNT : "customer_id"
+    PRODUCT ||--o{ ACCOUNT : "product_code"
+    ACCOUNT ||--o{ DAILY_BALANCE : "account_id"
+    CUSTOMER {
+        string customer_id PK
+        string segment
+        string kyc_status
+        string full_name
+    }
+    PRODUCT {
+        string product_code PK
+        string product_name
+        string product_type
+    }
+    ACCOUNT {
+        string account_id PK
+        string customer_id FK
+        string product_code FK
+        string branch_code
+        string status
+        string currency
+    }
+    DAILY_BALANCE {
+        string daily_balance_id PK
+        string account_id FK
+        date balance_date
+        decimal ledger_balance
+        decimal available_balance
+    }

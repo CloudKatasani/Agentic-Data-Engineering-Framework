@@ -1,0 +1,37 @@
+// retail-sales v1.0.0 - logical model (dbdiagram.io / dbdocs)
+Project retail_sales {
+  database_type: 'Logical'
+  Note: 'Sales performance data product'
+}
+
+Table store [note: 'dimension | history type1 | grain: one row per store'] {
+  store_id string(10) [pk, note: 'internal: Business key']
+  store_name string(100) [note: 'internal: Store name']
+  region string(20) [note: 'internal: Sales region']
+  format string(12) [note: 'internal: FLAGSHIP, STANDARD or EXPRESS']
+}
+
+Table product [note: 'dimension | history type2 | grain: one row per product version'] {
+  product_id string(14) [pk, note: 'internal: Business key']
+  product_name string(200) [note: 'internal: Product name']
+  category string(40) [note: 'internal: Category']
+  brand string(40) [note: 'internal: Brand']
+}
+
+Table customer [note: 'dimension | history type1 | grain: one row per loyalty customer'] {
+  customer_id string(20) [pk, note: 'internal: Business key']
+  loyalty_tier string(10) [note: 'internal: NONE, BRONZE, SILVER or GOLD']
+  email string(200) [note: 'restricted: Email (masked)']
+}
+
+Table sales_line [note: 'fact | history none | grain: one row per order line'] {
+  order_line_id string(24) [pk, note: 'internal: Business key']
+  order_id string(20) [note: 'internal: Order (basket)']
+  store_id string(10) [ref: > store.store_id, note: 'internal: Store']
+  product_id string(14) [ref: > product.product_id, note: 'internal: Product']
+  customer_id string(20) [ref: > customer.customer_id, note: 'internal: Loyalty customer (NONE if anonymous)']
+  order_date date [note: 'internal: Sales date']
+  quantity integer [note: 'internal: Units']
+  net_amount decimal(12,2) [note: 'internal: Net sales amount']
+  discount_amount decimal(12,2) [note: 'internal: Discount']
+}

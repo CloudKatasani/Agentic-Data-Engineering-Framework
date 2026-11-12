@@ -1,0 +1,20 @@
+flowchart LR
+  subgraph Sources
+    n0["crm.customer"]
+    n1["pim.product"]
+    n2["pos.order_line"]
+    n3["pos.store"]
+  end
+  subgraph Data_product["acme_customer_gold"]
+    n4["dim_customer"]
+    n5["dim_product"]
+    n6["dim_store"]
+    n7["fct_sales_line"]
+  end
+  n0 --> n4
+  n1 --> n5
+  n2 --> n7
+  n3 --> n6
+  n6 -.-> n7
+  n5 -.-> n7
+  n4 -.-> n7

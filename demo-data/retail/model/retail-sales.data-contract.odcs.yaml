@@ -1,0 +1,249 @@
+apiVersion: v3.0.2
+kind: DataContract
+id: DEMO-RET-retail-sales
+name: retail-sales
+version: 1.0.0
+status: draft
+domain: retail
+description:
+  purpose: Sales performance data product
+schema:
+- name: store
+  physicalName: dim_store
+  logicalType: object
+  description: Physical store
+  dataGranularityDescription: one row per store
+  properties:
+  - name: store_id
+    logicalType: string
+    physicalType: VARCHAR(10)
+    required: true
+    primaryKey: true
+    classification: internal
+    description: Business key
+  - name: store_name
+    logicalType: string
+    physicalType: VARCHAR(100)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Store name
+  - name: region
+    logicalType: string
+    physicalType: VARCHAR(20)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Sales region
+  - name: format
+    logicalType: string
+    physicalType: VARCHAR(12)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: FLAGSHIP, STANDARD or EXPRESS
+- name: product
+  physicalName: dim_product
+  logicalType: object
+  description: Sellable product
+  dataGranularityDescription: one row per product version
+  properties:
+  - name: product_id
+    logicalType: string
+    physicalType: VARCHAR(14)
+    required: true
+    primaryKey: true
+    classification: internal
+    description: Business key
+  - name: product_name
+    logicalType: string
+    physicalType: VARCHAR(200)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Product name
+  - name: category
+    logicalType: string
+    physicalType: VARCHAR(40)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Category
+  - name: brand
+    logicalType: string
+    physicalType: VARCHAR(40)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Brand
+- name: customer
+  physicalName: dim_customer
+  logicalType: object
+  description: Loyalty customer
+  dataGranularityDescription: one row per loyalty customer
+  properties:
+  - name: customer_id
+    logicalType: string
+    physicalType: VARCHAR(20)
+    required: true
+    primaryKey: true
+    classification: internal
+    description: Business key
+  - name: loyalty_tier
+    logicalType: string
+    physicalType: VARCHAR(10)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: NONE, BRONZE, SILVER or GOLD
+  - name: email
+    logicalType: string
+    physicalType: VARCHAR(200)
+    required: false
+    primaryKey: false
+    classification: restricted
+    description: Email (masked)
+- name: sales_line
+  physicalName: fct_sales_line
+  logicalType: object
+  description: Store sales line
+  dataGranularityDescription: one row per order line
+  properties:
+  - name: order_line_id
+    logicalType: string
+    physicalType: VARCHAR(24)
+    required: true
+    primaryKey: true
+    classification: internal
+    description: Business key
+  - name: order_id
+    logicalType: string
+    physicalType: VARCHAR(20)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Order (basket)
+  - name: store_id
+    logicalType: string
+    physicalType: VARCHAR(10)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Store
+  - name: product_id
+    logicalType: string
+    physicalType: VARCHAR(14)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Product
+  - name: customer_id
+    logicalType: string
+    physicalType: VARCHAR(20)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Loyalty customer (NONE if anonymous)
+  - name: order_date
+    logicalType: date
+    physicalType: DATE
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Sales date
+  - name: quantity
+    logicalType: integer
+    physicalType: INTEGER
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Units
+  - name: net_amount
+    logicalType: number
+    physicalType: DECIMAL(12,2)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Net sales amount
+    businessRule: BR-001
+  - name: discount_amount
+    logicalType: number
+    physicalType: DECIMAL(12,2)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Discount
+quality:
+- rule: unique
+  id: DQ-001
+  element: sales_line.order_line_id
+  mustBe: {}
+  threshold: 1.0
+  severity: high
+- rule: not_null
+  id: DQ-002
+  element: sales_line.net_amount
+  mustBe: {}
+  threshold: 1.0
+  severity: high
+- rule: referential
+  id: DQ-003
+  element: sales_line.store_id
+  mustBe:
+    to_entity: store
+    to_attribute: store_id
+  threshold: 1.0
+  severity: high
+- rule: referential
+  id: DQ-004
+  element: sales_line.product_id
+  mustBe:
+    to_entity: product
+    to_attribute: product_id
+  threshold: 1.0
+  severity: high
+- rule: accepted_values
+  id: DQ-005
+  element: customer.loyalty_tier
+  mustBe:
+    values:
+    - NONE
+    - BRONZE
+    - SILVER
+    - GOLD
+  threshold: 1.0
+  severity: medium
+- rule: range
+  id: DQ-006
+  element: sales_line.quantity
+  mustBe:
+    min: -100
+    max: 1000
+  threshold: 0.999
+  severity: high
+- rule: row_count_min
+  id: DQ-007
+  element: sales_line.None
+  mustBe:
+    min: 1
+  threshold: 1.0
+  severity: critical
+slaProperties:
+- property: frequency
+  value: daily
+- property: latency
+  value: 6
+  unit: h
+team:
+- role: product_owner
+  username: Priya Natarajan
+- role: data_architect
+  username: Marcus Lee
+- role: data_steward
+  username: Elena Ruiz
+- role: tech_lead
+  username: Tom Becker
+- role: release_manager
+  username: Aisha Bello
+- role: platform_owner
+  username: Sven Olsen

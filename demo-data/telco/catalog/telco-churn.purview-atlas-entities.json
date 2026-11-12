@@ -1,0 +1,316 @@
+{
+  "entities": [
+    {
+      "typeName": "rdbms_db",
+      "guid": "-1",
+      "attributes": {
+        "qualifiedName": "adpe.acme_customer_gold",
+        "name": "acme_customer_gold",
+        "description": "Subscriber churn and ARPU data product"
+      }
+    },
+    {
+      "typeName": "rdbms_table",
+      "guid": "-2",
+      "attributes": {
+        "qualifiedName": "adpe.acme_customer_gold.dim_subscriber",
+        "name": "dim_subscriber",
+        "description": "Mobile subscriber",
+        "comment": "grain: one row per subscriber version",
+        "db": {
+          "guid": "-1",
+          "typeName": "rdbms_db"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-3",
+      "attributes": {
+        "qualifiedName": "adpe.acme_customer_gold.dim_subscriber.subscriber_id",
+        "name": "subscriber_id",
+        "data_type": "STRING",
+        "isPrimaryKey": true,
+        "isNullable": false,
+        "description": "Business key",
+        "table": {
+          "guid": "-2",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-4",
+      "attributes": {
+        "qualifiedName": "adpe.acme_customer_gold.dim_subscriber.segment",
+        "name": "segment",
+        "data_type": "STRING",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Consumer, SME or Enterprise",
+        "table": {
+          "guid": "-2",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-5",
+      "attributes": {
+        "qualifiedName": "adpe.acme_customer_gold.dim_subscriber.status",
+        "name": "status",
+        "data_type": "STRING",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "ACTIVE, SUSPENDED or CHURNED",
+        "table": {
+          "guid": "-2",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-6",
+      "attributes": {
+        "qualifiedName": "adpe.acme_customer_gold.dim_subscriber.activation_date",
+        "name": "activation_date",
+        "data_type": "DATE",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Activation date",
+        "table": {
+          "guid": "-2",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-7",
+      "attributes": {
+        "qualifiedName": "adpe.acme_customer_gold.dim_subscriber.msisdn",
+        "name": "msisdn",
+        "data_type": "STRING",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Phone number (masked)",
+        "table": {
+          "guid": "-2",
+          "typeName": "rdbms_table"
+        }
+      },
+      "classifications": [
+        {
+          "typeName": "ADPE_RESTRICTED"
+        }
+      ]
+    },
+    {
+      "typeName": "rdbms_table",
+      "guid": "-8",
+      "attributes": {
+        "qualifiedName": "adpe.acme_customer_gold.dim_product",
+        "name": "dim_product",
+        "description": "Product offering",
+        "comment": "grain: one row per product",
+        "db": {
+          "guid": "-1",
+          "typeName": "rdbms_db"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-9",
+      "attributes": {
+        "qualifiedName": "adpe.acme_customer_gold.dim_product.product_code",
+        "name": "product_code",
+        "data_type": "STRING",
+        "isPrimaryKey": true,
+        "isNullable": false,
+        "description": "Business key",
+        "table": {
+          "guid": "-8",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-10",
+      "attributes": {
+        "qualifiedName": "adpe.acme_customer_gold.dim_product.product_name",
+        "name": "product_name",
+        "data_type": "STRING",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Product name",
+        "table": {
+          "guid": "-8",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-11",
+      "attributes": {
+        "qualifiedName": "adpe.acme_customer_gold.dim_product.product_family",
+        "name": "product_family",
+        "data_type": "STRING",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Product family",
+        "table": {
+          "guid": "-8",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_table",
+      "guid": "-12",
+      "attributes": {
+        "qualifiedName": "adpe.acme_customer_gold.fct_subscription_month",
+        "name": "fct_subscription_month",
+        "description": "Monthly revenue, usage and churn per subscriber",
+        "comment": "grain: one row per subscriber per month",
+        "db": {
+          "guid": "-1",
+          "typeName": "rdbms_db"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-13",
+      "attributes": {
+        "qualifiedName": "adpe.acme_customer_gold.fct_subscription_month.subscription_month_id",
+        "name": "subscription_month_id",
+        "data_type": "STRING",
+        "isPrimaryKey": true,
+        "isNullable": false,
+        "description": "Surrogate business key",
+        "table": {
+          "guid": "-12",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-14",
+      "attributes": {
+        "qualifiedName": "adpe.acme_customer_gold.fct_subscription_month.subscriber_id",
+        "name": "subscriber_id",
+        "data_type": "STRING",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Subscriber",
+        "table": {
+          "guid": "-12",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-15",
+      "attributes": {
+        "qualifiedName": "adpe.acme_customer_gold.fct_subscription_month.product_code",
+        "name": "product_code",
+        "data_type": "STRING",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Main product",
+        "table": {
+          "guid": "-12",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-16",
+      "attributes": {
+        "qualifiedName": "adpe.acme_customer_gold.fct_subscription_month.month_start",
+        "name": "month_start",
+        "data_type": "DATE",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Month",
+        "table": {
+          "guid": "-12",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-17",
+      "attributes": {
+        "qualifiedName": "adpe.acme_customer_gold.fct_subscription_month.monthly_revenue",
+        "name": "monthly_revenue",
+        "data_type": "DECIMAL(12,2)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Revenue in month",
+        "table": {
+          "guid": "-12",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-18",
+      "attributes": {
+        "qualifiedName": "adpe.acme_customer_gold.fct_subscription_month.data_mb",
+        "name": "data_mb",
+        "data_type": "DECIMAL(14,2)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Data used",
+        "table": {
+          "guid": "-12",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-19",
+      "attributes": {
+        "qualifiedName": "adpe.acme_customer_gold.fct_subscription_month.voice_min",
+        "name": "voice_min",
+        "data_type": "DECIMAL(10,2)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Voice minutes",
+        "table": {
+          "guid": "-12",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-20",
+      "attributes": {
+        "qualifiedName": "adpe.acme_customer_gold.fct_subscription_month.is_churned",
+        "name": "is_churned",
+        "data_type": "BOOLEAN",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Churned in month",
+        "table": {
+          "guid": "-12",
+          "typeName": "rdbms_table"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+system,schema,table_name,column_name,data_type,is_nullable,primary_key,description,classification,owner,refresh,table_description
+core-banking,cbs,customer,customer_id,string(20),N,Y,customer id,internal,Customer Data Office,daily batch,Customers
+core-banking,cbs,customer,full_name,string(200),Y,,full name,restricted,Customer Data Office,daily batch,Customers
+core-banking,cbs,customer,national_id,string(20),Y,,national id,restricted,Customer Data Office,daily batch,Customers
+core-banking,cbs,customer,date_of_birth,date,Y,,date of birth,restricted,Customer Data Office,daily batch,Customers
+core-banking,cbs,customer,segment,string(20),Y,,segment,internal,Customer Data Office,daily batch,Customers
+core-banking,cbs,customer,kyc_status,string(10),Y,,kyc status,internal,Customer Data Office,daily batch,Customers
+core-banking,cbs,customer,onboard_date,date,Y,,onboard date,internal,Customer Data Office,daily batch,Customers
+core-banking,cbs,account,account_id,string(20),N,Y,account id,internal,Deposits Operations,daily batch,Deposit accounts
+core-banking,cbs,account,customer_id,string(20),Y,,customer id,internal,Deposits Operations,daily batch,Deposit accounts
+core-banking,cbs,account,product_code,string(10),Y,,product code,internal,Deposits Operations,daily batch,Deposit accounts
+core-banking,cbs,account,branch_code,string(8),Y,,branch code,internal,Deposits Operations,daily batch,Deposit accounts
+core-banking,cbs,account,open_date,date,Y,,open date,internal,Deposits Operations,daily batch,Deposit accounts
+core-banking,cbs,account,status,string(10),Y,,status,internal,Deposits Operations,daily batch,Deposit accounts
+core-banking,cbs,account,currency,string(3),Y,,currency,internal,Deposits Operations,daily batch,Deposit accounts
+core-banking,cbs,product,product_code,string(10),N,Y,product code,internal,Product Control,weekly,Deposit products
+core-banking,cbs,product,product_name,string(100),Y,,product name,internal,Product Control,weekly,Deposit products
+core-banking,cbs,product,product_type,string(20),Y,,product type,internal,Product Control,weekly,Deposit products
+core-banking,cbs,product,interest_rate,"decimal(7,4)",Y,,interest rate,confidential,Product Control,weekly,Deposit products
+core-banking,cbs,daily_balance,account_id,string(20),N,Y,account id,internal,Deposits Operations,daily batch,End-of-day balances
+core-banking,cbs,daily_balance,balance_date,date,N,Y,balance date,internal,Deposits Operations,daily batch,End-of-day balances
+core-banking,cbs,daily_balance,ledger_balance,"decimal(18,2)",Y,,ledger balance,confidential,Deposits Operations,daily batch,End-of-day balances
+core-banking,cbs,daily_balance,available_balance,"decimal(18,2)",Y,,available balance,confidential,Deposits Operations,daily batch,End-of-day balances

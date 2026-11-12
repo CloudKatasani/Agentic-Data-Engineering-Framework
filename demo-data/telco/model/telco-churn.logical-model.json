@@ -1,0 +1,299 @@
+{
+  "name": "telco-churn",
+  "version": "1.0.0",
+  "domain": "telco",
+  "entities": [
+    {
+      "name": "subscriber",
+      "kind": "dimension",
+      "history": "type2",
+      "grain": "one row per subscriber version",
+      "description": "Mobile subscriber",
+      "subject_area": "customer",
+      "attributes": [
+        {
+          "name": "subscriber_id",
+          "type": "string(20)",
+          "pk": true,
+          "fk": null,
+          "classification": "internal",
+          "description": "Business key",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-001"
+          ],
+          "nullable": false,
+          "label": "Subscriber Id"
+        },
+        {
+          "name": "segment",
+          "type": "string(20)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Consumer, SME or Enterprise",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-002"
+          ],
+          "nullable": true,
+          "label": "Segment"
+        },
+        {
+          "name": "status",
+          "type": "string(12)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "ACTIVE, SUSPENDED or CHURNED",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-001"
+          ],
+          "nullable": true,
+          "label": "Status"
+        },
+        {
+          "name": "activation_date",
+          "type": "date",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Activation date",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": true,
+          "label": "Activation Date"
+        },
+        {
+          "name": "msisdn",
+          "type": "string(15)",
+          "pk": false,
+          "fk": null,
+          "classification": "restricted",
+          "description": "Phone number (masked)",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-005"
+          ],
+          "nullable": true,
+          "label": "Msisdn"
+        }
+      ],
+      "label": "Subscriber"
+    },
+    {
+      "name": "product",
+      "kind": "dimension",
+      "history": "type1",
+      "grain": "one row per product",
+      "description": "Product offering",
+      "subject_area": "product",
+      "attributes": [
+        {
+          "name": "product_code",
+          "type": "string(12)",
+          "pk": true,
+          "fk": null,
+          "classification": "internal",
+          "description": "Business key",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": false,
+          "label": "Product Code"
+        },
+        {
+          "name": "product_name",
+          "type": "string(100)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Product name",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": true,
+          "label": "Product Name"
+        },
+        {
+          "name": "product_family",
+          "type": "string(30)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Product family",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-003"
+          ],
+          "nullable": true,
+          "label": "Product Family"
+        }
+      ],
+      "label": "Product"
+    },
+    {
+      "name": "subscription_month",
+      "kind": "fact",
+      "history": "none",
+      "grain": "one row per subscriber per month",
+      "description": "Monthly revenue, usage and churn per subscriber",
+      "subject_area": "usage",
+      "attributes": [
+        {
+          "name": "subscription_month_id",
+          "type": "string(30)",
+          "pk": true,
+          "fk": null,
+          "classification": "internal",
+          "description": "Surrogate business key",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": false,
+          "label": "Subscription Month Id"
+        },
+        {
+          "name": "subscriber_id",
+          "type": "string(20)",
+          "pk": false,
+          "fk": {
+            "entity": "subscriber",
+            "attribute": "subscriber_id"
+          },
+          "classification": "internal",
+          "description": "Subscriber",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-001"
+          ],
+          "nullable": true,
+          "label": "Subscriber Id"
+        },
+        {
+          "name": "product_code",
+          "type": "string(12)",
+          "pk": false,
+          "fk": {
+            "entity": "product",
+            "attribute": "product_code"
+          },
+          "classification": "internal",
+          "description": "Main product",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-003"
+          ],
+          "nullable": true,
+          "label": "Product Code"
+        },
+        {
+          "name": "month_start",
+          "type": "date",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Month",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-001"
+          ],
+          "nullable": true,
+          "label": "Month Start"
+        },
+        {
+          "name": "monthly_revenue",
+          "type": "decimal(12,2)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Revenue in month",
+          "business_rule": "BR-001",
+          "req_ids": [
+            "REQ-003"
+          ],
+          "nullable": true,
+          "label": "Monthly Revenue"
+        },
+        {
+          "name": "data_mb",
+          "type": "decimal(14,2)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Data used",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-004"
+          ],
+          "nullable": true,
+          "label": "Data Mb"
+        },
+        {
+          "name": "voice_min",
+          "type": "decimal(10,2)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Voice minutes",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-004"
+          ],
+          "nullable": true,
+          "label": "Voice Min"
+        },
+        {
+          "name": "is_churned",
+          "type": "boolean",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Churned in month",
+          "business_rule": "BR-002",
+          "req_ids": [
+            "REQ-002"
+          ],
+          "nullable": true,
+          "label": "Is Churned"
+        }
+      ],
+      "label": "Subscription Month"
+    }
+  ],
+  "metrics": [
+    {
+      "name": "churn_rate",
+      "label": "Monthly churn rate",
+      "entity": "subscription_month",
+      "measure": {
+        "agg": "sum_bool",
+        "attribute": "is_churned"
+      },
+      "denominator": {
+        "agg": "count_distinct",
+        "attribute": "subscriber_id"
+      },
+      "unit": "ratio",
+      "business_rule": "BR-003",
+      "grain": "month",
+      "definition": "Churned subscribers divided by subscribers in the month."
+    },
+    {
+      "name": "arpu",
+      "label": "ARPU",
+      "entity": "subscription_month",
+      "measure": {
+        "agg": "sum",
+        "attribute": "monthly_revenue"
+      },
+      "denominator": {
+        "agg": "count_distinct",
+        "attribute": "subscriber_id"
+      },
+      "unit": "currency",
+      "business_rule": "BR-001",
+      "grain": "month",
+      "definition": "Average revenue per subscriber in the month."
+    }
+  ],
+  "description": "Subscriber churn and ARPU data product"
+}

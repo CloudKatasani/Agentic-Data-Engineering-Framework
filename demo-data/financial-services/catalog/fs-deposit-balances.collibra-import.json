@@ -1,0 +1,1269 @@
+[
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER",
+      "domain": {
+        "name": "fs-deposit-balances - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER",
+    "displayName": "Customer",
+    "type": {
+      "name": "Table"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Bank customer"
+        }
+      ],
+      "Note": [
+        {
+          "value": "grain: one row per customer version; history: type2"
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER.CUSTOMER_ID",
+      "domain": {
+        "name": "fs-deposit-balances - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER.CUSTOMER_ID",
+    "displayName": "Customer Id",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Business key"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(20)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": true
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": false
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER",
+          "domain": {
+            "name": "fs-deposit-balances - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER.SEGMENT",
+      "domain": {
+        "name": "fs-deposit-balances - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER.SEGMENT",
+    "displayName": "Segment",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Mass, affluent or private"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(20)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER",
+          "domain": {
+            "name": "fs-deposit-balances - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER.KYC_STATUS",
+      "domain": {
+        "name": "fs-deposit-balances - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER.KYC_STATUS",
+    "displayName": "Kyc Status",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "VERIFIED, PENDING or EXPIRED"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(10)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER",
+          "domain": {
+            "name": "fs-deposit-balances - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER.FULL_NAME",
+      "domain": {
+        "name": "fs-deposit-balances - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER.FULL_NAME",
+    "displayName": "Full Name",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Customer name (masked)"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(200)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Restricted"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER",
+          "domain": {
+            "name": "fs-deposit-balances - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_PRODUCT",
+      "domain": {
+        "name": "fs-deposit-balances - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_PRODUCT",
+    "displayName": "Product",
+    "type": {
+      "name": "Table"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Deposit product"
+        }
+      ],
+      "Note": [
+        {
+          "value": "grain: one row per product; history: type1"
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_PRODUCT.PRODUCT_CODE",
+      "domain": {
+        "name": "fs-deposit-balances - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_PRODUCT.PRODUCT_CODE",
+    "displayName": "Product Code",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Business key"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(10)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": true
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": false
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_PRODUCT",
+          "domain": {
+            "name": "fs-deposit-balances - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_PRODUCT.PRODUCT_NAME",
+      "domain": {
+        "name": "fs-deposit-balances - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_PRODUCT.PRODUCT_NAME",
+    "displayName": "Product Name",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Product name"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(100)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_PRODUCT",
+          "domain": {
+            "name": "fs-deposit-balances - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_PRODUCT.PRODUCT_TYPE",
+      "domain": {
+        "name": "fs-deposit-balances - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_PRODUCT.PRODUCT_TYPE",
+    "displayName": "Product Type",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Current, savings or term"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(20)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_PRODUCT",
+          "domain": {
+            "name": "fs-deposit-balances - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT",
+      "domain": {
+        "name": "fs-deposit-balances - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT",
+    "displayName": "Account",
+    "type": {
+      "name": "Table"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Deposit account"
+        }
+      ],
+      "Note": [
+        {
+          "value": "grain: one row per account version; history: type2"
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT.ACCOUNT_ID",
+      "domain": {
+        "name": "fs-deposit-balances - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT.ACCOUNT_ID",
+    "displayName": "Account Id",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Business key"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(20)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": true
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": false
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT",
+          "domain": {
+            "name": "fs-deposit-balances - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT.CUSTOMER_ID",
+      "domain": {
+        "name": "fs-deposit-balances - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT.CUSTOMER_ID",
+    "displayName": "Customer Id",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Account holder"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(20)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT",
+          "domain": {
+            "name": "fs-deposit-balances - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT.PRODUCT_CODE",
+      "domain": {
+        "name": "fs-deposit-balances - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT.PRODUCT_CODE",
+    "displayName": "Product Code",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Product"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(10)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT",
+          "domain": {
+            "name": "fs-deposit-balances - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT.BRANCH_CODE",
+      "domain": {
+        "name": "fs-deposit-balances - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT.BRANCH_CODE",
+    "displayName": "Branch Code",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Servicing branch"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(8)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT",
+          "domain": {
+            "name": "fs-deposit-balances - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT.STATUS",
+      "domain": {
+        "name": "fs-deposit-balances - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT.STATUS",
+    "displayName": "Status",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "OPEN, DORMANT or CLOSED"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(10)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT",
+          "domain": {
+            "name": "fs-deposit-balances - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT.CURRENCY",
+      "domain": {
+        "name": "fs-deposit-balances - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT.CURRENCY",
+    "displayName": "Currency",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "ISO currency"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(3)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT",
+          "domain": {
+            "name": "fs-deposit-balances - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE",
+      "domain": {
+        "name": "fs-deposit-balances - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE",
+    "displayName": "Daily Balance",
+    "type": {
+      "name": "Table"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "End-of-day deposit balance"
+        }
+      ],
+      "Note": [
+        {
+          "value": "grain: one row per account per business day; history: none"
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.DAILY_BALANCE_ID",
+      "domain": {
+        "name": "fs-deposit-balances - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.DAILY_BALANCE_ID",
+    "displayName": "Daily Balance Id",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Business key"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(32)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": true
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": false
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE",
+          "domain": {
+            "name": "fs-deposit-balances - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.ACCOUNT_ID",
+      "domain": {
+        "name": "fs-deposit-balances - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.ACCOUNT_ID",
+    "displayName": "Account Id",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Account"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(20)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE",
+          "domain": {
+            "name": "fs-deposit-balances - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.BALANCE_DATE",
+      "domain": {
+        "name": "fs-deposit-balances - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.BALANCE_DATE",
+    "displayName": "Balance Date",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Business date"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "DATE"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE",
+          "domain": {
+            "name": "fs-deposit-balances - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.LEDGER_BALANCE",
+      "domain": {
+        "name": "fs-deposit-balances - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.LEDGER_BALANCE",
+    "displayName": "Ledger Balance",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Ledger balance"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "DECIMAL(18,2)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Confidential"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE",
+          "domain": {
+            "name": "fs-deposit-balances - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.AVAILABLE_BALANCE",
+      "domain": {
+        "name": "fs-deposit-balances - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.AVAILABLE_BALANCE",
+    "displayName": "Available Balance",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Available balance"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "DECIMAL(18,2)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Confidential"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE",
+          "domain": {
+            "name": "fs-deposit-balances - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "Total deposits",
+      "domain": {
+        "name": "financial-services Glossary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "Total deposits",
+    "type": {
+      "name": "Business Term"
+    },
+    "attributes": {
+      "Definition": [
+        {
+          "value": "Sum of ledger balances."
+        }
+      ],
+      "Note": [
+        {
+          "value": "Formula: "
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "Average daily balance",
+      "domain": {
+        "name": "financial-services Glossary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "Average daily balance",
+    "type": {
+      "name": "Business Term"
+    },
+    "attributes": {
+      "Definition": [
+        {
+          "value": "Mean of daily ledger balances."
+        }
+      ],
+      "Note": [
+        {
+          "value": "Formula: "
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ADB",
+      "domain": {
+        "name": "financial-services Glossary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ADB",
+    "type": {
+      "name": "Business Term"
+    },
+    "attributes": {
+      "Definition": [
+        {
+          "value": "Average daily balance over a period"
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "NIM",
+      "domain": {
+        "name": "financial-services Glossary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "NIM",
+    "type": {
+      "name": "Business Term"
+    },
+    "attributes": {
+      "Definition": [
+        {
+          "value": "Net interest margin"
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "KYC",
+      "domain": {
+        "name": "financial-services Glossary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "KYC",
+    "type": {
+      "name": "Business Term"
+    },
+    "attributes": {
+      "Definition": [
+        {
+          "value": "Know your customer due-diligence status"
+        }
+      ]
+    }
+  }
+]

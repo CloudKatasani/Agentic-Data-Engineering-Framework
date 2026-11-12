@@ -1,0 +1,175 @@
+version: 2
+models:
+- name: dim_store
+  description: Physical store
+  meta:
+    grain: one row per store
+    history: type1
+    owner: ''
+  config:
+    contract:
+      enforced: true
+  columns:
+  - name: store_id
+    description: Business key
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - unique
+    - not_null
+  - name: store_name
+    description: Store name
+    meta:
+      classification: internal
+      business_rule: null
+  - name: region
+    description: Sales region
+    meta:
+      classification: internal
+      business_rule: null
+  - name: format
+    description: FLAGSHIP, STANDARD or EXPRESS
+    meta:
+      classification: internal
+      business_rule: null
+- name: dim_product
+  description: Sellable product
+  meta:
+    grain: one row per product version
+    history: type2
+    owner: ''
+  config:
+    contract:
+      enforced: true
+  columns:
+  - name: product_id
+    description: Business key
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - not_null
+  - name: product_name
+    description: Product name
+    meta:
+      classification: internal
+      business_rule: null
+  - name: category
+    description: Category
+    meta:
+      classification: internal
+      business_rule: null
+  - name: brand
+    description: Brand
+    meta:
+      classification: internal
+      business_rule: null
+- name: dim_customer
+  description: Loyalty customer
+  meta:
+    grain: one row per loyalty customer
+    history: type1
+    owner: ''
+  config:
+    contract:
+      enforced: true
+  columns:
+  - name: customer_id
+    description: Business key
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - unique
+    - not_null
+  - name: loyalty_tier
+    description: NONE, BRONZE, SILVER or GOLD
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - accepted_values:
+        values:
+        - NONE
+        - BRONZE
+        - SILVER
+        - GOLD
+  - name: email
+    description: Email (masked)
+    meta:
+      classification: restricted
+      business_rule: null
+    tags:
+    - pii
+    - restricted
+- name: fct_sales_line
+  description: Store sales line
+  meta:
+    grain: one row per order line
+    history: none
+    owner: ''
+  config:
+    contract:
+      enforced: true
+  columns:
+  - name: order_line_id
+    description: Business key
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - unique
+    - not_null
+  - name: order_id
+    description: Order (basket)
+    meta:
+      classification: internal
+      business_rule: null
+  - name: store_id
+    description: Store
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - relationships:
+        to: ref('dim_store')
+        field: store_id
+  - name: product_id
+    description: Product
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - relationships:
+        to: ref('dim_product')
+        field: product_id
+  - name: customer_id
+    description: Loyalty customer (NONE if anonymous)
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - relationships:
+        to: ref('dim_customer')
+        field: customer_id
+  - name: order_date
+    description: Sales date
+    meta:
+      classification: internal
+      business_rule: null
+  - name: quantity
+    description: Units
+    meta:
+      classification: internal
+      business_rule: null
+  - name: net_amount
+    description: Net sales amount
+    meta:
+      classification: internal
+      business_rule: BR-001
+  - name: discount_amount
+    description: Discount
+    meta:
+      classification: internal
+      business_rule: null

@@ -10,6 +10,7 @@ Enforces, outside the prompts:
 from __future__ import annotations
 
 import json
+import os
 import threading
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -100,7 +101,10 @@ class RunWorkspace:
         p = self.path(rel)
         p.parent.mkdir(parents=True, exist_ok=True)
         data = content.encode() if isinstance(content, str) else content
-        p.write_bytes(data)
+        # atomic replace: concurrent readers (API polling, receiver checks) never see a partial file
+        tmp = p.with_name(f".{p.name}.{threading.get_ident()}.tmp")
+        tmp.write_bytes(data)
+        os.replace(tmp, p)
         return sha256_bytes(data)
 
     def read(self, rel: str) -> str:
@@ -122,7 +126,7 @@ class RunWorkspace:
     def files(self) -> list[dict]:
         out = []
         for p in sorted(self.root.rglob("*")):
-            if p.is_file() and not p.name.endswith(".lock"):
+            if p.is_file() and not p.name.endswith((".lock", ".tmp")):
                 rel = str(p.relative_to(self.root))
                 if rel.startswith(("repo/", "sandbox/")):
                     continue

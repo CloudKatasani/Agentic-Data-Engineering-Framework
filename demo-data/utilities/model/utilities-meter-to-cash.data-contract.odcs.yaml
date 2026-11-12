@@ -1,0 +1,272 @@
+apiVersion: v3.0.2
+kind: DataContract
+id: DEMO-UTIL-utilities-meter-to-cash
+name: utilities-meter-to-cash
+version: 1.0.0
+status: draft
+domain: utilities
+description:
+  purpose: Meter-to-cash billed consumption data product
+schema:
+- name: customer_account
+  physicalName: DIM_CUSTOMER_ACCOUNT
+  logicalType: object
+  description: Billing account of a customer
+  dataGranularityDescription: one row per customer account version
+  properties:
+  - name: customer_account_id
+    logicalType: string
+    physicalType: VARCHAR(20)
+    required: true
+    primaryKey: true
+    classification: internal
+    description: Business key of the account
+  - name: account_status
+    logicalType: string
+    physicalType: VARCHAR(1)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: A=active, I=inactive, C=closed
+  - name: rate_class
+    logicalType: string
+    physicalType: VARCHAR(10)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Tariff rate class
+  - name: customer_name
+    logicalType: string
+    physicalType: VARCHAR(200)
+    required: false
+    primaryKey: false
+    classification: restricted
+    description: Account holder name (masked for consumers)
+  - name: open_date
+    logicalType: date
+    physicalType: DATE
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Account open date
+- name: premise
+  physicalName: DIM_PREMISE
+  logicalType: object
+  description: Service location
+  dataGranularityDescription: one row per premise
+  properties:
+  - name: premise_id
+    logicalType: string
+    physicalType: VARCHAR(20)
+    required: true
+    primaryKey: true
+    classification: internal
+    description: Business key of the premise
+  - name: customer_account_id
+    logicalType: string
+    physicalType: VARCHAR(20)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Owning account
+  - name: premise_type
+    logicalType: string
+    physicalType: VARCHAR(20)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Residential, commercial, industrial
+  - name: region_code
+    logicalType: string
+    physicalType: VARCHAR(10)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Operating region
+- name: meter
+  physicalName: DIM_METER
+  logicalType: object
+  description: Installed meter
+  dataGranularityDescription: one row per meter
+  properties:
+  - name: meter_id
+    logicalType: string
+    physicalType: VARCHAR(20)
+    required: true
+    primaryKey: true
+    classification: internal
+    description: Business key of the meter
+  - name: premise_id
+    logicalType: string
+    physicalType: VARCHAR(20)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Premise where installed
+  - name: meter_type
+    logicalType: string
+    physicalType: VARCHAR(10)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: AMI or legacy
+  - name: install_date
+    logicalType: date
+    physicalType: DATE
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Installation date
+- name: billed_consumption
+  physicalName: FCT_BILLED_CONSUMPTION
+  logicalType: object
+  description: Billed versus metered consumption per bill
+  dataGranularityDescription: one row per final bill
+  properties:
+  - name: bill_id
+    logicalType: string
+    physicalType: VARCHAR(20)
+    required: true
+    primaryKey: true
+    classification: internal
+    description: Business key of the bill
+  - name: customer_account_id
+    logicalType: string
+    physicalType: VARCHAR(20)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Billed account
+  - name: bill_period_start
+    logicalType: date
+    physicalType: DATE
+    required: false
+    primaryKey: false
+    classification: internal
+    description: First day of bill period
+  - name: bill_period_end
+    logicalType: date
+    physicalType: DATE
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Last day of bill period
+  - name: billed_kwh
+    logicalType: number
+    physicalType: NUMBER(18,3)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: kWh on the bill
+    businessRule: BR-003
+  - name: metered_kwh
+    logicalType: number
+    physicalType: NUMBER(18,3)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Metered kWh in the bill period
+    businessRule: BR-001
+  - name: estimated_read_share
+    logicalType: number
+    physicalType: NUMBER(5,4)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Share of estimated reads
+    businessRule: BR-002
+  - name: variance_kwh
+    logicalType: number
+    physicalType: NUMBER(18,3)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Billed minus metered kWh
+    businessRule: BR-004
+  - name: amount_due
+    logicalType: number
+    physicalType: NUMBER(18,2)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Amount billed
+quality:
+- rule: not_null
+  id: DQ-001
+  element: billed_consumption.bill_id
+  mustBe: {}
+  threshold: 1.0
+  severity: high
+- rule: unique
+  id: DQ-002
+  element: billed_consumption.bill_id
+  mustBe: {}
+  threshold: 1.0
+  severity: high
+- rule: referential
+  id: DQ-003
+  element: billed_consumption.customer_account_id
+  mustBe:
+    to_entity: customer_account
+    to_attribute: customer_account_id
+  threshold: 1.0
+  severity: high
+- rule: accepted_values
+  id: DQ-004
+  element: customer_account.account_status
+  mustBe:
+    values:
+    - A
+    - I
+    - C
+  threshold: 1.0
+  severity: medium
+- rule: range
+  id: DQ-005
+  element: billed_consumption.billed_kwh
+  mustBe:
+    min: 0
+    max: 100000
+  threshold: 0.999
+  severity: high
+- rule: range
+  id: DQ-006
+  element: billed_consumption.estimated_read_share
+  mustBe:
+    min: 0
+    max: 1
+  threshold: 1.0
+  severity: high
+- rule: unique
+  id: DQ-007
+  element: customer_account.customer_account_id
+  mustBe:
+    where: is_current = 1
+  threshold: 1.0
+  severity: high
+- rule: row_count_min
+  id: DQ-008
+  element: billed_consumption.None
+  mustBe:
+    min: 1
+  threshold: 1.0
+  severity: critical
+slaProperties:
+- property: frequency
+  value: daily
+- property: latency
+  value: 6
+  unit: h
+team:
+- role: product_owner
+  username: Priya Natarajan
+- role: data_architect
+  username: Marcus Lee
+- role: data_steward
+  username: Elena Ruiz
+- role: tech_lead
+  username: Tom Becker
+- role: release_manager
+  username: Aisha Bello
+- role: platform_owner
+  username: Sven Olsen

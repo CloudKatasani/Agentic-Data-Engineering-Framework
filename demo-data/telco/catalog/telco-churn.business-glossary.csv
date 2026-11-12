@@ -1,0 +1,6 @@
+term,definition,source,reference
+ARPU,Average revenue per user for a period,domain-pack,
+Churn,Share of subscribers who leave in a period,domain-pack,
+CDR,Call or usage detail record,domain-pack,
+Monthly churn rate,Churned subscribers divided by subscribers in the month.,metric,BR-003
+ARPU,Average revenue per subscriber in the month.,metric,BR-001

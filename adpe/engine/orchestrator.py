@@ -19,7 +19,9 @@ from ..config import runs_dir
 from ..guardrails.actions import GuardrailBlocked
 from ..guardrails.scanners import scan_injection, scan_secrets
 from ..llm.base import LLMError
+from ..catalog.providers import provider_ready
 from ..llm.router import build_provider, binding_for
+from ..llm.simulator import SimulatorProvider
 from ..settings_store import SettingsStore
 from ..util import dump_yaml, load_yaml, now_iso, sha256_file
 from ..workspace import handoff as ho
@@ -190,11 +192,31 @@ class Engine:
         self._update(ws, lambda s: s["stages"][key].update(status="failed", error=msg))
         self.event(ws, f"{stage(key)['label']} failed: {msg}", "error")
 
-    def _call(self, ws, agent: str) -> AgentCall:
+    def _call(self, ws, agent: str, force_fallback: str | None = None) -> AgentCall:
         settings = self.settings.load()
         b = binding_for(agent, settings)
-        prov = build_provider(b["provider"])
-        return AgentCall(agent, prov, b, lambda t: self.event(ws, t, "agent"))
+        log = lambda t: self.event(ws, t, "agent")  # noqa: E731
+        reason = force_fallback
+        prov = None
+        if not reason:
+            if not provider_ready(b["provider"]):
+                reason = f"{b['provider']['label']} has no API key configured"
+            else:
+                try:
+                    prov = build_provider(b["provider"])
+                except LLMError as e:
+                    reason = str(e)
+        if reason:
+            if not (settings.get("runtime") or {}).get("simulate_unavailable_providers", True):
+                raise LLMError(f"{agent}: {reason}. Configure the key or rebind the agent.")
+            call = AgentCall(agent, SimulatorProvider({"id": "demo", "type": "simulator"}, None), b, log)
+            call.fallback_reason = reason
+            self.event(ws, f"{agent} is bound to {b['provider']['label']} / {b['model']} but {reason}; "
+                           "this stage runs on the Demo Simulator (demo fallback is on).", "warn")
+            ws.log_decision(f"{agent} simulated: {reason}", ["simulate for the demo", "stop until a key is configured"],
+                            [], "adpe-orchestrator (runtime setting simulate_unavailable_providers)")
+            return call
+        return AgentCall(agent, prov, b, log)
 
     def _receiver_check(self, ws, key: str) -> list[str]:
         i = STAGE_KEYS.index(key)
@@ -225,12 +247,20 @@ class Engine:
         ctx = StageCtx(ws=ws, call=call, scenario=sc, log=lambda t: self.event(ws, t, "agent"), feedback=feedback,
                        settings=self.settings.load())
         self.event(ws, f"{s['label']} started by {s['agent']} using {call.binding['provider']['label']} / {call.binding['model']}", "stage")
-        if key == "assembly":
-            out = back.assembly(ctx, self.metrics(ws))
-        else:
-            out = RUNNERS[key](ctx)
+        runner = (lambda c: back.assembly(c, self.metrics(ws))) if key == "assembly" else RUNNERS[key]
+        try:
+            out = runner(ctx)
+        except LLMError as e:
+            if call.simulated or not (self.settings.load().get("runtime") or {}).get("simulate_unavailable_providers", True):
+                raise
+            call = self._call(ws, s["agent"], force_fallback=f"the call failed ({e})")
+            ctx.call = call
+            out = runner(ctx)
         usage = call.usage.as_dict()
-        if not usage["models"]:
+        if call.fallback_reason:
+            usage["models"] = [f"simulated (bound to {call.binding['provider']['type']}:{call.binding['model']})"]
+            usage["fallback"] = call.fallback_reason
+        elif not usage["models"]:
             usage["models"] = [f"{call.provider.type}:{call.binding['model']}"]
         self._update(ws, lambda x: (x["usage"].__setitem__(s["agent"], self._merge_usage(x["usage"].get(s["agent"]), usage)),
                                     x["stages"][key].update(attempts=x["stages"][key].get("attempts", 0) + 1, finished=now_iso(),
@@ -248,7 +278,7 @@ class Engine:
     def _merge_usage(a: dict | None, b: dict) -> dict:
         if not a:
             return b
-        return {"calls": a["calls"] + b["calls"], "input_tokens": a["input_tokens"] + b["input_tokens"],
+        return {"fallback": b.get("fallback"), "calls": a["calls"] + b["calls"], "input_tokens": a["input_tokens"] + b["input_tokens"],
                 "output_tokens": a["output_tokens"] + b["output_tokens"], "tokens": a["tokens"] + b["tokens"],
                 "llm_cost_usd": round(a["llm_cost_usd"] + b["llm_cost_usd"], 4), "seconds": a["seconds"] + b["seconds"],
                 "models": sorted(set(a["models"]) | set(b["models"]))}

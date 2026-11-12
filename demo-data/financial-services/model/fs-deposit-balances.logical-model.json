@@ -1,0 +1,327 @@
+{
+  "name": "fs-deposit-balances",
+  "version": "1.0.0",
+  "domain": "financial-services",
+  "entities": [
+    {
+      "name": "customer",
+      "kind": "dimension",
+      "history": "type2",
+      "grain": "one row per customer version",
+      "description": "Bank customer",
+      "subject_area": "party",
+      "attributes": [
+        {
+          "name": "customer_id",
+          "type": "string(20)",
+          "pk": true,
+          "fk": null,
+          "classification": "internal",
+          "description": "Business key",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-002"
+          ],
+          "nullable": false,
+          "label": "Customer Id"
+        },
+        {
+          "name": "segment",
+          "type": "string(20)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Mass, affluent or private",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-002"
+          ],
+          "nullable": true,
+          "label": "Segment"
+        },
+        {
+          "name": "kyc_status",
+          "type": "string(10)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "VERIFIED, PENDING or EXPIRED",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": true,
+          "label": "Kyc Status"
+        },
+        {
+          "name": "full_name",
+          "type": "string(200)",
+          "pk": false,
+          "fk": null,
+          "classification": "restricted",
+          "description": "Customer name (masked)",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-005"
+          ],
+          "nullable": true,
+          "label": "Full Name"
+        }
+      ],
+      "label": "Customer"
+    },
+    {
+      "name": "product",
+      "kind": "dimension",
+      "history": "type1",
+      "grain": "one row per product",
+      "description": "Deposit product",
+      "subject_area": "product",
+      "attributes": [
+        {
+          "name": "product_code",
+          "type": "string(10)",
+          "pk": true,
+          "fk": null,
+          "classification": "internal",
+          "description": "Business key",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": false,
+          "label": "Product Code"
+        },
+        {
+          "name": "product_name",
+          "type": "string(100)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Product name",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": true,
+          "label": "Product Name"
+        },
+        {
+          "name": "product_type",
+          "type": "string(20)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Current, savings or term",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-001"
+          ],
+          "nullable": true,
+          "label": "Product Type"
+        }
+      ],
+      "label": "Product"
+    },
+    {
+      "name": "account",
+      "kind": "dimension",
+      "history": "type2",
+      "grain": "one row per account version",
+      "description": "Deposit account",
+      "subject_area": "account",
+      "attributes": [
+        {
+          "name": "account_id",
+          "type": "string(20)",
+          "pk": true,
+          "fk": null,
+          "classification": "internal",
+          "description": "Business key",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-001"
+          ],
+          "nullable": false,
+          "label": "Account Id"
+        },
+        {
+          "name": "customer_id",
+          "type": "string(20)",
+          "pk": false,
+          "fk": {
+            "entity": "customer",
+            "attribute": "customer_id"
+          },
+          "classification": "internal",
+          "description": "Account holder",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": true,
+          "label": "Customer Id"
+        },
+        {
+          "name": "product_code",
+          "type": "string(10)",
+          "pk": false,
+          "fk": {
+            "entity": "product",
+            "attribute": "product_code"
+          },
+          "classification": "internal",
+          "description": "Product",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-001"
+          ],
+          "nullable": true,
+          "label": "Product Code"
+        },
+        {
+          "name": "branch_code",
+          "type": "string(8)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Servicing branch",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-002"
+          ],
+          "nullable": true,
+          "label": "Branch Code"
+        },
+        {
+          "name": "status",
+          "type": "string(10)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "OPEN, DORMANT or CLOSED",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": true,
+          "label": "Status"
+        },
+        {
+          "name": "currency",
+          "type": "string(3)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "ISO currency",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": true,
+          "label": "Currency"
+        }
+      ],
+      "label": "Account"
+    },
+    {
+      "name": "daily_balance",
+      "kind": "fact",
+      "history": "none",
+      "grain": "one row per account per business day",
+      "description": "End-of-day deposit balance",
+      "subject_area": "deposits",
+      "attributes": [
+        {
+          "name": "daily_balance_id",
+          "type": "string(32)",
+          "pk": true,
+          "fk": null,
+          "classification": "internal",
+          "description": "Business key",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": false,
+          "label": "Daily Balance Id"
+        },
+        {
+          "name": "account_id",
+          "type": "string(20)",
+          "pk": false,
+          "fk": {
+            "entity": "account",
+            "attribute": "account_id"
+          },
+          "classification": "internal",
+          "description": "Account",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-001"
+          ],
+          "nullable": true,
+          "label": "Account Id"
+        },
+        {
+          "name": "balance_date",
+          "type": "date",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Business date",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-001"
+          ],
+          "nullable": true,
+          "label": "Balance Date"
+        },
+        {
+          "name": "ledger_balance",
+          "type": "decimal(18,2)",
+          "pk": false,
+          "fk": null,
+          "classification": "confidential",
+          "description": "Ledger balance",
+          "business_rule": "BR-001",
+          "req_ids": [
+            "REQ-001"
+          ],
+          "nullable": true,
+          "label": "Ledger Balance"
+        },
+        {
+          "name": "available_balance",
+          "type": "decimal(18,2)",
+          "pk": false,
+          "fk": null,
+          "classification": "confidential",
+          "description": "Available balance",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": true,
+          "label": "Available Balance"
+        }
+      ],
+      "label": "Daily Balance"
+    }
+  ],
+  "metrics": [
+    {
+      "name": "total_deposits",
+      "label": "Total deposits",
+      "entity": "daily_balance",
+      "measure": {
+        "agg": "sum",
+        "attribute": "ledger_balance"
+      },
+      "denominator": null,
+      "unit": "currency",
+      "business_rule": "BR-001",
+      "grain": "day",
+      "definition": "Sum of ledger balances."
+    },
+    {
+      "name": "average_daily_balance",
+      "label": "Average daily balance",
+      "entity": "daily_balance",
+      "measure": {
+        "agg": "avg",
+        "attribute": "ledger_balance"
+      },
+      "denominator": null,
+      "unit": "currency",
+      "business_rule": "BR-002",
+      "grain": "month",
+      "definition": "Mean of daily ledger balances."
+    }
+  ],
+  "description": "Deposit balances and average daily balance data product"
+}

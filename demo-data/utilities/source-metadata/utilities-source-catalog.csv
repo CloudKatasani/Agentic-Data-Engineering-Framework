@@ -1,0 +1,31 @@
+system,schema,table_name,column_name,data_type,is_nullable,primary_key,description,classification,owner,refresh,table_description
+customer-information-system,cis,account,account_id,string(20),N,Y,account id,internal,Billing Operations,daily batch,Customer accounts and status
+customer-information-system,cis,account,customer_name,string(200),Y,,customer name,restricted,Billing Operations,daily batch,Customer accounts and status
+customer-information-system,cis,account,service_address,string(400),Y,,service address,restricted,Billing Operations,daily batch,Customer accounts and status
+customer-information-system,cis,account,account_status,string(1),Y,,account status,internal,Billing Operations,daily batch,Customer accounts and status
+customer-information-system,cis,account,rate_class,string(10),Y,,rate class,internal,Billing Operations,daily batch,Customer accounts and status
+customer-information-system,cis,account,open_date,date,Y,,open date,internal,Billing Operations,daily batch,Customer accounts and status
+customer-information-system,cis,account,close_date,date,Y,,close date,internal,Billing Operations,daily batch,Customer accounts and status
+customer-information-system,cis,account,updated_at,timestamp,Y,,updated at,internal,Billing Operations,daily batch,Customer accounts and status
+customer-information-system,cis,premise,premise_id,string(20),N,Y,premise id,internal,Billing Operations,daily batch,Service premises
+customer-information-system,cis,premise,account_id,string(20),Y,,account id,internal,Billing Operations,daily batch,Service premises
+customer-information-system,cis,premise,premise_type,string(20),Y,,premise type,internal,Billing Operations,daily batch,Service premises
+customer-information-system,cis,premise,region_code,string(10),Y,,region code,internal,Billing Operations,daily batch,Service premises
+customer-information-system,cis,premise,postal_code,string(10),Y,,postal code,confidential,Billing Operations,daily batch,Service premises
+meter-data-management,mdm,meter,meter_id,string(20),N,Y,meter id,internal,Metering Services,daily batch,Installed meters
+meter-data-management,mdm,meter,premise_id,string(20),Y,,premise id,internal,Metering Services,daily batch,Installed meters
+meter-data-management,mdm,meter,meter_type,string(10),Y,,meter type,internal,Metering Services,daily batch,Installed meters
+meter-data-management,mdm,meter,install_date,date,Y,,install date,internal,Metering Services,daily batch,Installed meters
+meter-data-management,mdm,meter,status,string(10),Y,,status,internal,Metering Services,daily batch,Installed meters
+meter-data-management,mdm,daily_read,meter_id,string(20),N,Y,meter id,internal,Metering Services,daily batch,Validated daily register reads (high volume)
+meter-data-management,mdm,daily_read,read_date,date,N,Y,read date,internal,Metering Services,daily batch,Validated daily register reads (high volume)
+meter-data-management,mdm,daily_read,kwh,"decimal(18,3)",Y,,usage linked to a premise,restricted,Metering Services,daily batch,Validated daily register reads (high volume)
+meter-data-management,mdm,daily_read,read_quality,string(1),Y,,read quality,internal,Metering Services,daily batch,Validated daily register reads (high volume)
+meter-data-management,mdm,daily_read,loaded_at,timestamp,Y,,loaded at,internal,Metering Services,daily batch,Validated daily register reads (high volume)
+customer-information-system,cis,bill,bill_id,string(20),N,Y,bill id,internal,Billing Operations,daily batch,Issued bills
+customer-information-system,cis,bill,account_id,string(20),Y,,account id,internal,Billing Operations,daily batch,Issued bills
+customer-information-system,cis,bill,period_start,date,Y,,period start,internal,Billing Operations,daily batch,Issued bills
+customer-information-system,cis,bill,period_end,date,Y,,period end,internal,Billing Operations,daily batch,Issued bills
+customer-information-system,cis,bill,billed_kwh,"decimal(18,3)",Y,,billed kwh,internal,Billing Operations,daily batch,Issued bills
+customer-information-system,cis,bill,amount_due,"decimal(18,2)",Y,,amount due,internal,Billing Operations,daily batch,Issued bills
+customer-information-system,cis,bill,bill_status,string(10),Y,,bill status,internal,Billing Operations,daily batch,Issued bills

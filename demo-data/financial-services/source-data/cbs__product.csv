@@ -1,0 +1,7 @@
+product_code,product_name,product_type,interest_rate
+PRD001,Store Station 1,TERM,0.0384
+PRD002,Store Cedar 2,TERM,0.0099
+PRD003,Store Granite 3,CURRENT,0.0491
+PRD004,Store Cedar 4,SAVINGS,0.0393
+PRD005,Store Maple 5,CURRENT,0.0294
+PRD006,Store Willow 6,TERM,0.0057

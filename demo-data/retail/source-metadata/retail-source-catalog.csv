@@ -1,0 +1,25 @@
+system,schema,table_name,column_name,data_type,is_nullable,primary_key,description,classification,owner,refresh,table_description
+point-of-sale,pos,store,store_id,string(10),N,Y,store id,internal,Store Operations,daily batch,Stores
+point-of-sale,pos,store,store_name,string(100),Y,,store name,internal,Store Operations,daily batch,Stores
+point-of-sale,pos,store,region,string(20),Y,,region,internal,Store Operations,daily batch,Stores
+point-of-sale,pos,store,format,string(12),Y,,format,internal,Store Operations,daily batch,Stores
+product-information,pim,product,product_id,string(14),N,Y,product id,internal,Merchandising,daily batch,Products
+product-information,pim,product,product_name,string(200),Y,,product name,internal,Merchandising,daily batch,Products
+product-information,pim,product,category,string(40),Y,,category,internal,Merchandising,daily batch,Products
+product-information,pim,product,brand,string(40),Y,,brand,internal,Merchandising,daily batch,Products
+product-information,pim,product,list_price,"decimal(10,2)",Y,,list price,internal,Merchandising,daily batch,Products
+product-information,pim,product,unit_cost,"decimal(10,2)",Y,,unit cost,confidential,Merchandising,daily batch,Products
+crm,crm,customer,customer_id,string(20),N,Y,customer id,internal,Loyalty,daily batch,Loyalty customers
+crm,crm,customer,email,string(200),Y,,email,restricted,Loyalty,daily batch,Loyalty customers
+crm,crm,customer,loyalty_tier,string(10),Y,,loyalty tier,internal,Loyalty,daily batch,Loyalty customers
+crm,crm,customer,consent_marketing,boolean,Y,,consent marketing,internal,Loyalty,daily batch,Loyalty customers
+point-of-sale,pos,order_line,order_line_id,string(24),N,Y,order line id,internal,Store Operations,daily batch,Sales lines
+point-of-sale,pos,order_line,order_id,string(20),Y,,order id,internal,Store Operations,daily batch,Sales lines
+point-of-sale,pos,order_line,store_id,string(10),Y,,store id,internal,Store Operations,daily batch,Sales lines
+point-of-sale,pos,order_line,product_id,string(14),Y,,product id,internal,Store Operations,daily batch,Sales lines
+point-of-sale,pos,order_line,customer_id,string(20),Y,,customer id,internal,Store Operations,daily batch,Sales lines
+point-of-sale,pos,order_line,order_ts,timestamp,Y,,order ts,internal,Store Operations,daily batch,Sales lines
+point-of-sale,pos,order_line,quantity,integer,Y,,quantity,internal,Store Operations,daily batch,Sales lines
+point-of-sale,pos,order_line,gross_amount,"decimal(12,2)",Y,,gross amount,internal,Store Operations,daily batch,Sales lines
+point-of-sale,pos,order_line,discount_amount,"decimal(12,2)",Y,,discount amount,internal,Store Operations,daily batch,Sales lines
+point-of-sale,pos,order_line,return_flag,string(1),Y,,return flag,internal,Store Operations,daily batch,Sales lines
