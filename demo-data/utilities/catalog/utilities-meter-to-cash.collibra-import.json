@@ -1,0 +1,1497 @@
+[
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT",
+    "displayName": "Customer Account",
+    "type": {
+      "name": "Table"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Billing account of a customer"
+        }
+      ],
+      "Note": [
+        {
+          "value": "grain: one row per customer account version; history: type2"
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT.CUSTOMER_ACCOUNT_ID",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT.CUSTOMER_ACCOUNT_ID",
+    "displayName": "Customer Account Id",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Business key of the account"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(20)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": true
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": false
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT",
+          "domain": {
+            "name": "utilities-meter-to-cash - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT.ACCOUNT_STATUS",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT.ACCOUNT_STATUS",
+    "displayName": "Account Status",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "A=active, I=inactive, C=closed"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(1)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT",
+          "domain": {
+            "name": "utilities-meter-to-cash - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT.RATE_CLASS",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT.RATE_CLASS",
+    "displayName": "Rate Class",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Tariff rate class"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(10)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT",
+          "domain": {
+            "name": "utilities-meter-to-cash - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT.CUSTOMER_NAME",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT.CUSTOMER_NAME",
+    "displayName": "Customer Name",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Account holder name (masked for consumers)"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(200)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Restricted"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT",
+          "domain": {
+            "name": "utilities-meter-to-cash - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT.OPEN_DATE",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT.OPEN_DATE",
+    "displayName": "Open Date",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Account open date"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "DATE"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT",
+          "domain": {
+            "name": "utilities-meter-to-cash - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE",
+    "displayName": "Premise",
+    "type": {
+      "name": "Table"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Service location"
+        }
+      ],
+      "Note": [
+        {
+          "value": "grain: one row per premise; history: type1"
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE.PREMISE_ID",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE.PREMISE_ID",
+    "displayName": "Premise Id",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Business key of the premise"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(20)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": true
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": false
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE",
+          "domain": {
+            "name": "utilities-meter-to-cash - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE.CUSTOMER_ACCOUNT_ID",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE.CUSTOMER_ACCOUNT_ID",
+    "displayName": "Customer Account Id",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Owning account"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(20)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE",
+          "domain": {
+            "name": "utilities-meter-to-cash - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE.PREMISE_TYPE",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE.PREMISE_TYPE",
+    "displayName": "Premise Type",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Residential, commercial, industrial"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(20)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE",
+          "domain": {
+            "name": "utilities-meter-to-cash - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE.REGION_CODE",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE.REGION_CODE",
+    "displayName": "Region Code",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Operating region"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(10)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE",
+          "domain": {
+            "name": "utilities-meter-to-cash - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_METER",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_METER",
+    "displayName": "Meter",
+    "type": {
+      "name": "Table"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Installed meter"
+        }
+      ],
+      "Note": [
+        {
+          "value": "grain: one row per meter; history: type1"
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_METER.METER_ID",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_METER.METER_ID",
+    "displayName": "Meter Id",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Business key of the meter"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(20)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": true
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": false
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_METER",
+          "domain": {
+            "name": "utilities-meter-to-cash - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_METER.PREMISE_ID",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_METER.PREMISE_ID",
+    "displayName": "Premise Id",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Premise where installed"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(20)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_METER",
+          "domain": {
+            "name": "utilities-meter-to-cash - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_METER.METER_TYPE",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_METER.METER_TYPE",
+    "displayName": "Meter Type",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "AMI or legacy"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(10)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_METER",
+          "domain": {
+            "name": "utilities-meter-to-cash - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.DIM_METER.INSTALL_DATE",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.DIM_METER.INSTALL_DATE",
+    "displayName": "Install Date",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Installation date"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "DATE"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.DIM_METER",
+          "domain": {
+            "name": "utilities-meter-to-cash - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION",
+    "displayName": "Billed Consumption",
+    "type": {
+      "name": "Table"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Billed versus metered consumption per bill"
+        }
+      ],
+      "Note": [
+        {
+          "value": "grain: one row per final bill; history: none"
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.BILL_ID",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.BILL_ID",
+    "displayName": "Bill Id",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Business key of the bill"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(20)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": true
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": false
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION",
+          "domain": {
+            "name": "utilities-meter-to-cash - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.CUSTOMER_ACCOUNT_ID",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.CUSTOMER_ACCOUNT_ID",
+    "displayName": "Customer Account Id",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Billed account"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(20)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION",
+          "domain": {
+            "name": "utilities-meter-to-cash - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.BILL_PERIOD_START",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.BILL_PERIOD_START",
+    "displayName": "Bill Period Start",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "First day of bill period"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "DATE"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION",
+          "domain": {
+            "name": "utilities-meter-to-cash - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.BILL_PERIOD_END",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.BILL_PERIOD_END",
+    "displayName": "Bill Period End",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Last day of bill period"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "DATE"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION",
+          "domain": {
+            "name": "utilities-meter-to-cash - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.BILLED_KWH",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.BILLED_KWH",
+    "displayName": "Billed Kwh",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "kWh on the bill"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "NUMBER(18,3)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION",
+          "domain": {
+            "name": "utilities-meter-to-cash - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.METERED_KWH",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.METERED_KWH",
+    "displayName": "Metered Kwh",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Metered kWh in the bill period"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "NUMBER(18,3)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION",
+          "domain": {
+            "name": "utilities-meter-to-cash - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.ESTIMATED_READ_SHARE",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.ESTIMATED_READ_SHARE",
+    "displayName": "Estimated Read Share",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Share of estimated reads"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "NUMBER(5,4)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION",
+          "domain": {
+            "name": "utilities-meter-to-cash - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.VARIANCE_KWH",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.VARIANCE_KWH",
+    "displayName": "Variance Kwh",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Billed minus metered kWh"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "NUMBER(18,3)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION",
+          "domain": {
+            "name": "utilities-meter-to-cash - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.AMOUNT_DUE",
+      "domain": {
+        "name": "utilities-meter-to-cash - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.AMOUNT_DUE",
+    "displayName": "Amount Due",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Amount billed"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "NUMBER(18,2)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION",
+          "domain": {
+            "name": "utilities-meter-to-cash - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "Average billed kWh per account",
+      "domain": {
+        "name": "utilities Glossary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "Average billed kWh per account",
+    "type": {
+      "name": "Business Term"
+    },
+    "attributes": {
+      "Definition": [
+        {
+          "value": "Total billed kWh divided by number of distinct billed accounts in the period."
+        }
+      ],
+      "Note": [
+        {
+          "value": "Formula: "
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "Total billed kWh",
+      "domain": {
+        "name": "utilities Glossary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "Total billed kWh",
+    "type": {
+      "name": "Business Term"
+    },
+    "attributes": {
+      "Definition": [
+        {
+          "value": "Sum of billed kWh on final bills."
+        }
+      ],
+      "Note": [
+        {
+          "value": "Formula: "
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "AMI",
+      "domain": {
+        "name": "utilities Glossary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "AMI",
+    "type": {
+      "name": "Business Term"
+    },
+    "attributes": {
+      "Definition": [
+        {
+          "value": "Advanced metering infrastructure"
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "SAIDI",
+      "domain": {
+        "name": "utilities Glossary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "SAIDI",
+    "type": {
+      "name": "Business Term"
+    },
+    "attributes": {
+      "Definition": [
+        {
+          "value": "Average outage duration per customer served"
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "SAIFI",
+      "domain": {
+        "name": "utilities Glossary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "SAIFI",
+    "type": {
+      "name": "Business Term"
+    },
+    "attributes": {
+      "Definition": [
+        {
+          "value": "Average number of interruptions per customer served"
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,30 @@
+// telco-churn v1.0.0 - logical model (dbdiagram.io / dbdocs)
+Project telco_churn {
+  database_type: 'Logical'
+  Note: 'Subscriber churn and ARPU data product'
+}
+
+Table subscriber [note: 'dimension | history type2 | grain: one row per subscriber version'] {
+  subscriber_id string(20) [pk, note: 'internal: Business key']
+  segment string(20) [note: 'internal: Consumer, SME or Enterprise']
+  status string(12) [note: 'internal: ACTIVE, SUSPENDED or CHURNED']
+  activation_date date [note: 'internal: Activation date']
+  msisdn string(15) [note: 'restricted: Phone number (masked)']
+}
+
+Table product [note: 'dimension | history type1 | grain: one row per product'] {
+  product_code string(12) [pk, note: 'internal: Business key']
+  product_name string(100) [note: 'internal: Product name']
+  product_family string(30) [note: 'internal: Product family']
+}
+
+Table subscription_month [note: 'fact | history none | grain: one row per subscriber per month'] {
+  subscription_month_id string(30) [pk, note: 'internal: Surrogate business key']
+  subscriber_id string(20) [ref: > subscriber.subscriber_id, note: 'internal: Subscriber']
+  product_code string(12) [ref: > product.product_code, note: 'internal: Main product']
+  month_start date [note: 'internal: Month']
+  monthly_revenue decimal(12,2) [note: 'internal: Revenue in month']
+  data_mb decimal(14,2) [note: 'internal: Data used']
+  voice_min decimal(10,2) [note: 'internal: Voice minutes']
+  is_churned boolean [note: 'internal: Churned in month']
+}

@@ -81,6 +81,52 @@ The Claude provider uses the official `anthropic` SDK with streaming, `output_co
 server-side refusal fallbacks for the models that support them. The other providers use their REST
 APIs directly.
 
+## Default agent team: a different provider and model per agent
+
+New installations start with the **Multi-vendor enterprise team** preset:
+
+| Agent | Provider | Model | Effort |
+|---|---|---|---|
+| adpe-orchestrator | Anthropic | `claude-opus-5-5` | high |
+| adpe-intent-requirements | OpenAI | `gpt-5.6-sol` | high |
+| adpe-source-target-mapping | Google Gemini | `gemini-4-argon` | high |
+| adpe-solution-design | Anthropic | `claude-fable-5-2` | high |
+| adpe-pipeline-build | Azure OpenAI | deployment `gpt-5-6-terra-prod` | medium |
+| adpe-test-quality | Amazon Bedrock | `anthropic.claude-sonnet-5-5` | medium |
+| adpe-release-deploy | Anthropic | `claude-sonnet-5-5` | medium |
+| adpe-operations-observability | Ollama (local, open-weight) | `llama3.3` | low |
+| adpe-data-consumption | Google Gemini | `gemini-3.8-flash` | medium |
+
+Other presets on **Agents & models**: *All Claude (tiered)*, *All OpenAI*, *Cost-optimised mix* and
+*Demo Simulator only*. Every value can still be edited per agent. Model names were current when written;
+confirm the ones your account can use with **Discover models**. The Azure value is a deployment name,
+so replace it with your own.
+
+**Demo fallback** (on by default): if an agent's provider has no key, can't be reached or rejects the key,
+that stage runs on the Demo Simulator. The fallback is recorded in the activity feed and the decision log,
+and the run's *Agents & cost* tab shows both the bound model and what actually served each stage. Turn it
+off on **Agents & models** for real client work; a missing key then stops the stage with a clear error.
+
+## Demo data packs
+
+`demo-data/` holds synthetic, deterministic files for each industry. Regenerate them with
+`python -m adpe demo-data`.
+
+| Folder | Contents |
+|---|---|
+| `jira/` | Jira CSV export (the "all fields" layout) and REST/JSON export (ADF descriptions): epic, stories with acceptance criteria, NFR stories, a task, a parked phase-2 story, and one ticket with planted instruction-like text |
+| `source-metadata/` | Source-system catalog export (CSV) and source DDL |
+| `source-data/` | Synthetic rows for every source table, with keys that join and documented anomalies (e.g. an orphan bill for DQ-003) |
+| `model/` | DDL for Snowflake, Databricks, BigQuery and T-SQL; DBML; Mermaid and PlantUML ERDs; logical model JSON; dbt schema; ODCS contract; data dictionary |
+| `catalog/` | Collibra import, Purview/Atlas entities, DataHub MCPs, Alation bulk CSV, business glossary, Unity Catalog and Snowflake governance SQL |
+| `lineage/` | OpenLineage events, column- and table-level lineage CSV, Mermaid lineage diagram |
+
+In the console: **New run** has *Use sample export* (Jira) and *Use sample source catalog* buttons;
+**Jira & metadata** lists every pack with download, preview and import actions; **Model & catalog
+studio** loads a sample model. A Jira export from your own Jira can be uploaded in the same places.
+No connection is needed. The data contains no real people: names come from fixed word lists, phone
+numbers use the fictional 555 range, and emails use example.com.
+
 ## What each stage really does
 
 | Stage | Agent | Real work performed | Gate |

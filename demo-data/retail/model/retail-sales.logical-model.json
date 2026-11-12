@@ -1,0 +1,360 @@
+{
+  "name": "retail-sales",
+  "version": "1.0.0",
+  "domain": "retail",
+  "entities": [
+    {
+      "name": "store",
+      "kind": "dimension",
+      "history": "type1",
+      "grain": "one row per store",
+      "description": "Physical store",
+      "subject_area": "store",
+      "attributes": [
+        {
+          "name": "store_id",
+          "type": "string(10)",
+          "pk": true,
+          "fk": null,
+          "classification": "internal",
+          "description": "Business key",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": false,
+          "label": "Store Id"
+        },
+        {
+          "name": "store_name",
+          "type": "string(100)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Store name",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": true,
+          "label": "Store Name"
+        },
+        {
+          "name": "region",
+          "type": "string(20)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Sales region",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-002"
+          ],
+          "nullable": true,
+          "label": "Region"
+        },
+        {
+          "name": "format",
+          "type": "string(12)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "FLAGSHIP, STANDARD or EXPRESS",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": true,
+          "label": "Format"
+        }
+      ],
+      "label": "Store"
+    },
+    {
+      "name": "product",
+      "kind": "dimension",
+      "history": "type2",
+      "grain": "one row per product version",
+      "description": "Sellable product",
+      "subject_area": "product",
+      "attributes": [
+        {
+          "name": "product_id",
+          "type": "string(14)",
+          "pk": true,
+          "fk": null,
+          "classification": "internal",
+          "description": "Business key",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": false,
+          "label": "Product Id"
+        },
+        {
+          "name": "product_name",
+          "type": "string(200)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Product name",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": true,
+          "label": "Product Name"
+        },
+        {
+          "name": "category",
+          "type": "string(40)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Category",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-001"
+          ],
+          "nullable": true,
+          "label": "Category"
+        },
+        {
+          "name": "brand",
+          "type": "string(40)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Brand",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-001"
+          ],
+          "nullable": true,
+          "label": "Brand"
+        }
+      ],
+      "label": "Product"
+    },
+    {
+      "name": "customer",
+      "kind": "dimension",
+      "history": "type1",
+      "grain": "one row per loyalty customer",
+      "description": "Loyalty customer",
+      "subject_area": "customer",
+      "attributes": [
+        {
+          "name": "customer_id",
+          "type": "string(20)",
+          "pk": true,
+          "fk": null,
+          "classification": "internal",
+          "description": "Business key",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": false,
+          "label": "Customer Id"
+        },
+        {
+          "name": "loyalty_tier",
+          "type": "string(10)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "NONE, BRONZE, SILVER or GOLD",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-003"
+          ],
+          "nullable": true,
+          "label": "Loyalty Tier"
+        },
+        {
+          "name": "email",
+          "type": "string(200)",
+          "pk": false,
+          "fk": null,
+          "classification": "restricted",
+          "description": "Email (masked)",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-005"
+          ],
+          "nullable": true,
+          "label": "Email"
+        }
+      ],
+      "label": "Customer"
+    },
+    {
+      "name": "sales_line",
+      "kind": "fact",
+      "history": "none",
+      "grain": "one row per order line",
+      "description": "Store sales line",
+      "subject_area": "order",
+      "attributes": [
+        {
+          "name": "order_line_id",
+          "type": "string(24)",
+          "pk": true,
+          "fk": null,
+          "classification": "internal",
+          "description": "Business key",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-001"
+          ],
+          "nullable": false,
+          "label": "Order Line Id"
+        },
+        {
+          "name": "order_id",
+          "type": "string(20)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Order (basket)",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-002"
+          ],
+          "nullable": true,
+          "label": "Order Id"
+        },
+        {
+          "name": "store_id",
+          "type": "string(10)",
+          "pk": false,
+          "fk": {
+            "entity": "store",
+            "attribute": "store_id"
+          },
+          "classification": "internal",
+          "description": "Store",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-002"
+          ],
+          "nullable": true,
+          "label": "Store Id"
+        },
+        {
+          "name": "product_id",
+          "type": "string(14)",
+          "pk": false,
+          "fk": {
+            "entity": "product",
+            "attribute": "product_id"
+          },
+          "classification": "internal",
+          "description": "Product",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-001"
+          ],
+          "nullable": true,
+          "label": "Product Id"
+        },
+        {
+          "name": "customer_id",
+          "type": "string(20)",
+          "pk": false,
+          "fk": {
+            "entity": "customer",
+            "attribute": "customer_id"
+          },
+          "classification": "internal",
+          "description": "Loyalty customer (NONE if anonymous)",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-003"
+          ],
+          "nullable": true,
+          "label": "Customer Id"
+        },
+        {
+          "name": "order_date",
+          "type": "date",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Sales date",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-001"
+          ],
+          "nullable": true,
+          "label": "Order Date"
+        },
+        {
+          "name": "quantity",
+          "type": "integer",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Units",
+          "business_rule": null,
+          "req_ids": [
+            "REQ-001"
+          ],
+          "nullable": true,
+          "label": "Quantity"
+        },
+        {
+          "name": "net_amount",
+          "type": "decimal(12,2)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Net sales amount",
+          "business_rule": "BR-001",
+          "req_ids": [
+            "REQ-001"
+          ],
+          "nullable": true,
+          "label": "Net Amount"
+        },
+        {
+          "name": "discount_amount",
+          "type": "decimal(12,2)",
+          "pk": false,
+          "fk": null,
+          "classification": "internal",
+          "description": "Discount",
+          "business_rule": null,
+          "req_ids": [],
+          "nullable": true,
+          "label": "Discount Amount"
+        }
+      ],
+      "label": "Sales Line"
+    }
+  ],
+  "metrics": [
+    {
+      "name": "net_sales",
+      "label": "Net sales",
+      "entity": "sales_line",
+      "measure": {
+        "agg": "sum",
+        "attribute": "net_amount"
+      },
+      "denominator": null,
+      "unit": "currency",
+      "business_rule": "BR-001",
+      "grain": "day",
+      "definition": "Gross sales less discounts and returns."
+    },
+    {
+      "name": "average_order_value",
+      "label": "Average order value",
+      "entity": "sales_line",
+      "measure": {
+        "agg": "sum",
+        "attribute": "net_amount"
+      },
+      "denominator": {
+        "agg": "count_distinct",
+        "attribute": "order_id"
+      },
+      "unit": "currency",
+      "business_rule": "BR-002",
+      "grain": "day",
+      "definition": "Net sales divided by distinct orders."
+    }
+  ],
+  "description": "Sales performance data product"
+}

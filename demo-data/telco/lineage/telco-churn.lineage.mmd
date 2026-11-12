@@ -1,0 +1,20 @@
+flowchart LR
+  subgraph Sources
+    n0["bss.product_catalog"]
+    n1["bss.subscription"]
+    n2["crm.churn_event"]
+    n3["crm.subscriber"]
+    n4["usage.daily_usage_summary"]
+  end
+  subgraph Data_product["acme_customer_gold"]
+    n5["dim_product"]
+    n6["dim_subscriber"]
+    n7["fct_subscription_month"]
+  end
+  n0 --> n5
+  n1 --> n7
+  n2 --> n7
+  n3 --> n6
+  n4 --> n7
+  n6 -.-> n7
+  n5 -.-> n7

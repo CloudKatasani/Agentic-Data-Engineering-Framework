@@ -1,0 +1,29 @@
+map_id,source_system,source_table,source_column,transformation,business_rule,target_table,target_column,confidence
+MAP-001,customer-information-system,cis.account,account_id,direct,,ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT,CUSTOMER_ACCOUNT_ID,high
+MAP-002,customer-information-system,cis.account,account_status,direct,,ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT,ACCOUNT_STATUS,high
+MAP-003,customer-information-system,cis.account,rate_class,direct,,ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT,RATE_CLASS,high
+MAP-004,customer-information-system,cis.account,customer_name,direct,,ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT,CUSTOMER_NAME,high
+MAP-005,customer-information-system,cis.account,open_date,direct,,ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT,OPEN_DATE,high
+MAP-006,customer-information-system,cis.premise,premise_id,direct,,ACME_CUSTOMER_CURATED.DIM_PREMISE,PREMISE_ID,high
+MAP-007,customer-information-system,cis.premise,account_id,direct,,ACME_CUSTOMER_CURATED.DIM_PREMISE,CUSTOMER_ACCOUNT_ID,high
+MAP-008,customer-information-system,cis.premise,premise_type,direct,,ACME_CUSTOMER_CURATED.DIM_PREMISE,PREMISE_TYPE,high
+MAP-009,customer-information-system,cis.premise,region_code,direct,,ACME_CUSTOMER_CURATED.DIM_PREMISE,REGION_CODE,high
+MAP-010,meter-data-management,mdm.meter,meter_id,direct,,ACME_CUSTOMER_CURATED.DIM_METER,METER_ID,high
+MAP-011,meter-data-management,mdm.meter,premise_id,direct,,ACME_CUSTOMER_CURATED.DIM_METER,PREMISE_ID,high
+MAP-012,meter-data-management,mdm.meter,meter_type,direct,,ACME_CUSTOMER_CURATED.DIM_METER,METER_TYPE,high
+MAP-013,meter-data-management,mdm.meter,install_date,direct,,ACME_CUSTOMER_CURATED.DIM_METER,INSTALL_DATE,high
+MAP-014,customer-information-system,cis.bill,bill_id,direct,,ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,BILL_ID,high
+MAP-015,customer-information-system,cis.bill,account_id,direct,,ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,CUSTOMER_ACCOUNT_ID,high
+MAP-016,customer-information-system,cis.bill,period_start,direct,,ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,BILL_PERIOD_START,high
+MAP-017,customer-information-system,cis.bill,period_end,direct,,ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,BILL_PERIOD_END,high
+MAP-018,customer-information-system,cis.bill,billed_kwh,direct,BR-003,ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,BILLED_KWH,high
+MAP-019,meter-data-management,mdm.daily_read,kwh,SUM(kwh) of reads for the account's meters within the bill period,BR-001,ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,METERED_KWH,medium
+MAP-019,meter-data-management,mdm.daily_read,*,SUM(kwh) of reads for the account's meters within the bill period,BR-001,ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,METERED_KWH,medium
+MAP-019,meter-data-management,mdm.meter,*,SUM(kwh) of reads for the account's meters within the bill period,BR-001,ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,METERED_KWH,medium
+MAP-019,customer-information-system,cis.premise,*,SUM(kwh) of reads for the account's meters within the bill period,BR-001,ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,METERED_KWH,medium
+MAP-020,meter-data-management,mdm.daily_read,read_quality,COUNT(read_quality='E') / COUNT(*) within the bill period,BR-002,ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,ESTIMATED_READ_SHARE,medium
+MAP-020,meter-data-management,mdm.daily_read,*,COUNT(read_quality='E') / COUNT(*) within the bill period,BR-002,ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,ESTIMATED_READ_SHARE,medium
+MAP-020,meter-data-management,mdm.meter,*,COUNT(read_quality='E') / COUNT(*) within the bill period,BR-002,ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,ESTIMATED_READ_SHARE,medium
+MAP-020,customer-information-system,cis.premise,*,COUNT(read_quality='E') / COUNT(*) within the bill period,BR-002,ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,ESTIMATED_READ_SHARE,medium
+MAP-021,,ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,(derived),billed_kwh - metered_kwh,BR-004,ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,VARIANCE_KWH,medium
+MAP-022,customer-information-system,cis.bill,amount_due,direct,,ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,AMOUNT_DUE,high

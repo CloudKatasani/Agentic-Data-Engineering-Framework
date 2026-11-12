@@ -1,0 +1,427 @@
+[
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:redshift,acme_customer_gold.dim_store,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "datasetProperties",
+    "aspect": {
+      "json": {
+        "name": "dim_store",
+        "description": "Physical store",
+        "customProperties": {
+          "grain": "one row per store",
+          "history": "type1",
+          "adpe_model": "retail-sales"
+        }
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:redshift,acme_customer_gold.dim_store,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "schemaMetadata",
+    "aspect": {
+      "json": {
+        "schemaName": "acme_customer_gold.dim_store",
+        "platform": "urn:li:dataPlatform:redshift",
+        "version": 0,
+        "hash": "",
+        "platformSchema": {
+          "com.linkedin.schema.OtherSchema": {
+            "rawSchema": ""
+          }
+        },
+        "fields": [
+          {
+            "fieldPath": "store_id",
+            "nativeDataType": "VARCHAR(10)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": false,
+            "description": "Business key",
+            "isPartOfKey": true
+          },
+          {
+            "fieldPath": "store_name",
+            "nativeDataType": "VARCHAR(100)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Store name",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "region",
+            "nativeDataType": "VARCHAR(20)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Sales region",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "format",
+            "nativeDataType": "VARCHAR(12)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "FLAGSHIP, STANDARD or EXPRESS",
+            "isPartOfKey": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:redshift,acme_customer_gold.dim_product,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "datasetProperties",
+    "aspect": {
+      "json": {
+        "name": "dim_product",
+        "description": "Sellable product",
+        "customProperties": {
+          "grain": "one row per product version",
+          "history": "type2",
+          "adpe_model": "retail-sales"
+        }
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:redshift,acme_customer_gold.dim_product,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "schemaMetadata",
+    "aspect": {
+      "json": {
+        "schemaName": "acme_customer_gold.dim_product",
+        "platform": "urn:li:dataPlatform:redshift",
+        "version": 0,
+        "hash": "",
+        "platformSchema": {
+          "com.linkedin.schema.OtherSchema": {
+            "rawSchema": ""
+          }
+        },
+        "fields": [
+          {
+            "fieldPath": "product_id",
+            "nativeDataType": "VARCHAR(14)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": false,
+            "description": "Business key",
+            "isPartOfKey": true
+          },
+          {
+            "fieldPath": "product_name",
+            "nativeDataType": "VARCHAR(200)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Product name",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "category",
+            "nativeDataType": "VARCHAR(40)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Category",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "brand",
+            "nativeDataType": "VARCHAR(40)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Brand",
+            "isPartOfKey": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:redshift,acme_customer_gold.dim_customer,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "datasetProperties",
+    "aspect": {
+      "json": {
+        "name": "dim_customer",
+        "description": "Loyalty customer",
+        "customProperties": {
+          "grain": "one row per loyalty customer",
+          "history": "type1",
+          "adpe_model": "retail-sales"
+        }
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:redshift,acme_customer_gold.dim_customer,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "schemaMetadata",
+    "aspect": {
+      "json": {
+        "schemaName": "acme_customer_gold.dim_customer",
+        "platform": "urn:li:dataPlatform:redshift",
+        "version": 0,
+        "hash": "",
+        "platformSchema": {
+          "com.linkedin.schema.OtherSchema": {
+            "rawSchema": ""
+          }
+        },
+        "fields": [
+          {
+            "fieldPath": "customer_id",
+            "nativeDataType": "VARCHAR(20)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": false,
+            "description": "Business key",
+            "isPartOfKey": true
+          },
+          {
+            "fieldPath": "loyalty_tier",
+            "nativeDataType": "VARCHAR(10)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "NONE, BRONZE, SILVER or GOLD",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "email",
+            "nativeDataType": "VARCHAR(200)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Email (masked)",
+            "isPartOfKey": false,
+            "globalTags": {
+              "tags": [
+                {
+                  "tag": "urn:li:tag:restricted"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:redshift,acme_customer_gold.fct_sales_line,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "datasetProperties",
+    "aspect": {
+      "json": {
+        "name": "fct_sales_line",
+        "description": "Store sales line",
+        "customProperties": {
+          "grain": "one row per order line",
+          "history": "none",
+          "adpe_model": "retail-sales"
+        }
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:redshift,acme_customer_gold.fct_sales_line,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "schemaMetadata",
+    "aspect": {
+      "json": {
+        "schemaName": "acme_customer_gold.fct_sales_line",
+        "platform": "urn:li:dataPlatform:redshift",
+        "version": 0,
+        "hash": "",
+        "platformSchema": {
+          "com.linkedin.schema.OtherSchema": {
+            "rawSchema": ""
+          }
+        },
+        "fields": [
+          {
+            "fieldPath": "order_line_id",
+            "nativeDataType": "VARCHAR(24)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": false,
+            "description": "Business key",
+            "isPartOfKey": true
+          },
+          {
+            "fieldPath": "order_id",
+            "nativeDataType": "VARCHAR(20)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Order (basket)",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "store_id",
+            "nativeDataType": "VARCHAR(10)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Store",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "product_id",
+            "nativeDataType": "VARCHAR(14)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Product",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "customer_id",
+            "nativeDataType": "VARCHAR(20)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Loyalty customer (NONE if anonymous)",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "order_date",
+            "nativeDataType": "DATE",
+            "type": {
+              "type": {
+                "com.linkedin.schema.DateType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Sales date",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "quantity",
+            "nativeDataType": "INTEGER",
+            "type": {
+              "type": {
+                "com.linkedin.schema.NumberType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Units",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "net_amount",
+            "nativeDataType": "DECIMAL(12,2)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.NumberType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Net sales amount",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "discount_amount",
+            "nativeDataType": "DECIMAL(12,2)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.NumberType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Discount",
+            "isPartOfKey": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "entityType": "glossaryTerm",
+    "entityUrn": "urn:li:glossaryTerm:net_sales",
+    "changeType": "UPSERT",
+    "aspectName": "glossaryTermInfo",
+    "aspect": {
+      "json": {
+        "name": "Net sales",
+        "definition": "Gross sales less discounts and returns.",
+        "termSource": "INTERNAL"
+      }
+    }
+  },
+  {
+    "entityType": "glossaryTerm",
+    "entityUrn": "urn:li:glossaryTerm:average_order_value",
+    "changeType": "UPSERT",
+    "aspectName": "glossaryTermInfo",
+    "aspect": {
+      "json": {
+        "name": "Average order value",
+        "definition": "Net sales divided by distinct orders.",
+        "termSource": "INTERNAL"
+      }
+    }
+  }
+]

@@ -1,0 +1,417 @@
+[
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:fabric,acme_customer_curated.dim_customer,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "datasetProperties",
+    "aspect": {
+      "json": {
+        "name": "DIM_CUSTOMER",
+        "description": "Bank customer",
+        "customProperties": {
+          "grain": "one row per customer version",
+          "history": "type2",
+          "adpe_model": "fs-deposit-balances"
+        }
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:fabric,acme_customer_curated.dim_customer,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "schemaMetadata",
+    "aspect": {
+      "json": {
+        "schemaName": "acme_customer_curated.dim_customer",
+        "platform": "urn:li:dataPlatform:fabric",
+        "version": 0,
+        "hash": "",
+        "platformSchema": {
+          "com.linkedin.schema.OtherSchema": {
+            "rawSchema": ""
+          }
+        },
+        "fields": [
+          {
+            "fieldPath": "customer_id",
+            "nativeDataType": "VARCHAR(20)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": false,
+            "description": "Business key",
+            "isPartOfKey": true
+          },
+          {
+            "fieldPath": "segment",
+            "nativeDataType": "VARCHAR(20)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Mass, affluent or private",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "kyc_status",
+            "nativeDataType": "VARCHAR(10)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "VERIFIED, PENDING or EXPIRED",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "full_name",
+            "nativeDataType": "VARCHAR(200)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Customer name (masked)",
+            "isPartOfKey": false,
+            "globalTags": {
+              "tags": [
+                {
+                  "tag": "urn:li:tag:restricted"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:fabric,acme_customer_curated.dim_product,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "datasetProperties",
+    "aspect": {
+      "json": {
+        "name": "DIM_PRODUCT",
+        "description": "Deposit product",
+        "customProperties": {
+          "grain": "one row per product",
+          "history": "type1",
+          "adpe_model": "fs-deposit-balances"
+        }
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:fabric,acme_customer_curated.dim_product,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "schemaMetadata",
+    "aspect": {
+      "json": {
+        "schemaName": "acme_customer_curated.dim_product",
+        "platform": "urn:li:dataPlatform:fabric",
+        "version": 0,
+        "hash": "",
+        "platformSchema": {
+          "com.linkedin.schema.OtherSchema": {
+            "rawSchema": ""
+          }
+        },
+        "fields": [
+          {
+            "fieldPath": "product_code",
+            "nativeDataType": "VARCHAR(10)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": false,
+            "description": "Business key",
+            "isPartOfKey": true
+          },
+          {
+            "fieldPath": "product_name",
+            "nativeDataType": "VARCHAR(100)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Product name",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "product_type",
+            "nativeDataType": "VARCHAR(20)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Current, savings or term",
+            "isPartOfKey": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:fabric,acme_customer_curated.dim_account,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "datasetProperties",
+    "aspect": {
+      "json": {
+        "name": "DIM_ACCOUNT",
+        "description": "Deposit account",
+        "customProperties": {
+          "grain": "one row per account version",
+          "history": "type2",
+          "adpe_model": "fs-deposit-balances"
+        }
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:fabric,acme_customer_curated.dim_account,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "schemaMetadata",
+    "aspect": {
+      "json": {
+        "schemaName": "acme_customer_curated.dim_account",
+        "platform": "urn:li:dataPlatform:fabric",
+        "version": 0,
+        "hash": "",
+        "platformSchema": {
+          "com.linkedin.schema.OtherSchema": {
+            "rawSchema": ""
+          }
+        },
+        "fields": [
+          {
+            "fieldPath": "account_id",
+            "nativeDataType": "VARCHAR(20)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": false,
+            "description": "Business key",
+            "isPartOfKey": true
+          },
+          {
+            "fieldPath": "customer_id",
+            "nativeDataType": "VARCHAR(20)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Account holder",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "product_code",
+            "nativeDataType": "VARCHAR(10)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Product",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "branch_code",
+            "nativeDataType": "VARCHAR(8)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Servicing branch",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "status",
+            "nativeDataType": "VARCHAR(10)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "OPEN, DORMANT or CLOSED",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "currency",
+            "nativeDataType": "VARCHAR(3)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "ISO currency",
+            "isPartOfKey": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:fabric,acme_customer_curated.fct_daily_balance,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "datasetProperties",
+    "aspect": {
+      "json": {
+        "name": "FCT_DAILY_BALANCE",
+        "description": "End-of-day deposit balance",
+        "customProperties": {
+          "grain": "one row per account per business day",
+          "history": "none",
+          "adpe_model": "fs-deposit-balances"
+        }
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:fabric,acme_customer_curated.fct_daily_balance,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "schemaMetadata",
+    "aspect": {
+      "json": {
+        "schemaName": "acme_customer_curated.fct_daily_balance",
+        "platform": "urn:li:dataPlatform:fabric",
+        "version": 0,
+        "hash": "",
+        "platformSchema": {
+          "com.linkedin.schema.OtherSchema": {
+            "rawSchema": ""
+          }
+        },
+        "fields": [
+          {
+            "fieldPath": "daily_balance_id",
+            "nativeDataType": "VARCHAR(32)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": false,
+            "description": "Business key",
+            "isPartOfKey": true
+          },
+          {
+            "fieldPath": "account_id",
+            "nativeDataType": "VARCHAR(20)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Account",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "balance_date",
+            "nativeDataType": "DATE",
+            "type": {
+              "type": {
+                "com.linkedin.schema.DateType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Business date",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "ledger_balance",
+            "nativeDataType": "DECIMAL(18,2)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.NumberType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Ledger balance",
+            "isPartOfKey": false,
+            "globalTags": {
+              "tags": [
+                {
+                  "tag": "urn:li:tag:confidential"
+                }
+              ]
+            }
+          },
+          {
+            "fieldPath": "available_balance",
+            "nativeDataType": "DECIMAL(18,2)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.NumberType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Available balance",
+            "isPartOfKey": false,
+            "globalTags": {
+              "tags": [
+                {
+                  "tag": "urn:li:tag:confidential"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "entityType": "glossaryTerm",
+    "entityUrn": "urn:li:glossaryTerm:total_deposits",
+    "changeType": "UPSERT",
+    "aspectName": "glossaryTermInfo",
+    "aspect": {
+      "json": {
+        "name": "Total deposits",
+        "definition": "Sum of ledger balances.",
+        "termSource": "INTERNAL"
+      }
+    }
+  },
+  {
+    "entityType": "glossaryTerm",
+    "entityUrn": "urn:li:glossaryTerm:average_daily_balance",
+    "changeType": "UPSERT",
+    "aspectName": "glossaryTermInfo",
+    "aspect": {
+      "json": {
+        "name": "Average daily balance",
+        "definition": "Mean of daily ledger balances.",
+        "termSource": "INTERNAL"
+      }
+    }
+  }
+]

@@ -8,6 +8,7 @@ COPY web ./web
 COPY skills ./skills
 COPY agents ./agents
 COPY adapters ./adapters
+COPY demo-data ./demo-data
 ENV ADPE_HOME=/data PYTHONUNBUFFERED=1
 RUN useradd -m adpe && mkdir -p /data && chown adpe /data
 USER adpe

@@ -1,0 +1,35 @@
+// fs-deposit-balances v1.0.0 - logical model (dbdiagram.io / dbdocs)
+Project fs_deposit_balances {
+  database_type: 'Logical'
+  Note: 'Deposit balances and average daily balance data product'
+}
+
+Table customer [note: 'dimension | history type2 | grain: one row per customer version'] {
+  customer_id string(20) [pk, note: 'internal: Business key']
+  segment string(20) [note: 'internal: Mass, affluent or private']
+  kyc_status string(10) [note: 'internal: VERIFIED, PENDING or EXPIRED']
+  full_name string(200) [note: 'restricted: Customer name (masked)']
+}
+
+Table product [note: 'dimension | history type1 | grain: one row per product'] {
+  product_code string(10) [pk, note: 'internal: Business key']
+  product_name string(100) [note: 'internal: Product name']
+  product_type string(20) [note: 'internal: Current, savings or term']
+}
+
+Table account [note: 'dimension | history type2 | grain: one row per account version'] {
+  account_id string(20) [pk, note: 'internal: Business key']
+  customer_id string(20) [ref: > customer.customer_id, note: 'internal: Account holder']
+  product_code string(10) [ref: > product.product_code, note: 'internal: Product']
+  branch_code string(8) [note: 'internal: Servicing branch']
+  status string(10) [note: 'internal: OPEN, DORMANT or CLOSED']
+  currency string(3) [note: 'internal: ISO currency']
+}
+
+Table daily_balance [note: 'fact | history none | grain: one row per account per business day'] {
+  daily_balance_id string(32) [pk, note: 'internal: Business key']
+  account_id string(20) [ref: > account.account_id, note: 'internal: Account']
+  balance_date date [note: 'internal: Business date']
+  ledger_balance decimal(18,2) [note: 'confidential: Ledger balance']
+  available_balance decimal(18,2) [note: 'confidential: Available balance']
+}

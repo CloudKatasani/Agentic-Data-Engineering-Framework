@@ -17,6 +17,8 @@ def main(argv=None):
     d.add_argument("--domain", default="utilities", choices=["utilities", "telco", "financial-services", "retail"])
     d.add_argument("--stack", default="example-a")
     sub.add_parser("suite", help="run guardrail scenarios GT-01..GT-14")
+    dd = sub.add_parser("demo-data", help="generate the synthetic demo data packs (Jira, metadata, data, model, catalog, lineage)")
+    dd.add_argument("--out", default="demo-data")
     v = sub.add_parser("validate-stack", help="validate a Stack Profile YAML file")
     v.add_argument("file")
     e = sub.add_parser("export", help="export a run's logical model")
@@ -28,6 +30,11 @@ def main(argv=None):
     if a.cmd == "serve":
         import uvicorn
         uvicorn.run("adpe.api.app:app", host=a.host, port=a.port)
+        return 0
+    if a.cmd == "demo-data":
+        from .demo_data import generate
+        m = generate(a.out)
+        print(f"wrote {len(m)} files to {a.out}/ ({sum(v['bytes'] for v in m.values()) // 1024} KB)")
         return 0
     from .engine.orchestrator import get_engine
     eng = get_engine()

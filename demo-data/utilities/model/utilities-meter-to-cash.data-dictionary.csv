@@ -1,0 +1,23 @@
+entity,physical_table,kind,history,attribute,physical_column,logical_type,physical_type,pk,fk,nullable,classification,business_rule,requirements,description
+customer_account,DIM_CUSTOMER_ACCOUNT,dimension,type2,customer_account_id,CUSTOMER_ACCOUNT_ID,string(20),VARCHAR(20),Y,,N,internal,,REQ-001,Business key of the account
+customer_account,DIM_CUSTOMER_ACCOUNT,dimension,type2,account_status,ACCOUNT_STATUS,string(1),VARCHAR(1),,,Y,internal,,REQ-001,"A=active, I=inactive, C=closed"
+customer_account,DIM_CUSTOMER_ACCOUNT,dimension,type2,rate_class,RATE_CLASS,string(10),VARCHAR(10),,,Y,internal,,REQ-004,Tariff rate class
+customer_account,DIM_CUSTOMER_ACCOUNT,dimension,type2,customer_name,CUSTOMER_NAME,string(200),VARCHAR(200),,,Y,restricted,,REQ-005,Account holder name (masked for consumers)
+customer_account,DIM_CUSTOMER_ACCOUNT,dimension,type2,open_date,OPEN_DATE,date,DATE,,,Y,internal,,,Account open date
+premise,DIM_PREMISE,dimension,type1,premise_id,PREMISE_ID,string(20),VARCHAR(20),Y,,N,internal,,,Business key of the premise
+premise,DIM_PREMISE,dimension,type1,customer_account_id,CUSTOMER_ACCOUNT_ID,string(20),VARCHAR(20),,customer_account.customer_account_id,Y,internal,,,Owning account
+premise,DIM_PREMISE,dimension,type1,premise_type,PREMISE_TYPE,string(20),VARCHAR(20),,,Y,internal,,REQ-004,"Residential, commercial, industrial"
+premise,DIM_PREMISE,dimension,type1,region_code,REGION_CODE,string(10),VARCHAR(10),,,Y,internal,,REQ-004,Operating region
+meter,DIM_METER,dimension,type1,meter_id,METER_ID,string(20),VARCHAR(20),Y,,N,internal,,,Business key of the meter
+meter,DIM_METER,dimension,type1,premise_id,PREMISE_ID,string(20),VARCHAR(20),,premise.premise_id,Y,internal,,,Premise where installed
+meter,DIM_METER,dimension,type1,meter_type,METER_TYPE,string(10),VARCHAR(10),,,Y,internal,,,AMI or legacy
+meter,DIM_METER,dimension,type1,install_date,INSTALL_DATE,date,DATE,,,Y,internal,,,Installation date
+billed_consumption,FCT_BILLED_CONSUMPTION,fact,none,bill_id,BILL_ID,string(20),VARCHAR(20),Y,,N,internal,,REQ-001,Business key of the bill
+billed_consumption,FCT_BILLED_CONSUMPTION,fact,none,customer_account_id,CUSTOMER_ACCOUNT_ID,string(20),VARCHAR(20),,customer_account.customer_account_id,Y,internal,,REQ-001,Billed account
+billed_consumption,FCT_BILLED_CONSUMPTION,fact,none,bill_period_start,BILL_PERIOD_START,date,DATE,,,Y,internal,,REQ-001,First day of bill period
+billed_consumption,FCT_BILLED_CONSUMPTION,fact,none,bill_period_end,BILL_PERIOD_END,date,DATE,,,Y,internal,,REQ-001,Last day of bill period
+billed_consumption,FCT_BILLED_CONSUMPTION,fact,none,billed_kwh,BILLED_KWH,"decimal(18,3)","NUMBER(18,3)",,,Y,internal,BR-003,REQ-001,kWh on the bill
+billed_consumption,FCT_BILLED_CONSUMPTION,fact,none,metered_kwh,METERED_KWH,"decimal(18,3)","NUMBER(18,3)",,,Y,internal,BR-001,REQ-002,Metered kWh in the bill period
+billed_consumption,FCT_BILLED_CONSUMPTION,fact,none,estimated_read_share,ESTIMATED_READ_SHARE,"decimal(5,4)","NUMBER(5,4)",,,Y,internal,BR-002,REQ-003,Share of estimated reads
+billed_consumption,FCT_BILLED_CONSUMPTION,fact,none,variance_kwh,VARIANCE_KWH,"decimal(18,3)","NUMBER(18,3)",,,Y,internal,BR-004,REQ-002,Billed minus metered kWh
+billed_consumption,FCT_BILLED_CONSUMPTION,fact,none,amount_due,AMOUNT_DUE,"decimal(18,2)","NUMBER(18,2)",,,Y,internal,,REQ-006,Amount billed

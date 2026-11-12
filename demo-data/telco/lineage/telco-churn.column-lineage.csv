@@ -1,0 +1,20 @@
+map_id,source_system,source_table,source_column,transformation,business_rule,target_table,target_column,confidence
+MAP-001,crm,crm.subscriber,subscriber_id,direct,,acme_customer_gold.dim_subscriber,subscriber_id,high
+MAP-002,crm,crm.subscriber,segment,direct,,acme_customer_gold.dim_subscriber,segment,high
+MAP-003,crm,crm.subscriber,status,direct,,acme_customer_gold.dim_subscriber,status,high
+MAP-004,crm,crm.subscriber,activation_date,direct,,acme_customer_gold.dim_subscriber,activation_date,high
+MAP-005,crm,crm.subscriber,msisdn,direct,,acme_customer_gold.dim_subscriber,msisdn,high
+MAP-006,billing-support-system,bss.product_catalog,product_code,direct,,acme_customer_gold.dim_product,product_code,high
+MAP-007,billing-support-system,bss.product_catalog,product_name,direct,,acme_customer_gold.dim_product,product_name,high
+MAP-008,billing-support-system,bss.product_catalog,product_family,direct,,acme_customer_gold.dim_product,product_family,high
+MAP-009,,acme_customer_gold.fct_subscription_month,(derived),subscriber_id || '-' || month,,acme_customer_gold.fct_subscription_month,subscription_month_id,medium
+MAP-010,billing-support-system,bss.subscription,subscriber_id,direct,,acme_customer_gold.fct_subscription_month,subscriber_id,high
+MAP-011,billing-support-system,bss.subscription,product_code,direct,,acme_customer_gold.fct_subscription_month,product_code,high
+MAP-012,,acme_customer_gold.fct_subscription_month,(derived),first day of month,,acme_customer_gold.fct_subscription_month,month_start,medium
+MAP-013,billing-support-system,bss.subscription,monthly_fee,prorated monthly fee,BR-001,acme_customer_gold.fct_subscription_month,monthly_revenue,medium
+MAP-014,usage-mediation,usage.daily_usage_summary,data_mb,SUM over month,,acme_customer_gold.fct_subscription_month,data_mb,medium
+MAP-014,usage-mediation,usage.daily_usage_summary,*,SUM over month,,acme_customer_gold.fct_subscription_month,data_mb,medium
+MAP-015,usage-mediation,usage.daily_usage_summary,voice_min,SUM over month,,acme_customer_gold.fct_subscription_month,voice_min,medium
+MAP-015,usage-mediation,usage.daily_usage_summary,*,SUM over month,,acme_customer_gold.fct_subscription_month,voice_min,medium
+MAP-016,crm,crm.churn_event,churn_date,churn_date within month,BR-002,acme_customer_gold.fct_subscription_month,is_churned,medium
+MAP-016,crm,crm.churn_event,*,churn_date within month,BR-002,acme_customer_gold.fct_subscription_month,is_churned,medium

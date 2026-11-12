@@ -1,0 +1,42 @@
+@startuml
+hide circle
+skinparam linetype ortho
+
+entity "Customer Account" as customer_account {
+  * customer_account_id : string(20)
+  --
+  account_status : string(1)
+  rate_class : string(10)
+  customer_name : string(200)
+  open_date : date
+}
+entity "Premise" as premise {
+  * premise_id : string(20)
+  --
+  customer_account_id : string(20) <<FK>>
+  premise_type : string(20)
+  region_code : string(10)
+}
+entity "Meter" as meter {
+  * meter_id : string(20)
+  --
+  premise_id : string(20) <<FK>>
+  meter_type : string(10)
+  install_date : date
+}
+entity "Billed Consumption" as billed_consumption {
+  * bill_id : string(20)
+  --
+  customer_account_id : string(20) <<FK>>
+  bill_period_start : date
+  bill_period_end : date
+  billed_kwh : decimal(18,3)
+  metered_kwh : decimal(18,3)
+  estimated_read_share : decimal(5,4)
+  variance_kwh : decimal(18,3)
+  amount_due : decimal(18,2)
+}
+customer_account ||..o{ premise
+premise ||..o{ meter
+customer_account ||..o{ billed_consumption
+@enduml

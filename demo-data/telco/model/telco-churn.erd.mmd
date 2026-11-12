@@ -1,0 +1,25 @@
+erDiagram
+    SUBSCRIBER ||--o{ SUBSCRIPTION_MONTH : "subscriber_id"
+    PRODUCT ||--o{ SUBSCRIPTION_MONTH : "product_code"
+    SUBSCRIBER {
+        string subscriber_id PK
+        string segment
+        string status
+        date activation_date
+        string msisdn
+    }
+    PRODUCT {
+        string product_code PK
+        string product_name
+        string product_family
+    }
+    SUBSCRIPTION_MONTH {
+        string subscription_month_id PK
+        string subscriber_id FK
+        string product_code FK
+        date month_start
+        decimal monthly_revenue
+        decimal data_mb
+        decimal voice_min
+        boolean is_churned
+    }

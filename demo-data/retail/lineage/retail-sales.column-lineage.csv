@@ -1,0 +1,21 @@
+map_id,source_system,source_table,source_column,transformation,business_rule,target_table,target_column,confidence
+MAP-001,point-of-sale,pos.store,store_id,direct,,acme_customer_gold.dim_store,store_id,high
+MAP-002,point-of-sale,pos.store,store_name,direct,,acme_customer_gold.dim_store,store_name,high
+MAP-003,point-of-sale,pos.store,region,direct,,acme_customer_gold.dim_store,region,high
+MAP-004,point-of-sale,pos.store,format,direct,,acme_customer_gold.dim_store,format,high
+MAP-005,product-information,pim.product,product_id,direct,,acme_customer_gold.dim_product,product_id,high
+MAP-006,product-information,pim.product,product_name,direct,,acme_customer_gold.dim_product,product_name,high
+MAP-007,product-information,pim.product,category,direct,,acme_customer_gold.dim_product,category,high
+MAP-008,product-information,pim.product,brand,direct,,acme_customer_gold.dim_product,brand,high
+MAP-009,crm,crm.customer,customer_id,direct,,acme_customer_gold.dim_customer,customer_id,high
+MAP-010,crm,crm.customer,loyalty_tier,direct,,acme_customer_gold.dim_customer,loyalty_tier,high
+MAP-011,crm,crm.customer,email,direct,,acme_customer_gold.dim_customer,email,high
+MAP-012,point-of-sale,pos.order_line,order_line_id,direct,,acme_customer_gold.fct_sales_line,order_line_id,high
+MAP-013,point-of-sale,pos.order_line,order_id,direct,,acme_customer_gold.fct_sales_line,order_id,high
+MAP-014,point-of-sale,pos.order_line,store_id,direct,,acme_customer_gold.fct_sales_line,store_id,high
+MAP-015,point-of-sale,pos.order_line,product_id,direct,,acme_customer_gold.fct_sales_line,product_id,high
+MAP-016,point-of-sale,pos.order_line,customer_id,direct,,acme_customer_gold.fct_sales_line,customer_id,high
+MAP-017,point-of-sale,pos.order_line,order_ts,CAST to date in store local time,,acme_customer_gold.fct_sales_line,order_date,medium
+MAP-018,point-of-sale,pos.order_line,quantity,direct,,acme_customer_gold.fct_sales_line,quantity,high
+MAP-019,point-of-sale,pos.order_line,gross_amount,gross_amount - discount_amount; negated for returns,BR-001,acme_customer_gold.fct_sales_line,net_amount,medium
+MAP-020,point-of-sale,pos.order_line,discount_amount,direct,,acme_customer_gold.fct_sales_line,discount_amount,high

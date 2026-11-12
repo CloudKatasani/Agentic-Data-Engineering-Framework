@@ -1,0 +1,236 @@
+apiVersion: v3.0.2
+kind: DataContract
+id: DEMO-FIN-fs-deposit-balances
+name: fs-deposit-balances
+version: 1.0.0
+status: draft
+domain: financial-services
+description:
+  purpose: Deposit balances and average daily balance data product
+schema:
+- name: customer
+  physicalName: DIM_CUSTOMER
+  logicalType: object
+  description: Bank customer
+  dataGranularityDescription: one row per customer version
+  properties:
+  - name: customer_id
+    logicalType: string
+    physicalType: VARCHAR(20)
+    required: true
+    primaryKey: true
+    classification: internal
+    description: Business key
+  - name: segment
+    logicalType: string
+    physicalType: VARCHAR(20)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Mass, affluent or private
+  - name: kyc_status
+    logicalType: string
+    physicalType: VARCHAR(10)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: VERIFIED, PENDING or EXPIRED
+  - name: full_name
+    logicalType: string
+    physicalType: VARCHAR(200)
+    required: false
+    primaryKey: false
+    classification: restricted
+    description: Customer name (masked)
+- name: product
+  physicalName: DIM_PRODUCT
+  logicalType: object
+  description: Deposit product
+  dataGranularityDescription: one row per product
+  properties:
+  - name: product_code
+    logicalType: string
+    physicalType: VARCHAR(10)
+    required: true
+    primaryKey: true
+    classification: internal
+    description: Business key
+  - name: product_name
+    logicalType: string
+    physicalType: VARCHAR(100)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Product name
+  - name: product_type
+    logicalType: string
+    physicalType: VARCHAR(20)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Current, savings or term
+- name: account
+  physicalName: DIM_ACCOUNT
+  logicalType: object
+  description: Deposit account
+  dataGranularityDescription: one row per account version
+  properties:
+  - name: account_id
+    logicalType: string
+    physicalType: VARCHAR(20)
+    required: true
+    primaryKey: true
+    classification: internal
+    description: Business key
+  - name: customer_id
+    logicalType: string
+    physicalType: VARCHAR(20)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Account holder
+  - name: product_code
+    logicalType: string
+    physicalType: VARCHAR(10)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Product
+  - name: branch_code
+    logicalType: string
+    physicalType: VARCHAR(8)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Servicing branch
+  - name: status
+    logicalType: string
+    physicalType: VARCHAR(10)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: OPEN, DORMANT or CLOSED
+  - name: currency
+    logicalType: string
+    physicalType: VARCHAR(3)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: ISO currency
+- name: daily_balance
+  physicalName: FCT_DAILY_BALANCE
+  logicalType: object
+  description: End-of-day deposit balance
+  dataGranularityDescription: one row per account per business day
+  properties:
+  - name: daily_balance_id
+    logicalType: string
+    physicalType: VARCHAR(32)
+    required: true
+    primaryKey: true
+    classification: internal
+    description: Business key
+  - name: account_id
+    logicalType: string
+    physicalType: VARCHAR(20)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Account
+  - name: balance_date
+    logicalType: date
+    physicalType: DATE
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Business date
+  - name: ledger_balance
+    logicalType: number
+    physicalType: DECIMAL(18,2)
+    required: false
+    primaryKey: false
+    classification: confidential
+    description: Ledger balance
+    businessRule: BR-001
+  - name: available_balance
+    logicalType: number
+    physicalType: DECIMAL(18,2)
+    required: false
+    primaryKey: false
+    classification: confidential
+    description: Available balance
+quality:
+- rule: unique
+  id: DQ-001
+  element: daily_balance.daily_balance_id
+  mustBe: {}
+  threshold: 1.0
+  severity: high
+- rule: not_null
+  id: DQ-002
+  element: daily_balance.ledger_balance
+  mustBe: {}
+  threshold: 1.0
+  severity: high
+- rule: referential
+  id: DQ-003
+  element: daily_balance.account_id
+  mustBe:
+    to_entity: account
+    to_attribute: account_id
+  threshold: 1.0
+  severity: high
+- rule: accepted_values
+  id: DQ-004
+  element: account.currency
+  mustBe:
+    values:
+    - USD
+    - EUR
+    - GBP
+  threshold: 1.0
+  severity: medium
+- rule: accepted_values
+  id: DQ-005
+  element: account.status
+  mustBe:
+    values:
+    - OPEN
+    - DORMANT
+    - CLOSED
+  threshold: 1.0
+  severity: medium
+- rule: range
+  id: DQ-006
+  element: daily_balance.ledger_balance
+  mustBe:
+    min: -1000000
+    max: 100000000
+  threshold: 0.999
+  severity: high
+- rule: row_count_min
+  id: DQ-007
+  element: daily_balance.None
+  mustBe:
+    min: 1
+  threshold: 1.0
+  severity: critical
+slaProperties:
+- property: frequency
+  value: daily
+- property: latency
+  value: 6
+  unit: h
+team:
+- role: product_owner
+  username: Priya Natarajan
+- role: data_architect
+  username: Marcus Lee
+- role: data_steward
+  username: Elena Ruiz
+- role: tech_lead
+  username: Tom Becker
+- role: release_manager
+  username: Aisha Bello
+- role: platform_owner
+  username: Sven Olsen

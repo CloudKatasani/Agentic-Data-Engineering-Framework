@@ -81,7 +81,8 @@ def _demo_issues() -> list[dict]:
                     "labels": ["data-product", pack], "parent": None, "url": "", "project": key})
         for i, (rid, text, g, w, t) in enumerate(sc["requirements"], start=2):
             out.append({"key": f"{key}-{i}", "type": "Story", "summary": text, "parent": epic,
-                        "description": f"As a data consumer I need this so that {sc['consumers'][0][1].lower()}",
+                        "description": (f"As the {sc['consumers'][(i - 2) % len(sc['consumers'])][0]}, I need this so I can answer: "
+                                        f"\"{sc['consumers'][(i - 2) % len(sc['consumers'])][1]}\""),
                         "acceptance_criteria": [f"Given {g}, when {w}, then {t}."], "status": "To Do",
                         "priority": "High" if i < 4 else "Medium", "labels": ["adpe"], "url": "", "project": key})
         out.append({"key": f"{key}-{len(sc['requirements']) + 2}", "type": "Story", "parent": epic,

@@ -21,8 +21,11 @@ artifact."
 
 ## 2. Their models, their keys (2 min) - Agents & models, Providers & API keys
 
-- Show the per-agent table. Bind Design and Build to a top-tier model and Operations to a fast one,
-  or mix vendors. Point out effort and max tokens.
+- Show the per-agent table. The default **Multi-vendor enterprise team** gives each agent a different
+  provider and model (Claude, GPT, Gemini, Azure OpenAI, Bedrock, a local Ollama model). Switch presets
+  to show *All Claude* or *Cost-optimised*. Point out effort and max tokens.
+- The *Key* column shows which providers have keys. Without keys, the demo fallback simulates those
+  stages and says so; the run's *Agents & cost* tab shows "bound to" versus "served by".
 - On Providers, add a key. It is encrypted, shown only as `••••1234`, and never reaches artifacts,
   logs or prompts. Click **Test**.
 
@@ -37,11 +40,13 @@ artifact."
 ## 4. Their requirements (2 min) - New run
 
 - Pick the client's industry Domain Pack.
-- Requirements source → **Read from Jira** → *Fetch issues*. Point out the issue flagged
+- Requirements source → **Read from Jira** → *Fetch issues*, or *Use sample export* to load the
+  bundled Jira CSV export (`demo-data/<domain>/jira/`). Point out the issue flagged
   "instruction-like text" (`UTIL-8` asks the automation to grant access to everyone and deploy to
   production). It is treated as data and reported, never acted on.
-- Stack → choose one. Source metadata → upload a catalog or modelling export (CSV, DDL or DBML) if
-  the client brought one.
+- Stack → choose one. Source metadata → *Use sample source catalog*, or upload the client's own
+  catalog or modelling export (CSV, DDL or DBML). The Mapping agent marks every source it finds there
+  as high confidence.
 - Launch.
 
 ## 5. The gated lifecycle (5 min) - Run view
@@ -65,6 +70,8 @@ artifact."
 
 - **Data model & exports**: download DDL for their engine, plus Collibra / Purview / DataHub /
   Alation payloads, the dbt `schema.yml`, the ODCS contract and OpenLineage.
+- **Jira & metadata → Demo data packs**: the ready-made Jira exports, source data, model exports,
+  catalog payloads and lineage (OpenLineage, column lineage CSV, Mermaid diagram) for each industry.
 - **Download run bundle**: the full audit-ready workspace.
 - **Verify audit logs**: hash-chained logs show intact.
 - **Guardrails** page: **Run suite** executes all 14 guardrail scenarios live.

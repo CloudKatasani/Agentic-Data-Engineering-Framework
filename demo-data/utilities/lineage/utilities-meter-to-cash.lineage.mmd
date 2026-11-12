@@ -1,0 +1,24 @@
+flowchart LR
+  subgraph Sources
+    n0["cis.account"]
+    n1["cis.bill"]
+    n2["cis.premise"]
+    n3["mdm.daily_read"]
+    n4["mdm.meter"]
+  end
+  subgraph Data_product["ACME_CUSTOMER_CURATED"]
+    n5["DIM_CUSTOMER_ACCOUNT"]
+    n6["DIM_METER"]
+    n7["DIM_PREMISE"]
+    n8["FCT_BILLED_CONSUMPTION"]
+  end
+  n0 --> n5
+  n1 --> n8
+  n2 --> n7
+  n2 --> n8
+  n3 --> n8
+  n4 --> n6
+  n4 --> n8
+  n5 -.-> n7
+  n7 -.-> n6
+  n5 -.-> n8

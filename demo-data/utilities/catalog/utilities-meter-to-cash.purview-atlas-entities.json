@@ -1,0 +1,426 @@
+{
+  "entities": [
+    {
+      "typeName": "rdbms_db",
+      "guid": "-1",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED",
+        "name": "ACME_CUSTOMER_CURATED",
+        "description": "Meter-to-cash billed consumption data product"
+      }
+    },
+    {
+      "typeName": "rdbms_table",
+      "guid": "-2",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT",
+        "name": "DIM_CUSTOMER_ACCOUNT",
+        "description": "Billing account of a customer",
+        "comment": "grain: one row per customer account version",
+        "db": {
+          "guid": "-1",
+          "typeName": "rdbms_db"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-3",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT.CUSTOMER_ACCOUNT_ID",
+        "name": "CUSTOMER_ACCOUNT_ID",
+        "data_type": "VARCHAR(20)",
+        "isPrimaryKey": true,
+        "isNullable": false,
+        "description": "Business key of the account",
+        "table": {
+          "guid": "-2",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-4",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT.ACCOUNT_STATUS",
+        "name": "ACCOUNT_STATUS",
+        "data_type": "VARCHAR(1)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "A=active, I=inactive, C=closed",
+        "table": {
+          "guid": "-2",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-5",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT.RATE_CLASS",
+        "name": "RATE_CLASS",
+        "data_type": "VARCHAR(10)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Tariff rate class",
+        "table": {
+          "guid": "-2",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-6",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT.CUSTOMER_NAME",
+        "name": "CUSTOMER_NAME",
+        "data_type": "VARCHAR(200)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Account holder name (masked for consumers)",
+        "table": {
+          "guid": "-2",
+          "typeName": "rdbms_table"
+        }
+      },
+      "classifications": [
+        {
+          "typeName": "ADPE_RESTRICTED"
+        }
+      ]
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-7",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT.OPEN_DATE",
+        "name": "OPEN_DATE",
+        "data_type": "DATE",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Account open date",
+        "table": {
+          "guid": "-2",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_table",
+      "guid": "-8",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_PREMISE",
+        "name": "DIM_PREMISE",
+        "description": "Service location",
+        "comment": "grain: one row per premise",
+        "db": {
+          "guid": "-1",
+          "typeName": "rdbms_db"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-9",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_PREMISE.PREMISE_ID",
+        "name": "PREMISE_ID",
+        "data_type": "VARCHAR(20)",
+        "isPrimaryKey": true,
+        "isNullable": false,
+        "description": "Business key of the premise",
+        "table": {
+          "guid": "-8",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-10",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_PREMISE.CUSTOMER_ACCOUNT_ID",
+        "name": "CUSTOMER_ACCOUNT_ID",
+        "data_type": "VARCHAR(20)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Owning account",
+        "table": {
+          "guid": "-8",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-11",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_PREMISE.PREMISE_TYPE",
+        "name": "PREMISE_TYPE",
+        "data_type": "VARCHAR(20)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Residential, commercial, industrial",
+        "table": {
+          "guid": "-8",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-12",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_PREMISE.REGION_CODE",
+        "name": "REGION_CODE",
+        "data_type": "VARCHAR(10)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Operating region",
+        "table": {
+          "guid": "-8",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_table",
+      "guid": "-13",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_METER",
+        "name": "DIM_METER",
+        "description": "Installed meter",
+        "comment": "grain: one row per meter",
+        "db": {
+          "guid": "-1",
+          "typeName": "rdbms_db"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-14",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_METER.METER_ID",
+        "name": "METER_ID",
+        "data_type": "VARCHAR(20)",
+        "isPrimaryKey": true,
+        "isNullable": false,
+        "description": "Business key of the meter",
+        "table": {
+          "guid": "-13",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-15",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_METER.PREMISE_ID",
+        "name": "PREMISE_ID",
+        "data_type": "VARCHAR(20)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Premise where installed",
+        "table": {
+          "guid": "-13",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-16",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_METER.METER_TYPE",
+        "name": "METER_TYPE",
+        "data_type": "VARCHAR(10)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "AMI or legacy",
+        "table": {
+          "guid": "-13",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-17",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_METER.INSTALL_DATE",
+        "name": "INSTALL_DATE",
+        "data_type": "DATE",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Installation date",
+        "table": {
+          "guid": "-13",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_table",
+      "guid": "-18",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION",
+        "name": "FCT_BILLED_CONSUMPTION",
+        "description": "Billed versus metered consumption per bill",
+        "comment": "grain: one row per final bill",
+        "db": {
+          "guid": "-1",
+          "typeName": "rdbms_db"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-19",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.BILL_ID",
+        "name": "BILL_ID",
+        "data_type": "VARCHAR(20)",
+        "isPrimaryKey": true,
+        "isNullable": false,
+        "description": "Business key of the bill",
+        "table": {
+          "guid": "-18",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-20",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.CUSTOMER_ACCOUNT_ID",
+        "name": "CUSTOMER_ACCOUNT_ID",
+        "data_type": "VARCHAR(20)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Billed account",
+        "table": {
+          "guid": "-18",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-21",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.BILL_PERIOD_START",
+        "name": "BILL_PERIOD_START",
+        "data_type": "DATE",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "First day of bill period",
+        "table": {
+          "guid": "-18",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-22",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.BILL_PERIOD_END",
+        "name": "BILL_PERIOD_END",
+        "data_type": "DATE",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Last day of bill period",
+        "table": {
+          "guid": "-18",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-23",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.BILLED_KWH",
+        "name": "BILLED_KWH",
+        "data_type": "NUMBER(18,3)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "kWh on the bill",
+        "table": {
+          "guid": "-18",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-24",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.METERED_KWH",
+        "name": "METERED_KWH",
+        "data_type": "NUMBER(18,3)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Metered kWh in the bill period",
+        "table": {
+          "guid": "-18",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-25",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.ESTIMATED_READ_SHARE",
+        "name": "ESTIMATED_READ_SHARE",
+        "data_type": "NUMBER(5,4)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Share of estimated reads",
+        "table": {
+          "guid": "-18",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-26",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.VARIANCE_KWH",
+        "name": "VARIANCE_KWH",
+        "data_type": "NUMBER(18,3)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Billed minus metered kWh",
+        "table": {
+          "guid": "-18",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-27",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.AMOUNT_DUE",
+        "name": "AMOUNT_DUE",
+        "data_type": "NUMBER(18,2)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Amount billed",
+        "table": {
+          "guid": "-18",
+          "typeName": "rdbms_table"
+        }
+      }
+    }
+  ]
+}

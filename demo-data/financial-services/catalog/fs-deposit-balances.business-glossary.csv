@@ -1,0 +1,6 @@
+term,definition,source,reference
+ADB,Average daily balance over a period,domain-pack,
+NIM,Net interest margin,domain-pack,
+KYC,Know your customer due-diligence status,domain-pack,
+Total deposits,Sum of ledger balances.,metric,BR-001
+Average daily balance,Mean of daily ledger balances.,metric,BR-002

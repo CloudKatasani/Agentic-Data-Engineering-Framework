@@ -238,7 +238,7 @@ route("dashboard", async () => {
       <div class="card kpi"><div class="l">Runs</div><div class="v">${runs.length}</div></div>
       <div class="card kpi"><div class="l">Completed</div><div class="v">${runs.filter((r) => r.status === "completed").length}</div></div>
       <div class="card kpi"><div class="l">Gates awaiting you</div><div class="v">${pending}</div></div>
-      <div class="card kpi"><div class="l">Model providers in use</div><div class="v small" style="font-size:15px;padding-top:8px">${[...llm].map((t) => esc(CATALOG.provider_types[t]?.label || t)).join("<br>")}</div></div>
+      <div class="card kpi"><div class="l">Agent team</div><div class="v">${llm.size} <span class="small muted" style="font-size:13px">providers · ${new Set(Object.values(SETTINGS.agents).map((a) => a.model)).size} models</span></div><div class="small muted">${[...llm].map((t) => esc(CATALOG.provider_types[t]?.label || t)).join(" · ")}</div></div>
     </div>
     <div class="card" style="margin-top:16px">
       <h2>Runs</h2>
@@ -266,6 +266,18 @@ function wizardDefaults() {
   };
 }
 const DOMAIN_PROJECT = { utilities: "UTIL", telco: "TEL", "financial-services": "FIN", retail: "RET" };
+const SAMPLE = {
+  jira: (dom) => `${dom}/jira/${DOMAIN_PROJECT[dom]}-jira-export.csv`,
+  catalog: (dom) => `${dom}/source-metadata/${dom}-source-catalog.csv`,
+};
+// Upload a bundled demo file to an import endpoint exactly as if the user had picked it.
+async function importDemoFile(path, endpoint) {
+  const r = await api("GET", `/demo-files/file?path=${encodeURIComponent(path)}`, undefined, true);
+  const fd = new FormData();
+  fd.append("file", new Blob([await r.text()], { type: "text/plain" }), path.split("/").pop());
+  return api("POST", endpoint, fd);
+}
+async function uploadFile(file, endpoint) { const fd = new FormData(); fd.append("file", file); return api("POST", endpoint, fd); }
 route("new", async () => {
   WZ.data = WZ.data || wizardDefaults();
   WZ.step = 0;
@@ -308,6 +320,8 @@ function wzReqs(d) {
     <div ${d.req_source === "text" ? 'style="display:none"' : ""}>
       <label>JQL ${SETTINGS.jira.mode === "demo" ? '<span class="badge b-info">demo Jira</span>' : `<span class="badge b-ok">${esc(SETTINGS.jira.base_url)}</span>`}</label>
       <div class="row"><input data-f="jql" value="${esc(d.jql)}" style="flex:1"><button class="btn" id="jqlRun">Fetch issues</button></div>
+      <label>…or upload a Jira export (CSV "all fields" or JSON search response)</label>
+      <div class="row"><input type="file" id="jiraFile" accept=".csv,.json" style="max-width:360px"><button class="btn" id="jiraSample">Use sample export (${esc(DOMAIN_PROJECT[d.domain_pack])})</button></div>
       <div id="issues" style="margin-top:10px">${issuesTable(d)}</div>
     </div>
     <div ${d.req_source === "jira" ? 'style="display:none"' : ""}>
@@ -332,7 +346,7 @@ function wzStack(d) {
 function wzMeta(d) {
   const m = d.source_metadata;
   return `<p class="muted">Optional: import a data catalog or data-modelling export (CSV dictionary, ADPE/JSON model, DBML, or CREATE TABLE DDL from erwin, ER/Studio, SqlDBM, PowerDesigner, Collibra, Purview, Alation…). The Mapping agent reconciles every source against it.</p>
-    <input type="file" id="metaFile" accept=".csv,.json,.dbml,.sql,.ddl,.txt" style="max-width:420px">
+    <div class="row"><input type="file" id="metaFile" accept=".csv,.json,.dbml,.sql,.ddl,.txt" style="max-width:420px"><button class="btn" id="metaSample">Use sample source catalog (${esc(d.domain_pack)})</button></div>
     <div id="metaPreview" style="margin-top:12px">${m ? metaSummary(m) : '<div class="muted small">No metadata attached.</div>'}</div>`;
 }
 function metaSummary(m) {
@@ -370,12 +384,12 @@ function bindWizard() {
     d.selected_keys = d.jira_issues.map((i) => i.key);
     $("#issues").innerHTML = issuesTable(d);
   };
-  if ($("#metaFile")) $("#metaFile").onchange = async (e) => {
-    const fd = new FormData(); fd.append("file", e.target.files[0]);
-    d.source_metadata = await guard(() => api("POST", "/metadata/import", fd));
-    delete d.source_metadata.logical_model;
-    $("#metaPreview").innerHTML = metaSummary(d.source_metadata); bindWizard();
-  };
+  const setIssues = (issues) => { d.jira_issues = issues; d.selected_keys = issues.map((i) => i.key); $("#issues").innerHTML = issuesTable(d); toast(`${issues.length} issues loaded`, "ok"); };
+  if ($("#jiraFile")) $("#jiraFile").onchange = async (e) => setIssues(await guard(() => uploadFile(e.target.files[0], "/jira/import")));
+  if ($("#jiraSample")) $("#jiraSample").onclick = async () => setIssues(await guard(() => importDemoFile(SAMPLE.jira(d.domain_pack), "/jira/import")));
+  const setMeta = (m) => { d.source_metadata = m; delete d.source_metadata.logical_model; $("#metaPreview").innerHTML = metaSummary(m); bindWizard(); };
+  if ($("#metaFile")) $("#metaFile").onchange = async (e) => setMeta(await guard(() => uploadFile(e.target.files[0], "/metadata/import")));
+  if ($("#metaSample")) $("#metaSample").onclick = async () => setMeta(await guard(() => importDemoFile(SAMPLE.catalog(d.domain_pack), "/metadata/import")));
   if ($("#metaClear")) $("#metaClear").onclick = () => { d.source_metadata = null; store.set("adpe_pending_metadata", null); renderWizard(); };
 }
 async function launch() {
@@ -577,34 +591,46 @@ async function renderAudit(el) {
     <div class="card"><h2>Action log (${act.length})</h2><div class="table-wrap" style="max-height:420px;overflow:auto"><table><thead><tr><th>When</th><th>Agent</th><th>Action</th><th>Class</th><th>Phase</th><th>Target</th></tr></thead><tbody>${act.slice().reverse().map((a) => `<tr><td class="small">${new Date(a.ts).toLocaleTimeString()}</td><td class="mono small">${esc(a.agent)}</td><td>${esc(a.action)}</td><td>${badge(a.class === "A4" ? "fail" : a.class === "A3" ? "awaiting-approval" : a.class === "A2" ? "running" : "", a.class)}</td><td>${esc(a.phase)}</td><td class="small mono">${esc(a.target)}</td></tr>`).join("")}</tbody></table></div></div>`;
 }
 function renderMetrics(st, el) {
-  const rows = CATALOG.agents.map((a) => { const u = st.usage[a.name]; const b = st.run.agent_bindings?.[a.name] || {}; return [a.name, (u?.models || [`${b.provider_id}:${b.model}`]).join(", "), u?.calls ?? 0, u?.tokens ?? 0, u ? `$${u.llm_cost_usd.toFixed(4)}` : "-", u ? `${u.seconds}s` : "-"]; });
+  const rows = CATALOG.agents.map((a) => { const u = st.usage[a.name]; const b = st.run.agent_bindings?.[a.name] || {}; return [a.name, `${b.provider_id || "?"} / ${b.model || "?"}`, (u?.models || ["-"]).join(", ") + (u?.fallback ? ` - ${u.fallback}` : ""), u?.calls ?? 0, u?.tokens ?? 0, u ? `$${u.llm_cost_usd.toFixed(4)}` : "-"]; });
   const tot = Object.values(st.usage).reduce((a, u) => ({ t: a.t + u.tokens, c: a.c + u.llm_cost_usd }), { t: 0, c: 0 });
   el.innerHTML = `<div class="grid g3"><div class="card kpi"><div class="l">LLM tokens</div><div class="v">${tot.t.toLocaleString()}</div></div><div class="card kpi"><div class="l">LLM cost (list price)</div><div class="v">$${tot.c.toFixed(3)}</div></div><div class="card kpi"><div class="l">Guardrail blocks</div><div class="v">${st.metrics.guardrail_blocks || 0}</div></div></div>
-    <div class="card"><h2>Agent team for this run</h2><div class="table-wrap"><table><thead><tr><th>Agent</th><th>Provider:model</th><th>Calls</th><th>Tokens</th><th>Cost</th><th>Model time</th></tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td class="${i < 2 ? "mono small" : ""}">${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
-    <p class="small muted">The Demo Simulator makes no model calls. Bindings are captured when the run is created; change them on Agents &amp; models for future stages.</p></div>`;
+    <div class="card"><h2>Agent team for this run</h2><div class="table-wrap"><table><thead><tr><th>Agent</th><th>Bound to</th><th>Served by</th><th>Calls</th><th>Tokens</th><th>Cost</th></tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td class="${i < 3 ? "mono small" : ""}">${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+    <p class="small muted">"Served by" shows what actually ran. A simulated stage means the bound provider had no key or could not be reached and the demo fallback was on. Bindings are captured when the run is created.</p></div>`;
 }
 
 // ------------------------------------------------------------------ agents & models
 route("agents", async () => {
   await refreshSettings();
+  const ready = await api("GET", "/providers/readiness");
+  const rt = SETTINGS.runtime || {};
+  const keyBadge = (pid) => pid === "demo" ? badge("", "offline") : ready[pid] ? badge("pass", "key configured") : badge(rt.simulate_unavailable_providers === false ? "fail" : "awaiting-approval", rt.simulate_unavailable_providers === false ? "no key - stage will fail" : "no key - simulated");
   const provOpts = (sel) => SETTINGS.providers.map((p) => `<option value="${esc(p.id)}" ${p.id === sel ? "selected" : ""}>${esc(p.label)}</option>`).join("");
   const suggestions = (pid) => { const p = providerById(pid); return (CATALOG.provider_types[p?.type]?.models || []).map((m) => m.id).concat(store.get(`adpe_models_${pid}`, [])); };
   main().innerHTML = `<div class="spread"><div><h1>Agents &amp; models</h1><div class="sub">Bind each of the nine agents to a provider and model. Mix providers freely - for example a top-tier model for Design and a fast model for Operations.</div></div>
     <div class="row"><button class="btn primary" id="saveAgents">Save bindings</button></div></div>
+    <div class="card tight"><div class="row"><b>Team preset:</b><select id="presetSel" style="width:auto">${Object.entries(CATALOG.team_presets).map(([k, p]) => `<option value="${esc(k)}" ${k === rt.team_preset ? "selected" : ""}>${esc(p.label)}</option>`).join("")}</select>
+      <span class="small muted" id="presetDesc"></span><button class="btn" id="applyPreset">Apply preset</button></div>
+      <label style="display:flex;gap:8px;align-items:center;color:var(--text);font-weight:400;margin-top:10px"><input type="checkbox" id="simToggle" style="width:auto" ${rt.simulate_unavailable_providers !== false ? "checked" : ""}>
+      Demo fallback: if an agent's provider has no key, can't be reached or rejects the key, run that stage on the Demo Simulator and label it as simulated. Turn this off for real client work.</label></div>
     <div class="card tight"><div class="row"><b>Apply to all agents:</b><select id="allProv" style="width:auto">${provOpts(SETTINGS.agents["adpe-orchestrator"].provider_id)}</select><input id="allModel" list="dl-all" style="width:240px" placeholder="model"><datalist id="dl-all"></datalist><select id="allEffort" style="width:auto">${CATALOG.effort_levels.map((e) => `<option ${e === "medium" ? "selected" : ""}>${e}</option>`).join("")}</select><button class="btn" id="applyAll">Apply</button></div></div>
-    <div class="card"><div class="table-wrap"><table><thead><tr><th style="width:30%">Agent</th><th>Provider</th><th>Model</th><th>Effort</th><th>Max tokens</th><th></th></tr></thead><tbody>
+    <div class="card"><div class="table-wrap"><table><thead><tr><th style="width:30%">Agent</th><th>Provider</th><th>Model</th><th>Effort</th><th>Max tokens</th><th>Key</th><th></th></tr></thead><tbody>
     ${CATALOG.agents.map((a) => { const b = SETTINGS.agents[a.name]; return `<tr data-agent="${esc(a.name)}"><td><b class="mono">${esc(a.name)}</b><div class="small muted">${esc(a.description)}</div></td>
       <td><select data-k="provider_id">${provOpts(b.provider_id)}</select></td>
       <td><input data-k="model" list="dl-${esc(a.name)}" value="${esc(b.model)}"><datalist id="dl-${esc(a.name)}">${suggestions(b.provider_id).map((m) => `<option value="${esc(m)}">`).join("")}</datalist></td>
       <td><select data-k="effort">${CATALOG.effort_levels.map((e) => `<option ${e === b.effort ? "selected" : ""}>${e}</option>`).join("")}</select></td>
       <td><input data-k="max_tokens" type="number" value="${esc(b.max_tokens)}" style="width:100px"></td>
+      <td class="keyst">${keyBadge(b.provider_id)}</td>
       <td><button class="btn small" data-test="${esc(a.name)}">Test</button></td></tr>`; }).join("")}
     </tbody></table></div><p class="small muted">Model names are free text - any model your provider serves. Effort maps to the provider's reasoning-depth control where one exists. Bindings are snapshotted into each run at creation.</p></div>`;
+  const pd = () => ($("#presetDesc").textContent = CATALOG.team_presets[$("#presetSel").value].description);
+  pd(); $("#presetSel").onchange = pd;
+  $("#applyPreset").onclick = async () => { await guard(() => api("POST", "/settings/agents/preset", { preset: $("#presetSel").value }), "Team preset applied"); navigate(); };
+  $("#simToggle").onchange = async () => { await guard(() => api("PUT", "/settings/runtime", { simulate_unavailable_providers: $("#simToggle").checked }), "Saved"); navigate(); };
   const fillDl = (dl, pid) => (dl.innerHTML = suggestions(pid).map((m) => `<option value="${esc(m)}">`).join(""));
   fillDl($("#dl-all"), $("#allProv").value);
   $("#allProv").onchange = () => fillDl($("#dl-all"), $("#allProv").value);
   $$("tr[data-agent] select[data-k=provider_id]").forEach((s) => (s.onchange = () => {
-    const tr = s.closest("tr"); fillDl($(`#dl-${tr.dataset.agent}`), s.value);
+    const tr = s.closest("tr"); fillDl($(`#dl-${tr.dataset.agent}`), s.value); $(".keyst", tr).innerHTML = keyBadge(s.value);
     const sug = suggestions(s.value); if (sug.length) $("input[data-k=model]", tr).value = sug[0];
   }));
   $("#applyAll").onclick = () => $$("tr[data-agent]").forEach((tr) => {
@@ -764,14 +790,52 @@ route("integrations", async () => {
         <label>Default JQL</label><input id="jJql" value="${esc(j.default_jql)}">
         <label>Acceptance-criteria custom field (optional)</label><input id="jAc" value="${esc(j.acceptance_field || "")}" placeholder="customfield_10035">
         <div class="row" style="margin-top:14px"><button class="btn primary" id="jSave">Save</button><button class="btn" id="jTest">Test connection</button></div>
-        <hr><label>Preview a query</label><div class="row"><input id="jQ" value="${esc(j.mode === "demo" ? "project = UTIL" : j.default_jql)}" style="flex:1"><button class="btn" id="jSearch">Search</button></div><div id="jOut" style="margin-top:10px"></div>
+        <hr><label>Preview a query</label><div class="row"><input id="jQ" value="${esc(j.mode === "demo" ? "project = UTIL" : j.default_jql)}" style="flex:1"><button class="btn" id="jSearch">Search</button></div>
+        <label>…or preview a Jira export file (no connection needed)</label><input type="file" id="jFile" accept=".csv,.json">
+        <div id="jOut" style="margin-top:10px"></div>
       </div>
       <div class="card"><h2>Import source metadata</h2>
         <p class="muted small">Accepted: CSV data dictionary / catalog export (table, column, type, nullable, pk, description, classification - common column names are recognised), ADPE or generic JSON model, DBML, and CREATE TABLE DDL from modelling tools. Contents are treated as untrusted data.</p>
         <input type="file" id="mFile" accept=".csv,.json,.dbml,.sql,.ddl,.txt">
         <div id="mOut" style="margin-top:12px"></div>
       </div>
-    </div>`;
+    </div>
+    <div class="card"><div class="spread"><div><h2>Demo data packs</h2><div class="small muted">Synthetic, deterministic files per industry: Jira exports, source catalog and DDL, source data, data model exports, catalog payloads and lineage. Regenerate with <code>python -m adpe demo-data</code>.</div></div>
+      <select id="ddDomain" style="width:auto">${CATALOG.domain_packs.map((p) => `<option>${esc(p.pack_id)}</option>`).join("")}</select></div>
+      <div id="ddOut" style="margin-top:12px"></div></div>`;
+  const demo = await api("GET", "/demo-files");
+  const ACTIONS = { jira: ["Preview issues", "jira"], "source-metadata": ["Import as metadata", "meta"], model: ["Open in studio", "studio"] };
+  const renderDemo = () => {
+    const dom = $("#ddDomain").value;
+    const files = demo.filter((f) => f.domain === dom);
+    const groups = {};
+    files.forEach((f) => (groups[f.folder || "-"] = groups[f.folder || "-"] || []).push(f));
+    $("#ddOut").innerHTML = files.length ? `<div class="table-wrap"><table><thead><tr><th>Folder</th><th>File</th><th>Size</th><th></th></tr></thead><tbody>${Object.entries(groups).map(([g, fs]) => fs.map((f, i) => {
+      const act = ACTIONS[g]; const canAct = act && (g !== "model" || f.name.endsWith(".logical-model.json") || f.name.endsWith(".dbml")) && (g !== "source-metadata" || f.name.endsWith(".csv") || f.name.endsWith(".sql"));
+      return `<tr><td>${i === 0 ? `<b>${esc(g)}</b>` : ""}</td><td class="mono small">${esc(f.name)}</td><td class="small muted">${(f.bytes / 1024).toFixed(1)} KB</td><td style="white-space:nowrap"><button class="btn small" data-dl="${esc(f.path)}">Download</button>${canAct ? ` <button class="btn small" data-act="${act[1]}" data-path="${esc(f.path)}">${act[0]}</button>` : ""}</td></tr>`;
+    }).join("")).join("")}</tbody></table></div>` : '<div class="empty">No demo files found. Run <code>python -m adpe demo-data</code>.</div>';
+    $$("[data-dl]").forEach((b) => (b.onclick = () => download(`/demo-files/file?path=${encodeURIComponent(b.dataset.dl)}`, b.dataset.dl.split("/").pop())));
+    $$("[data-act]").forEach((b) => (b.onclick = async () => {
+      const path = b.dataset.path;
+      if (b.dataset.act === "jira") showIssues(await guard(() => importDemoFile(path, "/jira/import")));
+      if (b.dataset.act === "meta") showMeta(await guard(() => importDemoFile(path, "/metadata/import")));
+      if (b.dataset.act === "studio") { const m = await guard(() => importDemoFile(path, "/metadata/import")); store.set("adpe_studio_model", m.logical_model); location.hash = "#/studio"; }
+    }));
+  };
+  $("#ddDomain").onchange = renderDemo;
+  renderDemo();
+  const showIssues = (is) => {
+    $("#jOut").innerHTML = `<div class="table-wrap"><table><thead><tr><th>Key</th><th>Type</th><th>Summary</th><th>AC</th><th>Findings</th></tr></thead><tbody>${is.map((i) => `<tr><td class="mono">${esc(i.key)}</td><td>${esc(i.type)}</td><td>${esc(i.summary)}</td><td>${(i.acceptance_criteria || []).length}</td><td>${i.untrusted_findings?.injection?.length ? badge("fail", "instruction-like text") : ""}</td></tr>`).join("")}</tbody></table></div>`;
+    $("#jOut").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  };
+  const showMeta = (m) => {
+    const model = m.logical_model; delete m.logical_model;
+    $("#mOut").innerHTML = metaSummary(m) + `<div class="row" style="margin-top:10px"><button class="btn primary" id="useMeta">Use in next run</button><button class="btn" id="toStudio">Open in model studio</button></div>`;
+    $("#useMeta").onclick = () => { store.set("adpe_pending_metadata", m); WZ.data = null; toast("Attached to the next run", "ok"); location.hash = "#/new"; };
+    $("#toStudio").onclick = () => { store.set("adpe_studio_model", model); location.hash = "#/studio"; };
+    if ($("#metaClear")) $("#metaClear").onclick = () => ($("#mOut").innerHTML = "");
+  };
+  $("#jFile").onchange = async (e) => showIssues(await guard(() => uploadFile(e.target.files[0], "/jira/import")));
   $("#jTokMode").onchange = () => ($("#jTokBox").innerHTML = $("#jTokMode").value === "new" ? '<input id="jTok" type="password" autocomplete="off" placeholder="Token is encrypted and never displayed again"><label>Vault name</label><input id="jTokName" value="jira-token">' : "");
   $("#jSave").onclick = async () => {
     let ref = j.token_ref; const m = $("#jTokMode").value;
@@ -781,19 +845,8 @@ route("integrations", async () => {
     await refreshSettings();
   };
   $("#jTest").onclick = async () => { const r = await guard(() => api("POST", "/jira/test")); toast(r.ok ? `Connected as ${r.user} (${r.mode})` : r.error, r.ok ? "ok" : "err"); };
-  $("#jSearch").onclick = async () => {
-    const is = await guard(() => api("POST", "/jira/search", { jql: $("#jQ").value, max_results: 50 }));
-    $("#jOut").innerHTML = `<div class="table-wrap"><table><thead><tr><th>Key</th><th>Type</th><th>Summary</th><th>Findings</th></tr></thead><tbody>${is.map((i) => `<tr><td class="mono">${esc(i.key)}</td><td>${esc(i.type)}</td><td>${esc(i.summary)}</td><td>${i.untrusted_findings?.injection?.length ? badge("fail", "instruction-like text") : ""}</td></tr>`).join("")}</tbody></table></div>`;
-  };
-  $("#mFile").onchange = async (e) => {
-    const fd = new FormData(); fd.append("file", e.target.files[0]);
-    const m = await guard(() => api("POST", "/metadata/import", fd));
-    const model = m.logical_model; delete m.logical_model;
-    $("#mOut").innerHTML = metaSummary(m) + `<div class="row" style="margin-top:10px"><button class="btn primary" id="useMeta">Use in next run</button><button class="btn" id="toStudio">Open in model studio</button></div>`;
-    $("#useMeta").onclick = () => { store.set("adpe_pending_metadata", m); WZ.data = null; toast("Attached to the next run", "ok"); location.hash = "#/new"; };
-    $("#toStudio").onclick = () => { store.set("adpe_studio_model", model); location.hash = "#/studio"; };
-    if ($("#metaClear")) $("#metaClear").onclick = () => ($("#mOut").innerHTML = "");
-  };
+  $("#jSearch").onclick = async () => showIssues(await guard(() => api("POST", "/jira/search", { jql: $("#jQ").value, max_results: 50 })));
+  $("#mFile").onchange = async (e) => showMeta(await guard(() => uploadFile(e.target.files[0], "/metadata/import")));
 });
 
 // ------------------------------------------------------------------ model studio
@@ -803,6 +856,7 @@ route("studio", async () => {
   main().innerHTML = `<h1>Model &amp; catalog studio</h1><div class="sub">Convert between data-modelling and data-catalog formats: load a model from a run or import an export, then download it for another tool or stack.</div>
     <div class="card"><div class="field-row"><div><label>Load from a run</label><select id="stRun"><option value="">-</option>${runs.map((r) => `<option value="${esc(r.run_id)}">${esc(r.run_id)} · ${esc(r.use_case)}</option>`).join("")}</select></div>
       <div><label>…or import a file</label><input type="file" id="stFile" accept=".csv,.json,.dbml,.sql,.ddl,.txt"></div>
+      <div><label>…or a sample model</label><select id="stSample"><option value="">-</option>${CATALOG.domain_packs.map((p) => `<option>${esc(p.pack_id)}</option>`).join("")}</select></div>
       <div><label>Target Stack Profile (physical naming &amp; types)</label><select id="stProf"><option value="">none (logical)</option>${allStacks().map((s) => `<option value="${esc(s.profile_id)}">${esc(s.label || s.profile_id)}</option>`).join("")}</select></div></div></div>
     <div id="stBody"></div>`;
   const render = () => {
@@ -817,7 +871,13 @@ route("studio", async () => {
     }));
   };
   $("#stRun").onchange = async () => { if (!$("#stRun").value) return; model = await guard(() => api("GET", `/runs/${$("#stRun").value}/model`)); store.set("adpe_studio_model", model); render(); };
-  $("#stFile").onchange = async (e) => { const fd = new FormData(); fd.append("file", e.target.files[0]); const m = await guard(() => api("POST", "/metadata/import", fd)); model = m.logical_model; store.set("adpe_studio_model", model); render(); };
+  $("#stFile").onchange = async (e) => { const m = await guard(() => uploadFile(e.target.files[0], "/metadata/import")); model = m.logical_model; store.set("adpe_studio_model", model); render(); };
+  $("#stSample").onchange = async () => {
+    const dom = $("#stSample").value; if (!dom) return;
+    const f = (await api("GET", "/demo-files")).find((x) => x.domain === dom && x.name.endsWith(".logical-model.json"));
+    if (!f) { toast("No sample model found - run python -m adpe demo-data", "err"); return; }
+    model = (await guard(() => importDemoFile(f.path, "/metadata/import"))).logical_model; store.set("adpe_studio_model", model); render();
+  };
   render();
 });
 

@@ -1,0 +1,451 @@
+[
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,acme_customer_curated.dim_customer_account,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "datasetProperties",
+    "aspect": {
+      "json": {
+        "name": "DIM_CUSTOMER_ACCOUNT",
+        "description": "Billing account of a customer",
+        "customProperties": {
+          "grain": "one row per customer account version",
+          "history": "type2",
+          "adpe_model": "utilities-meter-to-cash"
+        }
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,acme_customer_curated.dim_customer_account,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "schemaMetadata",
+    "aspect": {
+      "json": {
+        "schemaName": "acme_customer_curated.dim_customer_account",
+        "platform": "urn:li:dataPlatform:snowflake",
+        "version": 0,
+        "hash": "",
+        "platformSchema": {
+          "com.linkedin.schema.OtherSchema": {
+            "rawSchema": ""
+          }
+        },
+        "fields": [
+          {
+            "fieldPath": "customer_account_id",
+            "nativeDataType": "VARCHAR(20)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": false,
+            "description": "Business key of the account",
+            "isPartOfKey": true
+          },
+          {
+            "fieldPath": "account_status",
+            "nativeDataType": "VARCHAR(1)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "A=active, I=inactive, C=closed",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "rate_class",
+            "nativeDataType": "VARCHAR(10)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Tariff rate class",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "customer_name",
+            "nativeDataType": "VARCHAR(200)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Account holder name (masked for consumers)",
+            "isPartOfKey": false,
+            "globalTags": {
+              "tags": [
+                {
+                  "tag": "urn:li:tag:restricted"
+                }
+              ]
+            }
+          },
+          {
+            "fieldPath": "open_date",
+            "nativeDataType": "DATE",
+            "type": {
+              "type": {
+                "com.linkedin.schema.DateType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Account open date",
+            "isPartOfKey": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,acme_customer_curated.dim_premise,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "datasetProperties",
+    "aspect": {
+      "json": {
+        "name": "DIM_PREMISE",
+        "description": "Service location",
+        "customProperties": {
+          "grain": "one row per premise",
+          "history": "type1",
+          "adpe_model": "utilities-meter-to-cash"
+        }
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,acme_customer_curated.dim_premise,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "schemaMetadata",
+    "aspect": {
+      "json": {
+        "schemaName": "acme_customer_curated.dim_premise",
+        "platform": "urn:li:dataPlatform:snowflake",
+        "version": 0,
+        "hash": "",
+        "platformSchema": {
+          "com.linkedin.schema.OtherSchema": {
+            "rawSchema": ""
+          }
+        },
+        "fields": [
+          {
+            "fieldPath": "premise_id",
+            "nativeDataType": "VARCHAR(20)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": false,
+            "description": "Business key of the premise",
+            "isPartOfKey": true
+          },
+          {
+            "fieldPath": "customer_account_id",
+            "nativeDataType": "VARCHAR(20)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Owning account",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "premise_type",
+            "nativeDataType": "VARCHAR(20)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Residential, commercial, industrial",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "region_code",
+            "nativeDataType": "VARCHAR(10)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Operating region",
+            "isPartOfKey": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,acme_customer_curated.dim_meter,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "datasetProperties",
+    "aspect": {
+      "json": {
+        "name": "DIM_METER",
+        "description": "Installed meter",
+        "customProperties": {
+          "grain": "one row per meter",
+          "history": "type1",
+          "adpe_model": "utilities-meter-to-cash"
+        }
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,acme_customer_curated.dim_meter,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "schemaMetadata",
+    "aspect": {
+      "json": {
+        "schemaName": "acme_customer_curated.dim_meter",
+        "platform": "urn:li:dataPlatform:snowflake",
+        "version": 0,
+        "hash": "",
+        "platformSchema": {
+          "com.linkedin.schema.OtherSchema": {
+            "rawSchema": ""
+          }
+        },
+        "fields": [
+          {
+            "fieldPath": "meter_id",
+            "nativeDataType": "VARCHAR(20)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": false,
+            "description": "Business key of the meter",
+            "isPartOfKey": true
+          },
+          {
+            "fieldPath": "premise_id",
+            "nativeDataType": "VARCHAR(20)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Premise where installed",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "meter_type",
+            "nativeDataType": "VARCHAR(10)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "AMI or legacy",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "install_date",
+            "nativeDataType": "DATE",
+            "type": {
+              "type": {
+                "com.linkedin.schema.DateType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Installation date",
+            "isPartOfKey": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,acme_customer_curated.fct_billed_consumption,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "datasetProperties",
+    "aspect": {
+      "json": {
+        "name": "FCT_BILLED_CONSUMPTION",
+        "description": "Billed versus metered consumption per bill",
+        "customProperties": {
+          "grain": "one row per final bill",
+          "history": "none",
+          "adpe_model": "utilities-meter-to-cash"
+        }
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,acme_customer_curated.fct_billed_consumption,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "schemaMetadata",
+    "aspect": {
+      "json": {
+        "schemaName": "acme_customer_curated.fct_billed_consumption",
+        "platform": "urn:li:dataPlatform:snowflake",
+        "version": 0,
+        "hash": "",
+        "platformSchema": {
+          "com.linkedin.schema.OtherSchema": {
+            "rawSchema": ""
+          }
+        },
+        "fields": [
+          {
+            "fieldPath": "bill_id",
+            "nativeDataType": "VARCHAR(20)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": false,
+            "description": "Business key of the bill",
+            "isPartOfKey": true
+          },
+          {
+            "fieldPath": "customer_account_id",
+            "nativeDataType": "VARCHAR(20)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Billed account",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "bill_period_start",
+            "nativeDataType": "DATE",
+            "type": {
+              "type": {
+                "com.linkedin.schema.DateType": {}
+              }
+            },
+            "nullable": true,
+            "description": "First day of bill period",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "bill_period_end",
+            "nativeDataType": "DATE",
+            "type": {
+              "type": {
+                "com.linkedin.schema.DateType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Last day of bill period",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "billed_kwh",
+            "nativeDataType": "NUMBER(18,3)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.NumberType": {}
+              }
+            },
+            "nullable": true,
+            "description": "kWh on the bill",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "metered_kwh",
+            "nativeDataType": "NUMBER(18,3)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.NumberType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Metered kWh in the bill period",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "estimated_read_share",
+            "nativeDataType": "NUMBER(5,4)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.NumberType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Share of estimated reads",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "variance_kwh",
+            "nativeDataType": "NUMBER(18,3)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.NumberType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Billed minus metered kWh",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "amount_due",
+            "nativeDataType": "NUMBER(18,2)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.NumberType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Amount billed",
+            "isPartOfKey": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "entityType": "glossaryTerm",
+    "entityUrn": "urn:li:glossaryTerm:avg_billed_kwh_per_account",
+    "changeType": "UPSERT",
+    "aspectName": "glossaryTermInfo",
+    "aspect": {
+      "json": {
+        "name": "Average billed kWh per account",
+        "definition": "Total billed kWh divided by number of distinct billed accounts in the period.",
+        "termSource": "INTERNAL"
+      }
+    }
+  },
+  {
+    "entityType": "glossaryTerm",
+    "entityUrn": "urn:li:glossaryTerm:total_billed_kwh",
+    "changeType": "UPSERT",
+    "aspectName": "glossaryTermInfo",
+    "aspect": {
+      "json": {
+        "name": "Total billed kWh",
+        "definition": "Sum of billed kWh on final bills.",
+        "termSource": "INTERNAL"
+      }
+    }
+  }
+]

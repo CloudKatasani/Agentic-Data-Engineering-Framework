@@ -1,0 +1,334 @@
+[
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-11-12T19:20:16+00:00",
+    "producer": "https://adpe.local/adpe-framework",
+    "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/definitions/RunEvent",
+    "run": {
+      "runId": "00000000-0000-4000-8000-000000000000"
+    },
+    "job": {
+      "namespace": "adpe://aws-redshift",
+      "name": "load_dim_store"
+    },
+    "inputs": [
+      {
+        "namespace": "adpe://aws-redshift",
+        "name": "pos.store"
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "adpe://aws-redshift",
+        "name": "acme_customer_gold.dim_store",
+        "facets": {
+          "columnLineage": {
+            "_producer": "https://adpe.local/adpe-framework",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-1-0/ColumnLineageDatasetFacet.json",
+            "fields": {
+              "store_id": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://aws-redshift",
+                    "name": "pos.store",
+                    "field": "store_id"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "store_name": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://aws-redshift",
+                    "name": "pos.store",
+                    "field": "store_name"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "region": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://aws-redshift",
+                    "name": "pos.store",
+                    "field": "region"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "format": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://aws-redshift",
+                    "name": "pos.store",
+                    "field": "format"
+                  }
+                ],
+                "transformationDescription": "direct"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-11-12T19:20:16+00:00",
+    "producer": "https://adpe.local/adpe-framework",
+    "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/definitions/RunEvent",
+    "run": {
+      "runId": "00000000-0000-4000-8000-000000000000"
+    },
+    "job": {
+      "namespace": "adpe://aws-redshift",
+      "name": "load_dim_product"
+    },
+    "inputs": [
+      {
+        "namespace": "adpe://aws-redshift",
+        "name": "pim.product"
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "adpe://aws-redshift",
+        "name": "acme_customer_gold.dim_product",
+        "facets": {
+          "columnLineage": {
+            "_producer": "https://adpe.local/adpe-framework",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-1-0/ColumnLineageDatasetFacet.json",
+            "fields": {
+              "product_id": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://aws-redshift",
+                    "name": "pim.product",
+                    "field": "product_id"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "product_name": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://aws-redshift",
+                    "name": "pim.product",
+                    "field": "product_name"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "category": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://aws-redshift",
+                    "name": "pim.product",
+                    "field": "category"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "brand": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://aws-redshift",
+                    "name": "pim.product",
+                    "field": "brand"
+                  }
+                ],
+                "transformationDescription": "direct"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-11-12T19:20:16+00:00",
+    "producer": "https://adpe.local/adpe-framework",
+    "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/definitions/RunEvent",
+    "run": {
+      "runId": "00000000-0000-4000-8000-000000000000"
+    },
+    "job": {
+      "namespace": "adpe://aws-redshift",
+      "name": "load_dim_customer"
+    },
+    "inputs": [
+      {
+        "namespace": "adpe://aws-redshift",
+        "name": "crm.customer"
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "adpe://aws-redshift",
+        "name": "acme_customer_gold.dim_customer",
+        "facets": {
+          "columnLineage": {
+            "_producer": "https://adpe.local/adpe-framework",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-1-0/ColumnLineageDatasetFacet.json",
+            "fields": {
+              "customer_id": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://aws-redshift",
+                    "name": "crm.customer",
+                    "field": "customer_id"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "loyalty_tier": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://aws-redshift",
+                    "name": "crm.customer",
+                    "field": "loyalty_tier"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "email": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://aws-redshift",
+                    "name": "crm.customer",
+                    "field": "email"
+                  }
+                ],
+                "transformationDescription": "direct"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-11-12T19:20:16+00:00",
+    "producer": "https://adpe.local/adpe-framework",
+    "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/definitions/RunEvent",
+    "run": {
+      "runId": "00000000-0000-4000-8000-000000000000"
+    },
+    "job": {
+      "namespace": "adpe://aws-redshift",
+      "name": "load_fct_sales_line"
+    },
+    "inputs": [
+      {
+        "namespace": "adpe://aws-redshift",
+        "name": "pos.order_line"
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "adpe://aws-redshift",
+        "name": "acme_customer_gold.fct_sales_line",
+        "facets": {
+          "columnLineage": {
+            "_producer": "https://adpe.local/adpe-framework",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-1-0/ColumnLineageDatasetFacet.json",
+            "fields": {
+              "order_line_id": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://aws-redshift",
+                    "name": "pos.order_line",
+                    "field": "order_line_id"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "order_id": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://aws-redshift",
+                    "name": "pos.order_line",
+                    "field": "order_id"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "store_id": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://aws-redshift",
+                    "name": "pos.order_line",
+                    "field": "store_id"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "product_id": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://aws-redshift",
+                    "name": "pos.order_line",
+                    "field": "product_id"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "customer_id": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://aws-redshift",
+                    "name": "pos.order_line",
+                    "field": "customer_id"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "order_date": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://aws-redshift",
+                    "name": "pos.order_line",
+                    "field": "order_ts"
+                  }
+                ],
+                "transformationDescription": "CAST to date in store local time"
+              },
+              "quantity": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://aws-redshift",
+                    "name": "pos.order_line",
+                    "field": "quantity"
+                  }
+                ],
+                "transformationDescription": "direct"
+              },
+              "net_amount": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://aws-redshift",
+                    "name": "pos.order_line",
+                    "field": "gross_amount"
+                  }
+                ],
+                "transformationDescription": "gross_amount - discount_amount; negated for returns"
+              },
+              "discount_amount": {
+                "inputFields": [
+                  {
+                    "namespace": "adpe://aws-redshift",
+                    "name": "pos.order_line",
+                    "field": "discount_amount"
+                  }
+                ],
+                "transformationDescription": "direct"
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+]

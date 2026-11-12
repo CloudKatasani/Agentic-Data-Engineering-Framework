@@ -1,0 +1,21 @@
+entity,physical_table,kind,history,attribute,physical_column,logical_type,physical_type,pk,fk,nullable,classification,business_rule,requirements,description
+store,dim_store,dimension,type1,store_id,store_id,string(10),VARCHAR(10),Y,,N,internal,,,Business key
+store,dim_store,dimension,type1,store_name,store_name,string(100),VARCHAR(100),,,Y,internal,,,Store name
+store,dim_store,dimension,type1,region,region,string(20),VARCHAR(20),,,Y,internal,,REQ-002,Sales region
+store,dim_store,dimension,type1,format,format,string(12),VARCHAR(12),,,Y,internal,,,"FLAGSHIP, STANDARD or EXPRESS"
+product,dim_product,dimension,type2,product_id,product_id,string(14),VARCHAR(14),Y,,N,internal,,,Business key
+product,dim_product,dimension,type2,product_name,product_name,string(200),VARCHAR(200),,,Y,internal,,,Product name
+product,dim_product,dimension,type2,category,category,string(40),VARCHAR(40),,,Y,internal,,REQ-001,Category
+product,dim_product,dimension,type2,brand,brand,string(40),VARCHAR(40),,,Y,internal,,REQ-001,Brand
+customer,dim_customer,dimension,type1,customer_id,customer_id,string(20),VARCHAR(20),Y,,N,internal,,,Business key
+customer,dim_customer,dimension,type1,loyalty_tier,loyalty_tier,string(10),VARCHAR(10),,,Y,internal,,REQ-003,"NONE, BRONZE, SILVER or GOLD"
+customer,dim_customer,dimension,type1,email,email,string(200),VARCHAR(200),,,Y,restricted,,REQ-005,Email (masked)
+sales_line,fct_sales_line,fact,none,order_line_id,order_line_id,string(24),VARCHAR(24),Y,,N,internal,,REQ-001,Business key
+sales_line,fct_sales_line,fact,none,order_id,order_id,string(20),VARCHAR(20),,,Y,internal,,REQ-002,Order (basket)
+sales_line,fct_sales_line,fact,none,store_id,store_id,string(10),VARCHAR(10),,store.store_id,Y,internal,,REQ-002,Store
+sales_line,fct_sales_line,fact,none,product_id,product_id,string(14),VARCHAR(14),,product.product_id,Y,internal,,REQ-001,Product
+sales_line,fct_sales_line,fact,none,customer_id,customer_id,string(20),VARCHAR(20),,customer.customer_id,Y,internal,,REQ-003,Loyalty customer (NONE if anonymous)
+sales_line,fct_sales_line,fact,none,order_date,order_date,date,DATE,,,Y,internal,,REQ-001,Sales date
+sales_line,fct_sales_line,fact,none,quantity,quantity,integer,INTEGER,,,Y,internal,,REQ-001,Units
+sales_line,fct_sales_line,fact,none,net_amount,net_amount,"decimal(12,2)","DECIMAL(12,2)",,,Y,internal,BR-001,REQ-001,Net sales amount
+sales_line,fct_sales_line,fact,none,discount_amount,discount_amount,"decimal(12,2)","DECIMAL(12,2)",,,Y,internal,,,Discount

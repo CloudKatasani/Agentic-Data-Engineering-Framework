@@ -14,7 +14,7 @@ from ..modeling.logical import normalize, relationships, validate_model
 from ..util import dump_yaml, md_table, today
 from .agent_runtime import untrusted
 from .context import StageCtx, StageOutput
-from .scenarios import ENTITY_FILTERS, EXPRESSIONS
+from .scenarios import scenario_mapping
 
 ROLE_PO, ROLE_DA, ROLE_DS = "Product Owner", "Data Architect", "Data Steward"
 
@@ -245,23 +245,8 @@ def mapping(ctx: StageCtx) -> StageOutput:
     meta = inp["metadata"]
     pack_id = ws.domain["pack_id"]
     if ctx.call.simulated:
-        rows, n = [], 0
-        for e in sc["entities"]:
-            for a in e["attributes"]:
-                n += 1
-                expr = EXPRESSIONS.get((pack_id, e["name"], a["name"]))
-                rows.append({"id": f"MAP-{n:03d}", "target_entity": e["name"], "target_attribute": a["name"],
-                             "target_type": a["type"], "source": a["source"], "transformation": a["transformation"],
-                             "expression": expr, "business_rule": a.get("business_rule"), "classification": a["classification"],
-                             "confidence": "high" if a["transformation"] == "direct" else "medium",
-                             "req_ids": a.get("req_ids") or [], "pk": a["pk"], "fk": a.get("fk"), "description": a["description"],
-                             "evidence": "source metadata (scenario inventory)"})
-        d = {"sources": sc["sources"],
-             "targets": [{"entity": e["name"], "kind": e["kind"], "grain": e["grain"], "history": e["history"],
-                          "description": e["description"], "subject_area": e.get("subject_area", "")} for e in sc["entities"]],
-             "mappings": rows, "dq_rules": sc["dq"],
-             "entity_filters": {k[1]: v for k, v in ENTITY_FILTERS.items() if k[0] == pack_id},
-             "gaps": [], "assumptions": [], "open_questions": []}
+        d = scenario_mapping(pack_id)
+        rows = d["mappings"]
         if meta:  # reconcile against the imported catalog / model export
             idx: dict[str, set] = {}
             for t in meta["tables"]:

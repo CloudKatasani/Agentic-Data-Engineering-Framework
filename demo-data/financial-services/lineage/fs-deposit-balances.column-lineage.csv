@@ -1,0 +1,19 @@
+map_id,source_system,source_table,source_column,transformation,business_rule,target_table,target_column,confidence
+MAP-001,core-banking,cbs.customer,customer_id,direct,,ACME_CUSTOMER_CURATED.DIM_CUSTOMER,CUSTOMER_ID,high
+MAP-002,core-banking,cbs.customer,segment,direct,,ACME_CUSTOMER_CURATED.DIM_CUSTOMER,SEGMENT,high
+MAP-003,core-banking,cbs.customer,kyc_status,direct,,ACME_CUSTOMER_CURATED.DIM_CUSTOMER,KYC_STATUS,high
+MAP-004,core-banking,cbs.customer,full_name,direct,,ACME_CUSTOMER_CURATED.DIM_CUSTOMER,FULL_NAME,high
+MAP-005,core-banking,cbs.product,product_code,direct,,ACME_CUSTOMER_CURATED.DIM_PRODUCT,PRODUCT_CODE,high
+MAP-006,core-banking,cbs.product,product_name,direct,,ACME_CUSTOMER_CURATED.DIM_PRODUCT,PRODUCT_NAME,high
+MAP-007,core-banking,cbs.product,product_type,direct,,ACME_CUSTOMER_CURATED.DIM_PRODUCT,PRODUCT_TYPE,high
+MAP-008,core-banking,cbs.account,account_id,direct,,ACME_CUSTOMER_CURATED.DIM_ACCOUNT,ACCOUNT_ID,high
+MAP-009,core-banking,cbs.account,customer_id,direct,,ACME_CUSTOMER_CURATED.DIM_ACCOUNT,CUSTOMER_ID,high
+MAP-010,core-banking,cbs.account,product_code,direct,,ACME_CUSTOMER_CURATED.DIM_ACCOUNT,PRODUCT_CODE,high
+MAP-011,core-banking,cbs.account,branch_code,direct,,ACME_CUSTOMER_CURATED.DIM_ACCOUNT,BRANCH_CODE,high
+MAP-012,core-banking,cbs.account,status,direct,,ACME_CUSTOMER_CURATED.DIM_ACCOUNT,STATUS,high
+MAP-013,core-banking,cbs.account,currency,direct,,ACME_CUSTOMER_CURATED.DIM_ACCOUNT,CURRENCY,high
+MAP-014,,ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE,(derived),account_id || '-' || balance_date,,ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE,DAILY_BALANCE_ID,medium
+MAP-015,core-banking,cbs.daily_balance,account_id,direct,,ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE,ACCOUNT_ID,high
+MAP-016,core-banking,cbs.daily_balance,balance_date,direct,,ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE,BALANCE_DATE,high
+MAP-017,core-banking,cbs.daily_balance,ledger_balance,direct,BR-001,ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE,LEDGER_BALANCE,high
+MAP-018,core-banking,cbs.daily_balance,available_balance,direct,,ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE,AVAILABLE_BALANCE,high

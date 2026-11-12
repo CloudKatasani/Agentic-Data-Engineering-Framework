@@ -1,0 +1,6 @@
+term,definition,source,reference
+AOV,Average order value,domain-pack,
+Net Sales,"Gross sales less returns, discounts and allowances",domain-pack,
+Sell-through,Units sold divided by units received for a period,domain-pack,
+Net sales,Gross sales less discounts and returns.,metric,BR-001
+Average order value,Net sales divided by distinct orders.,metric,BR-002

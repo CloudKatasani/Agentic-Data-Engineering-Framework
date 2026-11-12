@@ -1,0 +1,341 @@
+[
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:databricks,acme_customer_gold.dim_subscriber,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "datasetProperties",
+    "aspect": {
+      "json": {
+        "name": "dim_subscriber",
+        "description": "Mobile subscriber",
+        "customProperties": {
+          "grain": "one row per subscriber version",
+          "history": "type2",
+          "adpe_model": "telco-churn"
+        }
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:databricks,acme_customer_gold.dim_subscriber,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "schemaMetadata",
+    "aspect": {
+      "json": {
+        "schemaName": "acme_customer_gold.dim_subscriber",
+        "platform": "urn:li:dataPlatform:databricks",
+        "version": 0,
+        "hash": "",
+        "platformSchema": {
+          "com.linkedin.schema.OtherSchema": {
+            "rawSchema": ""
+          }
+        },
+        "fields": [
+          {
+            "fieldPath": "subscriber_id",
+            "nativeDataType": "STRING",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": false,
+            "description": "Business key",
+            "isPartOfKey": true
+          },
+          {
+            "fieldPath": "segment",
+            "nativeDataType": "STRING",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Consumer, SME or Enterprise",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "status",
+            "nativeDataType": "STRING",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "ACTIVE, SUSPENDED or CHURNED",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "activation_date",
+            "nativeDataType": "DATE",
+            "type": {
+              "type": {
+                "com.linkedin.schema.DateType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Activation date",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "msisdn",
+            "nativeDataType": "STRING",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Phone number (masked)",
+            "isPartOfKey": false,
+            "globalTags": {
+              "tags": [
+                {
+                  "tag": "urn:li:tag:restricted"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:databricks,acme_customer_gold.dim_product,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "datasetProperties",
+    "aspect": {
+      "json": {
+        "name": "dim_product",
+        "description": "Product offering",
+        "customProperties": {
+          "grain": "one row per product",
+          "history": "type1",
+          "adpe_model": "telco-churn"
+        }
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:databricks,acme_customer_gold.dim_product,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "schemaMetadata",
+    "aspect": {
+      "json": {
+        "schemaName": "acme_customer_gold.dim_product",
+        "platform": "urn:li:dataPlatform:databricks",
+        "version": 0,
+        "hash": "",
+        "platformSchema": {
+          "com.linkedin.schema.OtherSchema": {
+            "rawSchema": ""
+          }
+        },
+        "fields": [
+          {
+            "fieldPath": "product_code",
+            "nativeDataType": "STRING",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": false,
+            "description": "Business key",
+            "isPartOfKey": true
+          },
+          {
+            "fieldPath": "product_name",
+            "nativeDataType": "STRING",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Product name",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "product_family",
+            "nativeDataType": "STRING",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Product family",
+            "isPartOfKey": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:databricks,acme_customer_gold.fct_subscription_month,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "datasetProperties",
+    "aspect": {
+      "json": {
+        "name": "fct_subscription_month",
+        "description": "Monthly revenue, usage and churn per subscriber",
+        "customProperties": {
+          "grain": "one row per subscriber per month",
+          "history": "none",
+          "adpe_model": "telco-churn"
+        }
+      }
+    }
+  },
+  {
+    "entityType": "dataset",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:databricks,acme_customer_gold.fct_subscription_month,PROD)",
+    "changeType": "UPSERT",
+    "aspectName": "schemaMetadata",
+    "aspect": {
+      "json": {
+        "schemaName": "acme_customer_gold.fct_subscription_month",
+        "platform": "urn:li:dataPlatform:databricks",
+        "version": 0,
+        "hash": "",
+        "platformSchema": {
+          "com.linkedin.schema.OtherSchema": {
+            "rawSchema": ""
+          }
+        },
+        "fields": [
+          {
+            "fieldPath": "subscription_month_id",
+            "nativeDataType": "STRING",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": false,
+            "description": "Surrogate business key",
+            "isPartOfKey": true
+          },
+          {
+            "fieldPath": "subscriber_id",
+            "nativeDataType": "STRING",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Subscriber",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "product_code",
+            "nativeDataType": "STRING",
+            "type": {
+              "type": {
+                "com.linkedin.schema.StringType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Main product",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "month_start",
+            "nativeDataType": "DATE",
+            "type": {
+              "type": {
+                "com.linkedin.schema.DateType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Month",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "monthly_revenue",
+            "nativeDataType": "DECIMAL(12,2)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.NumberType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Revenue in month",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "data_mb",
+            "nativeDataType": "DECIMAL(14,2)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.NumberType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Data used",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "voice_min",
+            "nativeDataType": "DECIMAL(10,2)",
+            "type": {
+              "type": {
+                "com.linkedin.schema.NumberType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Voice minutes",
+            "isPartOfKey": false
+          },
+          {
+            "fieldPath": "is_churned",
+            "nativeDataType": "BOOLEAN",
+            "type": {
+              "type": {
+                "com.linkedin.schema.BooleanType": {}
+              }
+            },
+            "nullable": true,
+            "description": "Churned in month",
+            "isPartOfKey": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "entityType": "glossaryTerm",
+    "entityUrn": "urn:li:glossaryTerm:churn_rate",
+    "changeType": "UPSERT",
+    "aspectName": "glossaryTermInfo",
+    "aspect": {
+      "json": {
+        "name": "Monthly churn rate",
+        "definition": "Churned subscribers divided by subscribers in the month.",
+        "termSource": "INTERNAL"
+      }
+    }
+  },
+  {
+    "entityType": "glossaryTerm",
+    "entityUrn": "urn:li:glossaryTerm:arpu",
+    "changeType": "UPSERT",
+    "aspectName": "glossaryTermInfo",
+    "aspect": {
+      "json": {
+        "name": "ARPU",
+        "definition": "Average revenue per subscriber in the month.",
+        "termSource": "INTERNAL"
+      }
+    }
+  }
+]

@@ -1,0 +1,215 @@
+apiVersion: v3.0.2
+kind: DataContract
+id: DEMO-TEL-telco-churn
+name: telco-churn
+version: 1.0.0
+status: draft
+domain: telco
+description:
+  purpose: Subscriber churn and ARPU data product
+schema:
+- name: subscriber
+  physicalName: dim_subscriber
+  logicalType: object
+  description: Mobile subscriber
+  dataGranularityDescription: one row per subscriber version
+  properties:
+  - name: subscriber_id
+    logicalType: string
+    physicalType: STRING
+    required: true
+    primaryKey: true
+    classification: internal
+    description: Business key
+  - name: segment
+    logicalType: string
+    physicalType: STRING
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Consumer, SME or Enterprise
+  - name: status
+    logicalType: string
+    physicalType: STRING
+    required: false
+    primaryKey: false
+    classification: internal
+    description: ACTIVE, SUSPENDED or CHURNED
+  - name: activation_date
+    logicalType: date
+    physicalType: DATE
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Activation date
+  - name: msisdn
+    logicalType: string
+    physicalType: STRING
+    required: false
+    primaryKey: false
+    classification: restricted
+    description: Phone number (masked)
+- name: product
+  physicalName: dim_product
+  logicalType: object
+  description: Product offering
+  dataGranularityDescription: one row per product
+  properties:
+  - name: product_code
+    logicalType: string
+    physicalType: STRING
+    required: true
+    primaryKey: true
+    classification: internal
+    description: Business key
+  - name: product_name
+    logicalType: string
+    physicalType: STRING
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Product name
+  - name: product_family
+    logicalType: string
+    physicalType: STRING
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Product family
+- name: subscription_month
+  physicalName: fct_subscription_month
+  logicalType: object
+  description: Monthly revenue, usage and churn per subscriber
+  dataGranularityDescription: one row per subscriber per month
+  properties:
+  - name: subscription_month_id
+    logicalType: string
+    physicalType: STRING
+    required: true
+    primaryKey: true
+    classification: internal
+    description: Surrogate business key
+  - name: subscriber_id
+    logicalType: string
+    physicalType: STRING
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Subscriber
+  - name: product_code
+    logicalType: string
+    physicalType: STRING
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Main product
+  - name: month_start
+    logicalType: date
+    physicalType: DATE
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Month
+  - name: monthly_revenue
+    logicalType: number
+    physicalType: DECIMAL(12,2)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Revenue in month
+    businessRule: BR-001
+  - name: data_mb
+    logicalType: number
+    physicalType: DECIMAL(14,2)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Data used
+  - name: voice_min
+    logicalType: number
+    physicalType: DECIMAL(10,2)
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Voice minutes
+  - name: is_churned
+    logicalType: boolean
+    physicalType: BOOLEAN
+    required: false
+    primaryKey: false
+    classification: internal
+    description: Churned in month
+    businessRule: BR-002
+quality:
+- rule: unique
+  id: DQ-001
+  element: subscription_month.subscription_month_id
+  mustBe: {}
+  threshold: 1.0
+  severity: high
+- rule: not_null
+  id: DQ-002
+  element: subscription_month.subscriber_id
+  mustBe: {}
+  threshold: 1.0
+  severity: high
+- rule: referential
+  id: DQ-003
+  element: subscription_month.subscriber_id
+  mustBe:
+    to_entity: subscriber
+    to_attribute: subscriber_id
+  threshold: 1.0
+  severity: high
+- rule: accepted_values
+  id: DQ-004
+  element: subscriber.status
+  mustBe:
+    values:
+    - ACTIVE
+    - SUSPENDED
+    - CHURNED
+  threshold: 1.0
+  severity: medium
+- rule: range
+  id: DQ-005
+  element: subscription_month.monthly_revenue
+  mustBe:
+    min: 0
+    max: 5000
+  threshold: 0.999
+  severity: high
+- rule: referential
+  id: DQ-006
+  element: subscription_month.product_code
+  mustBe:
+    to_entity: product
+    to_attribute: product_code
+  threshold: 1.0
+  severity: high
+- rule: row_count_min
+  id: DQ-007
+  element: subscription_month.None
+  mustBe:
+    min: 1
+  threshold: 1.0
+  severity: critical
+slaProperties:
+- property: frequency
+  value: daily
+- property: latency
+  value: 6
+  unit: h
+team:
+- role: product_owner
+  username: Priya Natarajan
+- role: data_architect
+  username: Marcus Lee
+- role: data_steward
+  username: Elena Ruiz
+- role: tech_lead
+  username: Tom Becker
+- role: release_manager
+  username: Aisha Bello
+- role: platform_owner
+  username: Sven Olsen

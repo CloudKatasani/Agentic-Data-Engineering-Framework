@@ -1,0 +1,1126 @@
+[
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.dim_subscriber",
+      "domain": {
+        "name": "telco-churn - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.dim_subscriber",
+    "displayName": "Subscriber",
+    "type": {
+      "name": "Table"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Mobile subscriber"
+        }
+      ],
+      "Note": [
+        {
+          "value": "grain: one row per subscriber version; history: type2"
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.dim_subscriber.subscriber_id",
+      "domain": {
+        "name": "telco-churn - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.dim_subscriber.subscriber_id",
+    "displayName": "Subscriber Id",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Business key"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "STRING"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": true
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": false
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.dim_subscriber",
+          "domain": {
+            "name": "telco-churn - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.dim_subscriber.segment",
+      "domain": {
+        "name": "telco-churn - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.dim_subscriber.segment",
+    "displayName": "Segment",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Consumer, SME or Enterprise"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "STRING"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.dim_subscriber",
+          "domain": {
+            "name": "telco-churn - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.dim_subscriber.status",
+      "domain": {
+        "name": "telco-churn - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.dim_subscriber.status",
+    "displayName": "Status",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "ACTIVE, SUSPENDED or CHURNED"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "STRING"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.dim_subscriber",
+          "domain": {
+            "name": "telco-churn - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.dim_subscriber.activation_date",
+      "domain": {
+        "name": "telco-churn - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.dim_subscriber.activation_date",
+    "displayName": "Activation Date",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Activation date"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "DATE"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.dim_subscriber",
+          "domain": {
+            "name": "telco-churn - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.dim_subscriber.msisdn",
+      "domain": {
+        "name": "telco-churn - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.dim_subscriber.msisdn",
+    "displayName": "Msisdn",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Phone number (masked)"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "STRING"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Restricted"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.dim_subscriber",
+          "domain": {
+            "name": "telco-churn - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.dim_product",
+      "domain": {
+        "name": "telco-churn - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.dim_product",
+    "displayName": "Product",
+    "type": {
+      "name": "Table"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Product offering"
+        }
+      ],
+      "Note": [
+        {
+          "value": "grain: one row per product; history: type1"
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.dim_product.product_code",
+      "domain": {
+        "name": "telco-churn - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.dim_product.product_code",
+    "displayName": "Product Code",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Business key"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "STRING"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": true
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": false
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.dim_product",
+          "domain": {
+            "name": "telco-churn - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.dim_product.product_name",
+      "domain": {
+        "name": "telco-churn - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.dim_product.product_name",
+    "displayName": "Product Name",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Product name"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "STRING"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.dim_product",
+          "domain": {
+            "name": "telco-churn - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.dim_product.product_family",
+      "domain": {
+        "name": "telco-churn - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.dim_product.product_family",
+    "displayName": "Product Family",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Product family"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "STRING"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.dim_product",
+          "domain": {
+            "name": "telco-churn - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.fct_subscription_month",
+      "domain": {
+        "name": "telco-churn - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.fct_subscription_month",
+    "displayName": "Subscription Month",
+    "type": {
+      "name": "Table"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Monthly revenue, usage and churn per subscriber"
+        }
+      ],
+      "Note": [
+        {
+          "value": "grain: one row per subscriber per month; history: none"
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.fct_subscription_month.subscription_month_id",
+      "domain": {
+        "name": "telco-churn - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.fct_subscription_month.subscription_month_id",
+    "displayName": "Subscription Month Id",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Surrogate business key"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "STRING"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": true
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": false
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.fct_subscription_month",
+          "domain": {
+            "name": "telco-churn - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.fct_subscription_month.subscriber_id",
+      "domain": {
+        "name": "telco-churn - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.fct_subscription_month.subscriber_id",
+    "displayName": "Subscriber Id",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Subscriber"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "STRING"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.fct_subscription_month",
+          "domain": {
+            "name": "telco-churn - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.fct_subscription_month.product_code",
+      "domain": {
+        "name": "telco-churn - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.fct_subscription_month.product_code",
+    "displayName": "Product Code",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Main product"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "STRING"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.fct_subscription_month",
+          "domain": {
+            "name": "telco-churn - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.fct_subscription_month.month_start",
+      "domain": {
+        "name": "telco-churn - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.fct_subscription_month.month_start",
+    "displayName": "Month Start",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Month"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "DATE"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.fct_subscription_month",
+          "domain": {
+            "name": "telco-churn - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.fct_subscription_month.monthly_revenue",
+      "domain": {
+        "name": "telco-churn - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.fct_subscription_month.monthly_revenue",
+    "displayName": "Monthly Revenue",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Revenue in month"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "DECIMAL(12,2)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.fct_subscription_month",
+          "domain": {
+            "name": "telco-churn - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.fct_subscription_month.data_mb",
+      "domain": {
+        "name": "telco-churn - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.fct_subscription_month.data_mb",
+    "displayName": "Data Mb",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Data used"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "DECIMAL(14,2)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.fct_subscription_month",
+          "domain": {
+            "name": "telco-churn - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.fct_subscription_month.voice_min",
+      "domain": {
+        "name": "telco-churn - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.fct_subscription_month.voice_min",
+    "displayName": "Voice Min",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Voice minutes"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "DECIMAL(10,2)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.fct_subscription_month",
+          "domain": {
+            "name": "telco-churn - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.fct_subscription_month.is_churned",
+      "domain": {
+        "name": "telco-churn - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.fct_subscription_month.is_churned",
+    "displayName": "Is Churned",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Churned in month"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "BOOLEAN"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.fct_subscription_month",
+          "domain": {
+            "name": "telco-churn - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "Monthly churn rate",
+      "domain": {
+        "name": "telco Glossary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "Monthly churn rate",
+    "type": {
+      "name": "Business Term"
+    },
+    "attributes": {
+      "Definition": [
+        {
+          "value": "Churned subscribers divided by subscribers in the month."
+        }
+      ],
+      "Note": [
+        {
+          "value": "Formula: "
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ARPU",
+      "domain": {
+        "name": "telco Glossary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ARPU",
+    "type": {
+      "name": "Business Term"
+    },
+    "attributes": {
+      "Definition": [
+        {
+          "value": "Average revenue per subscriber in the month."
+        }
+      ],
+      "Note": [
+        {
+          "value": "Formula: "
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "ARPU",
+      "domain": {
+        "name": "telco Glossary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "ARPU",
+    "type": {
+      "name": "Business Term"
+    },
+    "attributes": {
+      "Definition": [
+        {
+          "value": "Average revenue per user for a period"
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "Churn",
+      "domain": {
+        "name": "telco Glossary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "Churn",
+    "type": {
+      "name": "Business Term"
+    },
+    "attributes": {
+      "Definition": [
+        {
+          "value": "Share of subscribers who leave in a period"
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "CDR",
+      "domain": {
+        "name": "telco Glossary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "CDR",
+    "type": {
+      "name": "Business Term"
+    },
+    "attributes": {
+      "Definition": [
+        {
+          "value": "Call or usage detail record"
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,1383 @@
+[
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.dim_store",
+      "domain": {
+        "name": "retail-sales - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.dim_store",
+    "displayName": "Store",
+    "type": {
+      "name": "Table"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Physical store"
+        }
+      ],
+      "Note": [
+        {
+          "value": "grain: one row per store; history: type1"
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.dim_store.store_id",
+      "domain": {
+        "name": "retail-sales - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.dim_store.store_id",
+    "displayName": "Store Id",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Business key"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(10)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": true
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": false
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.dim_store",
+          "domain": {
+            "name": "retail-sales - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.dim_store.store_name",
+      "domain": {
+        "name": "retail-sales - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.dim_store.store_name",
+    "displayName": "Store Name",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Store name"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(100)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.dim_store",
+          "domain": {
+            "name": "retail-sales - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.dim_store.region",
+      "domain": {
+        "name": "retail-sales - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.dim_store.region",
+    "displayName": "Region",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Sales region"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(20)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.dim_store",
+          "domain": {
+            "name": "retail-sales - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.dim_store.format",
+      "domain": {
+        "name": "retail-sales - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.dim_store.format",
+    "displayName": "Format",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "FLAGSHIP, STANDARD or EXPRESS"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(12)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.dim_store",
+          "domain": {
+            "name": "retail-sales - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.dim_product",
+      "domain": {
+        "name": "retail-sales - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.dim_product",
+    "displayName": "Product",
+    "type": {
+      "name": "Table"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Sellable product"
+        }
+      ],
+      "Note": [
+        {
+          "value": "grain: one row per product version; history: type2"
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.dim_product.product_id",
+      "domain": {
+        "name": "retail-sales - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.dim_product.product_id",
+    "displayName": "Product Id",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Business key"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(14)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": true
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": false
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.dim_product",
+          "domain": {
+            "name": "retail-sales - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.dim_product.product_name",
+      "domain": {
+        "name": "retail-sales - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.dim_product.product_name",
+    "displayName": "Product Name",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Product name"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(200)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.dim_product",
+          "domain": {
+            "name": "retail-sales - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.dim_product.category",
+      "domain": {
+        "name": "retail-sales - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.dim_product.category",
+    "displayName": "Category",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Category"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(40)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.dim_product",
+          "domain": {
+            "name": "retail-sales - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.dim_product.brand",
+      "domain": {
+        "name": "retail-sales - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.dim_product.brand",
+    "displayName": "Brand",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Brand"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(40)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.dim_product",
+          "domain": {
+            "name": "retail-sales - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.dim_customer",
+      "domain": {
+        "name": "retail-sales - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.dim_customer",
+    "displayName": "Customer",
+    "type": {
+      "name": "Table"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Loyalty customer"
+        }
+      ],
+      "Note": [
+        {
+          "value": "grain: one row per loyalty customer; history: type1"
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.dim_customer.customer_id",
+      "domain": {
+        "name": "retail-sales - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.dim_customer.customer_id",
+    "displayName": "Customer Id",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Business key"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(20)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": true
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": false
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.dim_customer",
+          "domain": {
+            "name": "retail-sales - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.dim_customer.loyalty_tier",
+      "domain": {
+        "name": "retail-sales - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.dim_customer.loyalty_tier",
+    "displayName": "Loyalty Tier",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "NONE, BRONZE, SILVER or GOLD"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(10)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.dim_customer",
+          "domain": {
+            "name": "retail-sales - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.dim_customer.email",
+      "domain": {
+        "name": "retail-sales - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.dim_customer.email",
+    "displayName": "Email",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Email (masked)"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(200)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Restricted"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.dim_customer",
+          "domain": {
+            "name": "retail-sales - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.fct_sales_line",
+      "domain": {
+        "name": "retail-sales - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.fct_sales_line",
+    "displayName": "Sales Line",
+    "type": {
+      "name": "Table"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Store sales line"
+        }
+      ],
+      "Note": [
+        {
+          "value": "grain: one row per order line; history: none"
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.fct_sales_line.order_line_id",
+      "domain": {
+        "name": "retail-sales - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.fct_sales_line.order_line_id",
+    "displayName": "Order Line Id",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Business key"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(24)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": true
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": false
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.fct_sales_line",
+          "domain": {
+            "name": "retail-sales - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.fct_sales_line.order_id",
+      "domain": {
+        "name": "retail-sales - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.fct_sales_line.order_id",
+    "displayName": "Order Id",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Order (basket)"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(20)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.fct_sales_line",
+          "domain": {
+            "name": "retail-sales - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.fct_sales_line.store_id",
+      "domain": {
+        "name": "retail-sales - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.fct_sales_line.store_id",
+    "displayName": "Store Id",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Store"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(10)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.fct_sales_line",
+          "domain": {
+            "name": "retail-sales - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.fct_sales_line.product_id",
+      "domain": {
+        "name": "retail-sales - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.fct_sales_line.product_id",
+    "displayName": "Product Id",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Product"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(14)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.fct_sales_line",
+          "domain": {
+            "name": "retail-sales - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.fct_sales_line.customer_id",
+      "domain": {
+        "name": "retail-sales - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.fct_sales_line.customer_id",
+    "displayName": "Customer Id",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Loyalty customer (NONE if anonymous)"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "VARCHAR(20)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.fct_sales_line",
+          "domain": {
+            "name": "retail-sales - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.fct_sales_line.order_date",
+      "domain": {
+        "name": "retail-sales - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.fct_sales_line.order_date",
+    "displayName": "Order Date",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Sales date"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "DATE"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.fct_sales_line",
+          "domain": {
+            "name": "retail-sales - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.fct_sales_line.quantity",
+      "domain": {
+        "name": "retail-sales - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.fct_sales_line.quantity",
+    "displayName": "Quantity",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Units"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "INTEGER"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.fct_sales_line",
+          "domain": {
+            "name": "retail-sales - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.fct_sales_line.net_amount",
+      "domain": {
+        "name": "retail-sales - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.fct_sales_line.net_amount",
+    "displayName": "Net Amount",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Net sales amount"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "DECIMAL(12,2)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.fct_sales_line",
+          "domain": {
+            "name": "retail-sales - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "acme_customer_gold.fct_sales_line.discount_amount",
+      "domain": {
+        "name": "retail-sales - Physical Data Dictionary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "acme_customer_gold.fct_sales_line.discount_amount",
+    "displayName": "Discount Amount",
+    "type": {
+      "name": "Column"
+    },
+    "attributes": {
+      "Description": [
+        {
+          "value": "Discount"
+        }
+      ],
+      "Technical Data Type": [
+        {
+          "value": "DECIMAL(12,2)"
+        }
+      ],
+      "Is Primary Key": [
+        {
+          "value": false
+        }
+      ],
+      "Is Nullable": [
+        {
+          "value": true
+        }
+      ],
+      "Security Classification": [
+        {
+          "value": "Internal"
+        }
+      ]
+    },
+    "relations": {
+      "00000000-0000-0000-0000-000000007042:SOURCE": [
+        {
+          "name": "acme_customer_gold.fct_sales_line",
+          "domain": {
+            "name": "retail-sales - Physical Data Dictionary",
+            "community": {
+              "name": "Data Products"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "Net sales",
+      "domain": {
+        "name": "retail Glossary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "Net sales",
+    "type": {
+      "name": "Business Term"
+    },
+    "attributes": {
+      "Definition": [
+        {
+          "value": "Gross sales less discounts and returns."
+        }
+      ],
+      "Note": [
+        {
+          "value": "Formula: "
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "Average order value",
+      "domain": {
+        "name": "retail Glossary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "Average order value",
+    "type": {
+      "name": "Business Term"
+    },
+    "attributes": {
+      "Definition": [
+        {
+          "value": "Net sales divided by distinct orders."
+        }
+      ],
+      "Note": [
+        {
+          "value": "Formula: "
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "AOV",
+      "domain": {
+        "name": "retail Glossary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "AOV",
+    "type": {
+      "name": "Business Term"
+    },
+    "attributes": {
+      "Definition": [
+        {
+          "value": "Average order value"
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "Net Sales",
+      "domain": {
+        "name": "retail Glossary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "Net Sales",
+    "type": {
+      "name": "Business Term"
+    },
+    "attributes": {
+      "Definition": [
+        {
+          "value": "Gross sales less returns, discounts and allowances"
+        }
+      ]
+    }
+  },
+  {
+    "resourceType": "Asset",
+    "identifier": {
+      "name": "Sell-through",
+      "domain": {
+        "name": "retail Glossary",
+        "community": {
+          "name": "Data Products"
+        }
+      }
+    },
+    "name": "Sell-through",
+    "type": {
+      "name": "Business Term"
+    },
+    "attributes": {
+      "Definition": [
+        {
+          "value": "Units sold divided by units received for a period"
+        }
+      ]
+    }
+  }
+]

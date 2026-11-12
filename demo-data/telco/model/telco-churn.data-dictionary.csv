@@ -1,0 +1,17 @@
+entity,physical_table,kind,history,attribute,physical_column,logical_type,physical_type,pk,fk,nullable,classification,business_rule,requirements,description
+subscriber,dim_subscriber,dimension,type2,subscriber_id,subscriber_id,string(20),STRING,Y,,N,internal,,REQ-001,Business key
+subscriber,dim_subscriber,dimension,type2,segment,segment,string(20),STRING,,,Y,internal,,REQ-002,"Consumer, SME or Enterprise"
+subscriber,dim_subscriber,dimension,type2,status,status,string(12),STRING,,,Y,internal,,REQ-001,"ACTIVE, SUSPENDED or CHURNED"
+subscriber,dim_subscriber,dimension,type2,activation_date,activation_date,date,DATE,,,Y,internal,,,Activation date
+subscriber,dim_subscriber,dimension,type2,msisdn,msisdn,string(15),STRING,,,Y,restricted,,REQ-005,Phone number (masked)
+product,dim_product,dimension,type1,product_code,product_code,string(12),STRING,Y,,N,internal,,,Business key
+product,dim_product,dimension,type1,product_name,product_name,string(100),STRING,,,Y,internal,,,Product name
+product,dim_product,dimension,type1,product_family,product_family,string(30),STRING,,,Y,internal,,REQ-003,Product family
+subscription_month,fct_subscription_month,fact,none,subscription_month_id,subscription_month_id,string(30),STRING,Y,,N,internal,,,Surrogate business key
+subscription_month,fct_subscription_month,fact,none,subscriber_id,subscriber_id,string(20),STRING,,subscriber.subscriber_id,Y,internal,,REQ-001,Subscriber
+subscription_month,fct_subscription_month,fact,none,product_code,product_code,string(12),STRING,,product.product_code,Y,internal,,REQ-003,Main product
+subscription_month,fct_subscription_month,fact,none,month_start,month_start,date,DATE,,,Y,internal,,REQ-001,Month
+subscription_month,fct_subscription_month,fact,none,monthly_revenue,monthly_revenue,"decimal(12,2)","DECIMAL(12,2)",,,Y,internal,BR-001,REQ-003,Revenue in month
+subscription_month,fct_subscription_month,fact,none,data_mb,data_mb,"decimal(14,2)","DECIMAL(14,2)",,,Y,internal,,REQ-004,Data used
+subscription_month,fct_subscription_month,fact,none,voice_min,voice_min,"decimal(10,2)","DECIMAL(10,2)",,,Y,internal,,REQ-004,Voice minutes
+subscription_month,fct_subscription_month,fact,none,is_churned,is_churned,boolean,BOOLEAN,,,Y,internal,BR-002,REQ-002,Churned in month

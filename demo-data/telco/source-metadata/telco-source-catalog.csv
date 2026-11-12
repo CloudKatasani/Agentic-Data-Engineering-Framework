@@ -1,0 +1,24 @@
+system,schema,table_name,column_name,data_type,is_nullable,primary_key,description,classification,owner,refresh,table_description
+crm,crm,subscriber,subscriber_id,string(20),N,Y,subscriber id,internal,Customer Care,daily batch,Subscribers
+crm,crm,subscriber,msisdn,string(15),Y,,msisdn,restricted,Customer Care,daily batch,Subscribers
+crm,crm,subscriber,full_name,string(200),Y,,full name,restricted,Customer Care,daily batch,Subscribers
+crm,crm,subscriber,segment,string(20),Y,,segment,internal,Customer Care,daily batch,Subscribers
+crm,crm,subscriber,activation_date,date,Y,,activation date,internal,Customer Care,daily batch,Subscribers
+crm,crm,subscriber,status,string(12),Y,,status,internal,Customer Care,daily batch,Subscribers
+billing-support-system,bss,subscription,subscription_id,string(20),N,Y,subscription id,internal,Billing,daily batch,Product subscriptions
+billing-support-system,bss,subscription,subscriber_id,string(20),Y,,subscriber id,internal,Billing,daily batch,Product subscriptions
+billing-support-system,bss,subscription,product_code,string(12),Y,,product code,internal,Billing,daily batch,Product subscriptions
+billing-support-system,bss,subscription,start_date,date,Y,,start date,internal,Billing,daily batch,Product subscriptions
+billing-support-system,bss,subscription,end_date,date,Y,,end date,internal,Billing,daily batch,Product subscriptions
+billing-support-system,bss,subscription,monthly_fee,"decimal(12,2)",Y,,monthly fee,internal,Billing,daily batch,Product subscriptions
+billing-support-system,bss,product_catalog,product_code,string(12),N,Y,product code,internal,Product,weekly,Product catalogue
+billing-support-system,bss,product_catalog,product_name,string(100),Y,,product name,internal,Product,weekly,Product catalogue
+billing-support-system,bss,product_catalog,product_family,string(30),Y,,product family,internal,Product,weekly,Product catalogue
+billing-support-system,bss,product_catalog,list_price,"decimal(12,2)",Y,,list price,confidential,Product,weekly,Product catalogue
+usage-mediation,usage,daily_usage_summary,subscriber_id,string(20),N,Y,subscriber id,internal,Network Operations,daily batch,Aggregated daily usage per subscriber
+usage-mediation,usage,daily_usage_summary,usage_date,date,N,Y,usage date,internal,Network Operations,daily batch,Aggregated daily usage per subscriber
+usage-mediation,usage,daily_usage_summary,data_mb,"decimal(14,2)",Y,,data mb,restricted,Network Operations,daily batch,Aggregated daily usage per subscriber
+usage-mediation,usage,daily_usage_summary,voice_min,"decimal(10,2)",Y,,voice min,restricted,Network Operations,daily batch,Aggregated daily usage per subscriber
+crm,crm,churn_event,subscriber_id,string(20),N,Y,subscriber id,internal,Customer Care,daily batch,Port-out and disconnection events
+crm,crm,churn_event,churn_date,date,Y,,churn date,internal,Customer Care,daily batch,Port-out and disconnection events
+crm,crm,churn_event,churn_reason,string(40),Y,,churn reason,internal,Customer Care,daily batch,Port-out and disconnection events

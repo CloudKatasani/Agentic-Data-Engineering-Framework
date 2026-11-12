@@ -68,6 +68,7 @@ class AgentCall:
     def __init__(self, agent: str, provider: Provider, binding: dict, log: Callable[[str], None]):
         self.agent, self.provider, self.binding, self.log = agent, provider, binding, log
         self.usage = Usage()
+        self.fallback_reason: str | None = None   # set when a configured provider is simulated for a demo
 
     @property
     def simulated(self) -> bool:

@@ -1,0 +1,372 @@
+{
+  "entities": [
+    {
+      "typeName": "rdbms_db",
+      "guid": "-1",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED",
+        "name": "ACME_CUSTOMER_CURATED",
+        "description": "Deposit balances and average daily balance data product"
+      }
+    },
+    {
+      "typeName": "rdbms_table",
+      "guid": "-2",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_CUSTOMER",
+        "name": "DIM_CUSTOMER",
+        "description": "Bank customer",
+        "comment": "grain: one row per customer version",
+        "db": {
+          "guid": "-1",
+          "typeName": "rdbms_db"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-3",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_CUSTOMER.CUSTOMER_ID",
+        "name": "CUSTOMER_ID",
+        "data_type": "VARCHAR(20)",
+        "isPrimaryKey": true,
+        "isNullable": false,
+        "description": "Business key",
+        "table": {
+          "guid": "-2",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-4",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_CUSTOMER.SEGMENT",
+        "name": "SEGMENT",
+        "data_type": "VARCHAR(20)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Mass, affluent or private",
+        "table": {
+          "guid": "-2",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-5",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_CUSTOMER.KYC_STATUS",
+        "name": "KYC_STATUS",
+        "data_type": "VARCHAR(10)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "VERIFIED, PENDING or EXPIRED",
+        "table": {
+          "guid": "-2",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-6",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_CUSTOMER.FULL_NAME",
+        "name": "FULL_NAME",
+        "data_type": "VARCHAR(200)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Customer name (masked)",
+        "table": {
+          "guid": "-2",
+          "typeName": "rdbms_table"
+        }
+      },
+      "classifications": [
+        {
+          "typeName": "ADPE_RESTRICTED"
+        }
+      ]
+    },
+    {
+      "typeName": "rdbms_table",
+      "guid": "-7",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_PRODUCT",
+        "name": "DIM_PRODUCT",
+        "description": "Deposit product",
+        "comment": "grain: one row per product",
+        "db": {
+          "guid": "-1",
+          "typeName": "rdbms_db"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-8",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_PRODUCT.PRODUCT_CODE",
+        "name": "PRODUCT_CODE",
+        "data_type": "VARCHAR(10)",
+        "isPrimaryKey": true,
+        "isNullable": false,
+        "description": "Business key",
+        "table": {
+          "guid": "-7",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-9",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_PRODUCT.PRODUCT_NAME",
+        "name": "PRODUCT_NAME",
+        "data_type": "VARCHAR(100)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Product name",
+        "table": {
+          "guid": "-7",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-10",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_PRODUCT.PRODUCT_TYPE",
+        "name": "PRODUCT_TYPE",
+        "data_type": "VARCHAR(20)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Current, savings or term",
+        "table": {
+          "guid": "-7",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_table",
+      "guid": "-11",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_ACCOUNT",
+        "name": "DIM_ACCOUNT",
+        "description": "Deposit account",
+        "comment": "grain: one row per account version",
+        "db": {
+          "guid": "-1",
+          "typeName": "rdbms_db"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-12",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_ACCOUNT.ACCOUNT_ID",
+        "name": "ACCOUNT_ID",
+        "data_type": "VARCHAR(20)",
+        "isPrimaryKey": true,
+        "isNullable": false,
+        "description": "Business key",
+        "table": {
+          "guid": "-11",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-13",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_ACCOUNT.CUSTOMER_ID",
+        "name": "CUSTOMER_ID",
+        "data_type": "VARCHAR(20)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Account holder",
+        "table": {
+          "guid": "-11",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-14",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_ACCOUNT.PRODUCT_CODE",
+        "name": "PRODUCT_CODE",
+        "data_type": "VARCHAR(10)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Product",
+        "table": {
+          "guid": "-11",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-15",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_ACCOUNT.BRANCH_CODE",
+        "name": "BRANCH_CODE",
+        "data_type": "VARCHAR(8)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Servicing branch",
+        "table": {
+          "guid": "-11",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-16",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_ACCOUNT.STATUS",
+        "name": "STATUS",
+        "data_type": "VARCHAR(10)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "OPEN, DORMANT or CLOSED",
+        "table": {
+          "guid": "-11",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-17",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.DIM_ACCOUNT.CURRENCY",
+        "name": "CURRENCY",
+        "data_type": "VARCHAR(3)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "ISO currency",
+        "table": {
+          "guid": "-11",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_table",
+      "guid": "-18",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE",
+        "name": "FCT_DAILY_BALANCE",
+        "description": "End-of-day deposit balance",
+        "comment": "grain: one row per account per business day",
+        "db": {
+          "guid": "-1",
+          "typeName": "rdbms_db"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-19",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.DAILY_BALANCE_ID",
+        "name": "DAILY_BALANCE_ID",
+        "data_type": "VARCHAR(32)",
+        "isPrimaryKey": true,
+        "isNullable": false,
+        "description": "Business key",
+        "table": {
+          "guid": "-18",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-20",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.ACCOUNT_ID",
+        "name": "ACCOUNT_ID",
+        "data_type": "VARCHAR(20)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Account",
+        "table": {
+          "guid": "-18",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-21",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.BALANCE_DATE",
+        "name": "BALANCE_DATE",
+        "data_type": "DATE",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Business date",
+        "table": {
+          "guid": "-18",
+          "typeName": "rdbms_table"
+        }
+      }
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-22",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.LEDGER_BALANCE",
+        "name": "LEDGER_BALANCE",
+        "data_type": "DECIMAL(18,2)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Ledger balance",
+        "table": {
+          "guid": "-18",
+          "typeName": "rdbms_table"
+        }
+      },
+      "classifications": [
+        {
+          "typeName": "ADPE_CONFIDENTIAL"
+        }
+      ]
+    },
+    {
+      "typeName": "rdbms_column",
+      "guid": "-23",
+      "attributes": {
+        "qualifiedName": "adpe.ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.AVAILABLE_BALANCE",
+        "name": "AVAILABLE_BALANCE",
+        "data_type": "DECIMAL(18,2)",
+        "isPrimaryKey": false,
+        "isNullable": true,
+        "description": "Available balance",
+        "table": {
+          "guid": "-18",
+          "typeName": "rdbms_table"
+        }
+      },
+      "classifications": [
+        {
+          "typeName": "ADPE_CONFIDENTIAL"
+        }
+      ]
+    }
+  ]
+}

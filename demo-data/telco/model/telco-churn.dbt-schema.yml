@@ -1,0 +1,137 @@
+version: 2
+models:
+- name: dim_subscriber
+  description: Mobile subscriber
+  meta:
+    grain: one row per subscriber version
+    history: type2
+    owner: ''
+  config:
+    contract:
+      enforced: true
+  columns:
+  - name: subscriber_id
+    description: Business key
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - not_null
+  - name: segment
+    description: Consumer, SME or Enterprise
+    meta:
+      classification: internal
+      business_rule: null
+  - name: status
+    description: ACTIVE, SUSPENDED or CHURNED
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - accepted_values:
+        values:
+        - ACTIVE
+        - SUSPENDED
+        - CHURNED
+  - name: activation_date
+    description: Activation date
+    meta:
+      classification: internal
+      business_rule: null
+  - name: msisdn
+    description: Phone number (masked)
+    meta:
+      classification: restricted
+      business_rule: null
+    tags:
+    - pii
+    - restricted
+- name: dim_product
+  description: Product offering
+  meta:
+    grain: one row per product
+    history: type1
+    owner: ''
+  config:
+    contract:
+      enforced: true
+  columns:
+  - name: product_code
+    description: Business key
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - unique
+    - not_null
+  - name: product_name
+    description: Product name
+    meta:
+      classification: internal
+      business_rule: null
+  - name: product_family
+    description: Product family
+    meta:
+      classification: internal
+      business_rule: null
+- name: fct_subscription_month
+  description: Monthly revenue, usage and churn per subscriber
+  meta:
+    grain: one row per subscriber per month
+    history: none
+    owner: ''
+  config:
+    contract:
+      enforced: true
+  columns:
+  - name: subscription_month_id
+    description: Surrogate business key
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - unique
+    - not_null
+  - name: subscriber_id
+    description: Subscriber
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - relationships:
+        to: ref('dim_subscriber')
+        field: subscriber_id
+  - name: product_code
+    description: Main product
+    meta:
+      classification: internal
+      business_rule: null
+    data_tests:
+    - relationships:
+        to: ref('dim_product')
+        field: product_code
+  - name: month_start
+    description: Month
+    meta:
+      classification: internal
+      business_rule: null
+  - name: monthly_revenue
+    description: Revenue in month
+    meta:
+      classification: internal
+      business_rule: BR-001
+  - name: data_mb
+    description: Data used
+    meta:
+      classification: internal
+      business_rule: null
+  - name: voice_min
+    description: Voice minutes
+    meta:
+      classification: internal
+      business_rule: null
+  - name: is_churned
+    description: Churned in month
+    meta:
+      classification: internal
+      business_rule: BR-002
