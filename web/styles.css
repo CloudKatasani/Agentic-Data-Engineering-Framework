@@ -4,7 +4,7 @@
   --bad: #b42335; --bad-bg: #fde8eb; --info: #1d6fa5; --info-bg: #e3f1fb; --violet: #6b46c1; --violet-bg: #efe9fb;
   --code: #0f172a; --code-text: #e2e8f0; --shadow: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
   --radius: 10px; --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --sans: Inter, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --sans: Calibri, Carlito, "Segoe UI", -apple-system, Roboto, Helvetica, Arial, sans-serif;
 }
 :root[data-theme="dark"] {
   --bg: #0d1220; --panel: #151b2c; --panel-2: #1b2337; --text: #e6eaf2; --muted: #98a3ba; --border: #2a3450;
@@ -22,7 +22,7 @@
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
-body { background: var(--bg); color: var(--text); font: 14px/1.5 var(--sans); }
+body { background: var(--bg); color: var(--text); font: 15px/1.5 var(--sans); }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 code, pre, .mono { font-family: var(--mono); font-size: 12.5px; }
