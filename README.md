@@ -112,6 +112,20 @@ off on **Agents & models** for real client work; a missing key then stops the st
 `demo-data/` holds synthetic, deterministic files for each industry. Regenerate them with
 `python -m adef demo-data`.
 
+**Telco client demo kit** (`demo-data/telco/client-demo-kit/`): only the *input* files a client hands
+over, numbered in upload order, for a fictional client (Nimbus Mobile). Download it as one zip from
+**Jira & metadata → Demo data packs → Download all (.zip)**; `00-README.md` says where each file goes.
+
+| File | Upload it in |
+|---|---|
+| `01-business-request.md` | New run → step 2 (*Both*), paste into *Business request* |
+| `02-jira-export-TEL.csv` / `03-jira-export-TEL.json` | New run → step 2 → *Upload a Jira export* |
+| `04-catalog-export-source-systems.csv` (Collibra-style) | New run → step 4 *Source metadata* |
+| `05-source-model-erwin.sql` / `06-source-model.dbml` | Alternatives for step 4, or Model & catalog studio |
+| `07-legacy-warehouse-model.sql` (Oracle as-is mart) | Model & catalog studio → export to the target stack |
+
+The packs below also include ADEF's *outputs* (model, catalog and lineage exports) for reference:
+
 | Folder | Contents |
 |---|---|
 | `jira/` | Jira CSV export (the "all fields" layout) and REST/JSON export (ADF descriptions): epic, stories with acceptance criteria, NFR stories, a task, a parked phase-2 story, and one ticket with planted instruction-like text |

@@ -39,6 +39,12 @@ artifact."
 
 ## 4. Their requirements (2 min) - New run
 
+For a Telco audience, use the **client demo kit**: on *Jira & metadata → Demo data packs*, choose
+*telco (client demo kit)* and click **Download all (.zip)** before the demo. Then upload the numbered
+files as the steps below describe (`00-README.md` in the zip has the same map). Use client code
+`NIMBUS-MOBILE`.
+
+
 - Pick the client's industry Domain Pack.
 - Requirements source → **Read from Jira** → *Fetch issues*, or *Use sample export* to load the
   bundled Jira CSV export (`demo-data/<domain>/jira/`). Point out the issue flagged

@@ -801,20 +801,35 @@ route("integrations", async () => {
       </div>
     </div>
     <div class="card"><div class="spread"><div><h2>Demo data packs</h2><div class="small muted">Synthetic, deterministic files per industry: Jira exports, source catalog and DDL, source data, data model exports, catalog payloads and lineage. Regenerate with <code>python -m adef demo-data</code>.</div></div>
-      <select id="ddDomain" style="width:auto">${CATALOG.domain_packs.map((p) => `<option>${esc(p.pack_id)}</option>`).join("")}</select></div>
+      <select id="ddDomain" style="width:auto">${CATALOG.domain_packs.map((p) => `<option value="${esc(p.pack_id)}">${esc(p.pack_id)}</option>`).join("")}</select></div>
       <div id="ddOut" style="margin-top:12px"></div></div>`;
   const demo = await api("GET", "/demo-files");
-  const ACTIONS = { jira: ["Preview issues", "jira"], "source-metadata": ["Import as metadata", "meta"], model: ["Open in studio", "studio"] };
+  const kitDomains = new Set(demo.filter((f) => f.folder === "client-demo-kit").map((f) => f.domain));
+  $$("#ddDomain option").forEach((o) => { if (kitDomains.has(o.value)) o.textContent = `${o.value} (client demo kit)`; });
+  if (kitDomains.size) $("#ddDomain").value = [...kitDomains][0];
+  // what a demo file can be fed into, decided by its name
+  const actionFor = (f) => {
+    const n = f.name;
+    if (/jira-export.*\.(csv|json)$/.test(n)) return ["Preview issues", "jira"];
+    if (/legacy-warehouse|logical-model\.json$|\.model\.dbml$/.test(n)) return ["Open in studio", "studio"];
+    if (/(catalog-export|source-catalog|source-model|source-ddl).*\.(csv|sql|dbml)$/.test(n)) return ["Import as metadata", "meta"];
+    return null;
+  };
+  const FOLDER_ORDER = ["client-demo-kit", "jira", "source-metadata", "source-data", "model", "catalog", "lineage", "-"];
   const renderDemo = () => {
     const dom = $("#ddDomain").value;
     const files = demo.filter((f) => f.domain === dom);
     const groups = {};
     files.forEach((f) => (groups[f.folder || "-"] = groups[f.folder || "-"] || []).push(f));
-    $("#ddOut").innerHTML = files.length ? `<div class="table-wrap"><table><thead><tr><th>Folder</th><th>File</th><th>Size</th><th></th></tr></thead><tbody>${Object.entries(groups).map(([g, fs]) => fs.map((f, i) => {
-      const act = ACTIONS[g]; const canAct = act && (g !== "model" || f.name.endsWith(".logical-model.json") || f.name.endsWith(".dbml")) && (g !== "source-metadata" || f.name.endsWith(".csv") || f.name.endsWith(".sql"));
-      return `<tr><td>${i === 0 ? `<b>${esc(g)}</b>` : ""}</td><td class="mono small">${esc(f.name)}</td><td class="small muted">${(f.bytes / 1024).toFixed(1)} KB</td><td style="white-space:nowrap"><button class="btn small" data-dl="${esc(f.path)}">Download</button>${canAct ? ` <button class="btn small" data-act="${act[1]}" data-path="${esc(f.path)}">${act[0]}</button>` : ""}</td></tr>`;
+    const ordered = Object.entries(groups).sort((a, b) => FOLDER_ORDER.indexOf(a[0]) - FOLDER_ORDER.indexOf(b[0]));
+    $("#ddOut").innerHTML = files.length ? `${groups["client-demo-kit"] ? `<div class="notice" style="margin-bottom:10px"><b>Client demo kit</b>: the input files a client hands over, numbered in upload order. See <code>00-README.md</code> for where each one goes.</div>` : ""}
+    <div class="table-wrap"><table><thead><tr><th>Folder</th><th>File</th><th>Size</th><th></th></tr></thead><tbody>${ordered.map(([g, fs]) => fs.map((f, i) => {
+      const act = actionFor(f);
+      const head = i === 0 ? `<b>${esc(g)}</b>${g !== "-" ? `<div><button class="btn small" data-zip="${esc(`${dom}/${g}`)}" style="margin-top:4px">Download all (.zip)</button></div>` : ""}` : "";
+      return `<tr><td>${head}</td><td class="mono small">${esc(f.name)}</td><td class="small muted">${(f.bytes / 1024).toFixed(1)} KB</td><td style="white-space:nowrap"><button class="btn small" data-dl="${esc(f.path)}">Download</button>${act ? ` <button class="btn small" data-act="${act[1]}" data-path="${esc(f.path)}">${act[0]}</button>` : ""}</td></tr>`;
     }).join("")).join("")}</tbody></table></div>` : '<div class="empty">No demo files found. Run <code>python -m adef demo-data</code>.</div>';
     $$("[data-dl]").forEach((b) => (b.onclick = () => download(`/demo-files/file?path=${encodeURIComponent(b.dataset.dl)}`, b.dataset.dl.split("/").pop())));
+    $$("[data-zip]").forEach((b) => (b.onclick = () => download(`/demo-files/zip?folder=${encodeURIComponent(b.dataset.zip)}`, `${b.dataset.zip.replace("/", "-")}.zip`)));
     $$("[data-act]").forEach((b) => (b.onclick = async () => {
       const path = b.dataset.path;
       if (b.dataset.act === "jira") showIssues(await guard(() => importDemoFile(path, "/jira/import")));

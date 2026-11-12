@@ -1,5 +1,5 @@
 -- ADEF physical DDL | model utilities-meter-to-cash v1.0.0 | dialect SQL Server / Synapse / Fabric
--- Generated 2026-11-12T19:52:54+00:00 from the approved logical model. Review before running (A2).
+-- Generated 2026-11-01T00:00:00+00:00 from the approved logical model. Review before running (A2).
 
 IF SCHEMA_ID('ACME_CUSTOMER_CURATED') IS NULL EXEC('CREATE SCHEMA ACME_CUSTOMER_CURATED');
 

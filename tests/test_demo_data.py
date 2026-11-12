@@ -21,14 +21,18 @@ def test_generator_is_deterministic_and_complete(tmp_path):
     assert m1 == m2
     for pack in SCENARIOS:
         folders = {k.split("/")[1] for k in m1 if k.startswith(pack + "/") and k.count("/") >= 2}
-        assert folders == {"jira", "source-metadata", "source-data", "model", "catalog", "lineage"}
+        assert folders - {"client-demo-kit"} == {"jira", "source-metadata", "source-data", "model", "catalog", "lineage"}
 
 
 def test_committed_demo_data_is_current():
+    from adef.demo_kit import KITS, build_kit
+    from adef.util import sha256_text
     manifest = json.loads((DEMO_DATA_DIR / "manifest.json").read_text())
-    for pack in SCENARIOS:
-        for rel, content in build_pack(pack).items():
-            assert manifest[f"{pack}/{rel}"]["bytes"] == len(content.encode()), f"regenerate demo-data: {pack}/{rel}"
+    expected = {f"{p}/{r}": c for p in SCENARIOS for r, c in build_pack(p).items()}
+    expected.update({f"{p}/client-demo-kit/{r}": c for p in KITS for r, c in build_kit(p).items()})
+    for key, content in expected.items():
+        assert manifest[key]["sha256"] == sha256_text(content), f"regenerate demo-data: {key}"
+        assert (DEMO_DATA_DIR / key).read_bytes() == content.encode(), f"regenerate demo-data: {key}"
 
 
 def test_jira_exports_round_trip():

@@ -1,5 +1,5 @@
 -- ADEF physical DDL | model telco-churn v1.0.0 | dialect Databricks (Delta)
--- Generated 2026-11-12T19:52:54+00:00 from the approved logical model. Review before running (A2).
+-- Generated 2026-11-01T00:00:00+00:00 from the approved logical model. Review before running (A2).
 
 CREATE SCHEMA IF NOT EXISTS acme_customer_gold;
 

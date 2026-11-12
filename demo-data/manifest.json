@@ -37,19 +37,19 @@
   },
   "utilities/model/utilities-meter-to-cash.ddl.snowflake.sql": {
     "bytes": 4243,
-    "sha256": "bec9f578def58fe7fe164b6bb85dada8a76bb8ae29ad80c82109b822718ecf30"
+    "sha256": "25b1e4afb2f98a475159e290e8f860b9cfe22c8afce29e71b08adf0f235fe885"
   },
   "utilities/model/utilities-meter-to-cash.ddl.databricks.sql": {
     "bytes": 3971,
-    "sha256": "ae37e96512a18b8e2377a5f8e31fa50db54d47a0ff0e8e2488ac9d6a787c2071"
+    "sha256": "ff42dbcb9f0f8eb99062dfa158e5e840778c5d7d1d03fa222478378dcbaef8ad"
   },
   "utilities/model/utilities-meter-to-cash.ddl.bigquery.sql": {
     "bytes": 3531,
-    "sha256": "c6f72dc1d0b345b365259faaed7a9c7aa636e4c2fdaa5ea560d5de479413b5ae"
+    "sha256": "a06989f8ea06afde68c6ce79701993115112094049600d4e877aaf4541cb0a38"
   },
   "utilities/model/utilities-meter-to-cash.ddl.tsql.sql": {
     "bytes": 3044,
-    "sha256": "2a0382dd247d9b74c99d07c15b60d05a06c9707fe01a6b06e55eff50c7ad2ed8"
+    "sha256": "b6ac3661af2ccfa776bb67fa9c33a1a47fa485c8cae7c90501cf976a86e1aad2"
   },
   "utilities/model/utilities-meter-to-cash.model.dbml": {
     "bytes": 2226,
@@ -109,7 +109,7 @@
   },
   "utilities/lineage/utilities-meter-to-cash.openlineage-events.json": {
     "bytes": 10864,
-    "sha256": "e501dc531c10d3a681d1fca59a97d3573fa8fb1edd9e0f777adbae3bb1a30f18"
+    "sha256": "66a25e2db89e751a1b8059ebc21337b627b8fdcb6ee0729fb47496799dbc00ab"
   },
   "utilities/lineage/utilities-meter-to-cash.column-lineage.csv": {
     "bytes": 4096,
@@ -165,19 +165,19 @@
   },
   "telco/model/telco-churn.ddl.snowflake.sql": {
     "bytes": 3090,
-    "sha256": "c9e2afbead229a2b5869e7047afc92eff35bfb9504d93b87c51fda58e2fcf505"
+    "sha256": "3d7fd735d5a8043e448a82068ff8d9d0f60809974e70a78f620a6f4118fe6bf4"
   },
   "telco/model/telco-churn.ddl.databricks.sql": {
     "bytes": 2865,
-    "sha256": "3924e9062d14b1531f0ae249e660ffd7e0562336ab3e194ff72a3668fe7e4688"
+    "sha256": "b77fc4f9339fb14977fcd8e8acf025c338f205151bfa94ce440e6e39d5043a73"
   },
   "telco/model/telco-churn.ddl.bigquery.sql": {
     "bytes": 2602,
-    "sha256": "6a7bcb0e88cbc67bd1d4f2cf8ab2b674d4a864dac1495406a9587a38d581e9b2"
+    "sha256": "73cc2e0497cc9c552ddfb7cd0a413deaa8b4a9777bbf243d35efe17f64a155d4"
   },
   "telco/model/telco-churn.ddl.tsql.sql": {
     "bytes": 2273,
-    "sha256": "efd11871f552e32d11fd5c10be87e95656f222b6dbfc30f4eb345d3cecd4853f"
+    "sha256": "d221275eb68fb034db0d3fbc81b5d3164de4a9f95e80e12c32b1c0b804cfcea1"
   },
   "telco/model/telco-churn.model.dbml": {
     "bytes": 1504,
@@ -237,7 +237,7 @@
   },
   "telco/lineage/telco-churn.openlineage-events.json": {
     "bytes": 7746,
-    "sha256": "668cad7015689fb2553244e2c67dc406bb9445d19355f0562e408e74aa63f741"
+    "sha256": "98c0493e5eb9f941c548b80f5183a79619869b0f74ed09f469fe17aad4438afe"
   },
   "telco/lineage/telco-churn.column-lineage.csv": {
     "bytes": 2443,
@@ -289,19 +289,19 @@
   },
   "financial-services/model/fs-deposit-balances.ddl.snowflake.sql": {
     "bytes": 4051,
-    "sha256": "3325e360f3cfb225d779cc3e0de14af43c0ec22588a7b4a45785cf9a7b9d8458"
+    "sha256": "4cabfbf97d4a0893ee50ab75892018139102fcf282d2319c7904a48e89235ff9"
   },
   "financial-services/model/fs-deposit-balances.ddl.databricks.sql": {
     "bytes": 3758,
-    "sha256": "27dfa41c1056135c5ccc45fa893a2f12d094df527ea7a7d83ad3c1fbcd1b13f2"
+    "sha256": "4188ce16e94dcb6ac4762288e2166e801457baf160e15486ae751ec8a133236d"
   },
   "financial-services/model/fs-deposit-balances.ddl.bigquery.sql": {
     "bytes": 3415,
-    "sha256": "505b631864ace737b4633e3181011dcd134ac6eb8b58643c8879a69ddffcb156"
+    "sha256": "bd16c6e685f9a02ff88e4e1579cea1d27e14ad620145698c23eeb58126f70a66"
   },
   "financial-services/model/fs-deposit-balances.ddl.tsql.sql": {
     "bytes": 2915,
-    "sha256": "10e1d69906bb6f801644d1bdee058d74acacb359dc81a406309dbb461b307ae7"
+    "sha256": "45a337a463ab7fc725a9e8d4034f8c8832743e25a8dddda127d9b1f285e1cc2c"
   },
   "financial-services/model/fs-deposit-balances.model.dbml": {
     "bytes": 1789,
@@ -361,7 +361,7 @@
   },
   "financial-services/lineage/fs-deposit-balances.openlineage-events.json": {
     "bytes": 9433,
-    "sha256": "fbb98093565d6de2a46260743d0cdc33c0a98b4f585fcc7d7f1376d4b2839af2"
+    "sha256": "30390cab24a73f6ecf4574995fdd96517dc307a4ffb9ba932bf95fdba6c9e02d"
   },
   "financial-services/lineage/fs-deposit-balances.column-lineage.csv": {
     "bytes": 2097,
@@ -413,19 +413,19 @@
   },
   "retail/model/retail-sales.ddl.snowflake.sql": {
     "bytes": 3670,
-    "sha256": "6ea6307d8ee0de829286e67910295a974c59e8b6992c4ebf18a76909f0b28d01"
+    "sha256": "8ba32dc7659b04afed9b7963eedc6daa8e4a1cce9145c1a5fd87715a7df6af3a"
   },
   "retail/model/retail-sales.ddl.databricks.sql": {
     "bytes": 3386,
-    "sha256": "1d4422bc4428beedf2927b9ed014d56ee7108bc199a4f0616f18d28f530ae780"
+    "sha256": "a8286b5eb62dfd3fcd0d273de857a3350f73af2e4f082e2ebcac6939e15442cc"
   },
   "retail/model/retail-sales.ddl.bigquery.sql": {
     "bytes": 3056,
-    "sha256": "1faa67b429cf0f6035b9e9c912eb7b644b71a532560f862ddbf27e277020a636"
+    "sha256": "ed2dd2a25f0b656635644ee86fba2f61e0679774bedc88825e46cf13ab7e6b46"
   },
   "retail/model/retail-sales.ddl.tsql.sql": {
     "bytes": 2717,
-    "sha256": "e10fa6cc1e033924e3333a11338268a2d96c499ac9dba2026d2c10fec5000944"
+    "sha256": "2161848a431a139b20889e3c840980df0b58654e2d40ade211da5bb38eb0fc3c"
   },
   "retail/model/retail-sales.model.dbml": {
     "bytes": 1756,
@@ -485,7 +485,7 @@
   },
   "retail/lineage/retail-sales.openlineage-events.json": {
     "bytes": 10417,
-    "sha256": "325d8cc79668e0b76277ca039f4bd15128e3e47f481101b594e2c29ae339dd9d"
+    "sha256": "2c64a1d7415e6c70ccdc9c51bdb3b192dbe3e86fbfb4c645f36fa7f2dd1adfeb"
   },
   "retail/lineage/retail-sales.column-lineage.csv": {
     "bytes": 2206,
@@ -502,5 +502,37 @@
   "retail/README.md": {
     "bytes": 1436,
     "sha256": "ce79f1ae6db7cc89dfaef7dc25a0482e30e5371721915319cf2d46a3b1284a92"
+  },
+  "telco/client-demo-kit/00-README.md": {
+    "bytes": 3040,
+    "sha256": "6c254bef4749d00e8bf460b98013cf89da27de283ace29865b67a82d5110e15e"
+  },
+  "telco/client-demo-kit/01-business-request.md": {
+    "bytes": 1117,
+    "sha256": "ec71aab88fad8283de7a0f02980627f9c09919d5ff62d516830faa5776064ab4"
+  },
+  "telco/client-demo-kit/02-jira-export-TEL.csv": {
+    "bytes": 5722,
+    "sha256": "235fd1adc813fd342963d6904c17d07328ee7b2a80e2777c0a01249a08f85152"
+  },
+  "telco/client-demo-kit/03-jira-export-TEL.json": {
+    "bytes": 21617,
+    "sha256": "f1bfdd2ccb1f491445735af28646a229b454f87ffe263b3f3d50e9e94e0f97b8"
+  },
+  "telco/client-demo-kit/04-catalog-export-source-systems.csv": {
+    "bytes": 7915,
+    "sha256": "a7d12947a4610952b0fa7cf2f146e77aea9e5121cc1725e5656bfb1cbbbaad87"
+  },
+  "telco/client-demo-kit/05-source-model-erwin.sql": {
+    "bytes": 3447,
+    "sha256": "a236c9ca3e09e256eeaac7c28e92fb5af509735ab2864305b763dd794ff8ec06"
+  },
+  "telco/client-demo-kit/06-source-model.dbml": {
+    "bytes": 2220,
+    "sha256": "db1987acbd121037d6a574f2dbe702cd62404de227a6e1fcf3b8b7d66f5a74f3"
+  },
+  "telco/client-demo-kit/07-legacy-warehouse-model.sql": {
+    "bytes": 1608,
+    "sha256": "d40e9b57425bb4096c227002386ff7c351e71e6e8622931a58780fc1dfc71205"
   }
 }

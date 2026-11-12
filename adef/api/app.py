@@ -287,13 +287,37 @@ def demo_files():
     return out
 
 
+def _demo_path(path: str) -> Path:
+    p = (DEMO_DATA_DIR / path).resolve()
+    if not (str(p) + "/").startswith(str(DEMO_DATA_DIR.resolve()) + "/") or p == DEMO_DATA_DIR.resolve():
+        raise HTTPException(404, "no such demo file")
+    return p
+
+
 @app.get("/api/demo-files/file")
 def demo_file(path: str):
-    p = (DEMO_DATA_DIR / path).resolve()
-    if not str(p).startswith(str(DEMO_DATA_DIR.resolve()) + "/") or not p.is_file():
+    p = _demo_path(path)
+    if not p.is_file():
         raise HTTPException(404, "no such demo file")
-    return Response(p.read_text(errors="replace"), media_type="text/plain; charset=utf-8",
+    return Response(p.read_bytes(), media_type="text/plain; charset=utf-8",
                     headers={"Content-Disposition": f'attachment; filename="{p.name}"'})
+
+
+@app.get("/api/demo-files/zip")
+def demo_folder_zip(folder: str):
+    """Download a demo folder (e.g. telco/client-demo-kit) as one zip."""
+    d = _demo_path(folder)
+    if not d.is_dir():
+        raise HTTPException(404, "no such demo folder")
+    buf = io.BytesIO()
+    name = "-".join(d.relative_to(DEMO_DATA_DIR.resolve()).parts)
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        for f in sorted(d.rglob("*")):
+            if f.is_file():
+                z.write(f, f"{name}/{f.relative_to(d)}")
+    buf.seek(0)
+    return StreamingResponse(buf, media_type="application/zip",
+                             headers={"Content-Disposition": f'attachment; filename="{name}.zip"'})
 
 
 # ----------------------------------------------------------------------------- stacks

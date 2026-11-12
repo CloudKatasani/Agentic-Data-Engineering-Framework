@@ -17,12 +17,12 @@ from ..guardrails.scanners import scan_injection, scan_secrets
 from .logical import parse_type
 
 CSV_ALIASES = {
-    "table": ["table", "table_name", "tablename", "entity", "key_table", "dataset", "object", "physical_table"],
-    "schema": ["schema", "schema_name", "database", "db"],
-    "column": ["column", "column_name", "columnname", "attribute", "field", "key_column", "physical_column"],
-    "type": ["type", "data_type", "datatype", "logical_type", "physical_type", "technical data type"],
-    "nullable": ["nullable", "is_nullable", "null", "optional"],
-    "pk": ["pk", "primary_key", "is_primary_key", "key"],
+    "table": ["table", "table_name", "table name", "tablename", "entity", "key_table", "dataset", "object", "physical_table"],
+    "schema": ["schema", "schema_name", "schema name", "database", "db"],
+    "column": ["column", "column_name", "column name", "columnname", "attribute", "field", "key_column", "physical_column"],
+    "type": ["type", "data_type", "data type", "datatype", "logical_type", "physical_type", "technical data type"],
+    "nullable": ["nullable", "is_nullable", "is nullable", "null", "optional"],
+    "pk": ["pk", "primary_key", "is_primary_key", "is primary key", "key"],
     "description": ["description", "comment", "definition", "notes"],
     "classification": ["classification", "sensitivity", "security classification", "data_classification"],
 }
@@ -221,9 +221,22 @@ def to_logical_model(meta: dict, name: str = "imported-model", domain: str = "")
         kind = "fact" if t["name"].lower().startswith(("fct", "fact")) else "dimension"
         ents.append({"name": en, "kind": kind, "description": t.get("description", ""), "attributes": attrs})
     names = {e["name"] for e in ents}
+    # A column that carries another table's single-column primary key name is a foreign key
+    # (warehouse-style CUSTOMER_KEY, PRODUCT_KEY ...), even when it is part of this table's composite key.
+    single_pk = {}
+    for e in ents:
+        pks = [a["name"] for a in e["attributes"] if a["pk"]]
+        if len(pks) == 1:
+            single_pk.setdefault(pks[0], e["name"])
+    for e in ents:
+        own = [a["name"] for a in e["attributes"] if a["pk"]]
+        for a in e["attributes"]:
+            target = single_pk.get(a["name"])
+            if target and target != e["name"] and not (a["pk"] and len(own) == 1):
+                a["fk"] = {"entity": target, "attribute": a["name"]}
     for e in ents:  # infer FKs by <entity>_id naming
         for a in e["attributes"]:
-            if a["name"].endswith("_id") and not a["pk"]:
+            if a["name"].endswith("_id") and not a["pk"] and not a.get("fk"):
                 target = a["name"][:-3]
                 if target in names and target != e["name"]:
                     te = next(x for x in ents if x["name"] == target)

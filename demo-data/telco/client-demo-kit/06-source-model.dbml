@@ -1,0 +1,48 @@
+// Nimbus Mobile source systems - exported from dbdiagram.io (fictional demo model)
+
+Table crm.subscriber [note: 'Subscribers'] {
+  subscriber_id string(20) [pk, note: 'internal: ']
+  msisdn string(15) [note: 'restricted: ']
+  full_name string(200) [note: 'restricted: ']
+  segment string(20) [note: 'internal: ']
+  activation_date date [note: 'internal: ']
+  status string(12) [note: 'internal: ']
+  email_address string(200) [note: 'restricted: Contact email']
+  preferred_language string(5) [note: 'internal: ISO language code']
+  created_by string(40) [note: 'internal: Audit user']
+}
+
+Table bss.subscription [note: 'Product subscriptions'] {
+  subscription_id string(20) [pk, note: 'internal: ']
+  subscriber_id string(20) [ref: > crm.subscriber.subscriber_id, note: 'internal: ']
+  product_code string(12) [ref: > bss.product_catalog.product_code, note: 'internal: ']
+  start_date date [note: 'internal: ']
+  end_date date [note: 'internal: ']
+  monthly_fee decimal(12,2) [note: 'internal: ']
+  contract_term_months integer [note: 'internal: Commitment term']
+  sales_channel string(20) [note: 'internal: Retail, online or telesales']
+}
+
+Table bss.product_catalog [note: 'Product catalogue'] {
+  product_code string(12) [pk, note: 'internal: ']
+  product_name string(100) [note: 'internal: ']
+  product_family string(30) [note: 'internal: ']
+  list_price decimal(12,2) [note: 'confidential: ']
+  launch_date date [note: 'internal: Product launch date']
+}
+
+Table usage.daily_usage_summary [note: 'Aggregated daily usage per subscriber'] {
+  subscriber_id string(20) [pk, ref: > crm.subscriber.subscriber_id, note: 'internal: ']
+  usage_date date [pk, note: 'internal: ']
+  data_mb decimal(14,2) [note: 'restricted: ']
+  voice_min decimal(10,2) [note: 'restricted: ']
+  sms_count integer [note: 'restricted: SMS sent']
+  roaming_flag boolean [note: 'internal: Any roaming usage that day']
+}
+
+Table crm.churn_event [note: 'Port-out and disconnection events'] {
+  subscriber_id string(20) [pk, ref: > crm.subscriber.subscriber_id, note: 'internal: ']
+  churn_date date [note: 'internal: ']
+  churn_reason string(40) [note: 'internal: ']
+  win_back_offer_code string(12) [note: 'internal: Retention offer presented']
+}

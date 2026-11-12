@@ -30,6 +30,7 @@ from .modeling import physical as ph
 from .util import dump_json, sha256_text
 
 SEED = 4242
+GENERATED_AT = "2026-11-01T00:00:00+00:00"  # fixed so regenerated files are byte-identical
 PROFILE_FOR = {"utilities": "example-a", "telco": "example-b", "financial-services": "azure-fabric", "retail": "aws-redshift"}
 PROJECT_FOR = {v: k for k, v in DEMO_PROJECTS.items()}
 FIRST = ["Avery", "Jordan", "Riley", "Morgan", "Casey", "Quinn", "Rowan", "Sage", "Emerson", "Hayden", "Parker",
@@ -407,7 +408,8 @@ def build_pack(pack: str) -> dict[str, str]:
         cols = [c["name"] for c in sd.tables[t]["columns"]]
         files[f"source-data/{t.replace('.', '__')}.csv"] = _csv(cols, [[r.get(c, "") for c in cols] for r in rows])
     ctx = {"profile": prof, "mapping": mp["mappings"], "dq_rules": mp["dq_rules"], "run_id": f"DEMO-{proj}",
-           "glossary": [], "approvers": PEOPLE, "lineage_namespace": f"adef://{prof['profile_id']}"}
+           "glossary": [], "approvers": PEOPLE, "lineage_namespace": f"adef://{prof['profile_id']}",
+           "generated_at": GENERATED_AT}
     from .catalog.domains import load_pack
     ctx["glossary"] = load_pack(pack).get("glossary_seed", [])
     names = {"dbml": "model.dbml", "mermaid": "erd.mmd", "plantuml": "erd.puml", "json": "logical-model.json",
@@ -451,6 +453,13 @@ def generate(out: Path) -> dict:
             p.parent.mkdir(parents=True, exist_ok=True)
             p.write_text(content)
             manifest[f"{pack}/{rel}"] = {"bytes": len(content.encode()), "sha256": sha256_text(content)}
+    from .demo_kit import KITS, build_kit
+    for pack in KITS:
+        for rel, content in build_kit(pack).items():
+            p = out / pack / "client-demo-kit" / rel
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(content)
+            manifest[f"{pack}/client-demo-kit/{rel}"] = {"bytes": len(content.encode()), "sha256": sha256_text(content)}
     (out / "manifest.json").write_text(dump_json(manifest))
     (out / "README.md").write_text(
         "# ADEF demo data packs\n\nSynthetic, deterministic demo files for each Domain Pack. Regenerate with:\n\n"
