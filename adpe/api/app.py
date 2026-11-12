@@ -46,6 +46,8 @@ async def auth(request: Request, call_next):
         if not pysecrets.compare_digest(tok, API_TOKEN):
             return JSONResponse({"detail": "unauthorized"}, status_code=401)
     resp = await call_next(request)
+    if request.url.path == "/" or request.url.path.startswith("/static/"):
+        resp.headers["Cache-Control"] = "no-cache"  # revalidate (ETag) so console updates show up immediately
     resp.headers["X-Content-Type-Options"] = "nosniff"
     resp.headers["Referrer-Policy"] = "no-referrer"
     return resp
