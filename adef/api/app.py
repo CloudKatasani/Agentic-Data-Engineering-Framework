@@ -87,7 +87,7 @@ def _agent_defs() -> list[dict]:
 def health():
     # the display name is configurable so the console can carry a client-facing or programme name
     return {"ok": True, "version": __version__,
-            "brand": {"name": config_env("BRAND_NAME") or "AI-Team",
+            "brand": {"name": config_env("BRAND_NAME") or "DataCrew AI",
                       "tagline": config_env("BRAND_TAGLINE") or "Agentic Data Engineering"}}
 
 
