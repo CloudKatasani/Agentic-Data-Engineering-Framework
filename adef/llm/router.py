@@ -30,9 +30,11 @@ def build_provider(cfg: dict, secrets: SecretStore | None = None) -> Provider:
     return cls(cfg, key)
 
 
-def binding_for(agent: str, settings: dict | None = None) -> dict:
+def binding_for(agent: str, settings: dict | None = None, override: dict | None = None) -> dict:
+    """The provider and model for an agent: the saved team binding, or a per-run override chosen at launch."""
     settings = settings or SettingsStore().load()
     b = dict(settings["agents"].get(agent) or {})
+    b.update({k: v for k, v in (override or {}).items() if k in ("provider_id", "model", "effort", "max_tokens") and v})
     prov = next((p for p in settings["providers"] if p["id"] == b.get("provider_id")), None)
     if not prov:
         prov = next(p for p in settings["providers"] if p["id"] == "demo")

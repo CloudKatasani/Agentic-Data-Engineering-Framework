@@ -560,6 +560,7 @@ async function importDemoFile(path, endpoint) {
 async function uploadFile(file, endpoint) { const fd = new FormData(); fd.append("file", file); return api("POST", endpoint, fd); }
 route("new", async () => {
   WZ.sources = await api("GET", "/sources");
+  WZ.ready = await api("GET", "/providers/readiness");
   WZ.data = WZ.data || wizardDefaults();
   WZ.step = 0;
   renderWizard();
@@ -648,15 +649,42 @@ function wzApprovers(d) {
 }
 function wzReview(d) {
   const stack = allStacks().find((s) => s.profile_id === d.stack_id);
-  const agents = CATALOG.agents.map((a) => { const b = SETTINGS.agents[a.name]; const p = providerById(b.provider_id); return [a.name, p?.label || b.provider_id, b.model, b.effort]; });
+  d.agent_bindings = d.agent_bindings || {};
+  const fallback = SETTINGS.runtime?.simulate_unavailable_providers !== false;
+  const rows = CATALOG.agents.map((a) => {
+    const team = SETTINGS.agents[a.name]; const b = { ...team, ...(d.agent_bindings[a.name] || {}) };
+    const changed = !!d.agent_bindings[a.name]; const ok = b.provider_id === "demo" || (WZ.ready || {})[b.provider_id];
+    const models = (CATALOG.provider_types[providerById(b.provider_id)?.type]?.models || []).map((m) => m.id).concat(store.get(`adef_models_${b.provider_id}`, []));
+    const stage = CATALOG.stages.filter((s) => s.agent === a.name).map((s) => s.label).join(", ");
+    return `<tr data-agent="${esc(a.name)}"><td><b>${esc(agentShort(a.name))}</b>${changed ? ' <span class="chip pending">this run only</span>' : ""}<div class="small muted">${esc(stage)}</div></td>
+      <td><select data-b="provider_id">${SETTINGS.providers.map((p) => `<option value="${esc(p.id)}" ${p.id === b.provider_id ? "selected" : ""}>${esc(p.label)}</option>`).join("")}</select></td>
+      <td><input data-b="model" value="${esc(b.model)}" list="wz-dl-${esc(a.name)}"><datalist id="wz-dl-${esc(a.name)}">${models.map((m) => `<option value="${esc(m)}">`).join("")}</datalist></td>
+      <td><select data-b="effort">${CATALOG.effort_levels.map((e) => `<option ${e === b.effort ? "selected" : ""}>${e}</option>`).join("")}</select></td>
+      <td>${b.provider_id === "demo" ? badge("", "offline") : ok ? badge("pass", providerById(b.provider_id)?.api_key_ref ? "key configured" : "local endpoint, no key needed") : badge(fallback ? "awaiting-approval" : "fail", fallback ? "no key - simulated" : "no key - stage will fail")}</td></tr>`;
+  }).join("");
+  const n = Object.keys(d.agent_bindings).length;
   return `<div class="kv"><div class="k">Client</div><div>${esc(d.client_code)}</div><div class="k">Domain</div><div>${esc(d.domain_pack)}</div>
     <div class="k">Stack</div><div>${esc(stack?.label || d.stack_id)}</div><div class="k">Requirements</div><div>${d.req_source !== "text" ? `${d.selected_keys.length} Jira issues` : ""} ${d.request ? "· request text" : ""}</div>
     <div class="k">Metadata</div><div>${d.source_metadata ? esc(d.source_metadata.source_file) : "none"}</div><div class="k">Cost cap</div><div>${esc(d.compute_cost_cap)}</div></div>
-    <h3>Agent team and models</h3><div class="table-wrap"><table><thead><tr><th>Agent</th><th>Provider</th><th>Model</th><th>Effort</th></tr></thead><tbody>${agents.map((r) => `<tr><td class="mono">${esc(r[0])}</td><td>${esc(r[1])}</td><td class="mono">${esc(r[2])}</td><td>${esc(r[3])}</td></tr>`).join("")}</tbody></table></div>
-    <p class="small muted">Change bindings on <a href="#/agents">Agents &amp; models</a>.</p>`;
+    <div class="spread" style="margin-top:14px"><h3 style="margin:0">Agent team and models for this run</h3>${n ? `<button class="btn small" id="wzResetTeam">Reset to team defaults (${n} changed)</button>` : ""}</div>
+    <p class="small muted">Change the provider, model or effort of any agent for this run only. The saved team on <a href="#/agents">Agents &amp; models</a> is not changed.</p>
+    <div class="table-wrap"><table id="wzTeam"><thead><tr><th style="width:24%">Agent</th><th>Provider</th><th>Model</th><th>Effort</th><th>Key</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 function bindWizard() {
   const d = WZ.data;
+  $$("#wzTeam [data-b]").forEach((el) => (el.onchange = () => {
+    const agent = el.closest("tr").dataset.agent; const team = SETTINGS.agents[agent];
+    const b = { provider_id: team.provider_id, model: team.model, effort: team.effort, ...(d.agent_bindings[agent] || {}) };
+    b[el.dataset.b] = el.value.trim();
+    if (el.dataset.b === "provider_id") {   // a model from another provider would not exist there: pick that provider's first model
+      const p = providerById(b.provider_id);
+      b.model = b.provider_id === team.provider_id ? team.model : (CATALOG.provider_types[p?.type]?.models || [])[0]?.id || "";
+    }
+    if (b.provider_id === team.provider_id && b.model === team.model && b.effort === team.effort) delete d.agent_bindings[agent];
+    else d.agent_bindings[agent] = b;
+    collect(); renderWizard();
+  }));
+  if ($("#wzResetTeam")) $("#wzResetTeam").onclick = () => { d.agent_bindings = {}; collect(); renderWizard(); };
   $$("[data-domain]").forEach((el) => el.addEventListener("click", () => {
     d.domain_pack = el.dataset.domain;
     if (SETTINGS.jira.mode === "demo") { d.jql = `project = ${DOMAIN_PROJECT[d.domain_pack]}`; d.jira_issues = []; d.selected_keys = []; }
@@ -683,12 +711,14 @@ async function launch() {
   const d = WZ.data;
   const issues = d.req_source === "text" ? [] : d.jira_issues.filter((i) => d.selected_keys.includes(i.key));
   if (d.req_source !== "text" && !issues.length && !d.request) { toast("Fetch and select Jira issues, or describe the request.", "err"); return; }
+  const noModel = Object.entries(d.agent_bindings || {}).filter(([, b]) => !b.model).map(([a]) => agentShort(a));
+  if (noModel.length) { toast(`Choose a model for: ${noModel.join(", ")}`, "err"); return; }
   const src = (WZ.sources || []).find((x) => x.id === d.source_id) || { type: "sqlite-local", pack: d.domain_pack };
   const source_connection = Object.fromEntries(Object.entries(src).filter(([k]) => !["label", "built_in"].includes(k)));
   const body = { source_connection, client_code: d.client_code, domain_pack: d.domain_pack, use_case: d.use_case || undefined,
     request: d.req_source === "jira" ? "" : d.request, documents: d.req_source === "jira" ? "" : d.documents,
     jira_issues: issues, stack_profile: allStacks().find((s) => s.profile_id === d.stack_id),
-    source_metadata: d.source_metadata, approvers: d.approvers, compute_cost_cap: +d.compute_cost_cap, autopilot: d.autopilot };
+    source_metadata: d.source_metadata, approvers: d.approvers, compute_cost_cap: +d.compute_cost_cap, autopilot: d.autopilot, agent_bindings: d.agent_bindings || {} };
   const r = await guard(() => api("POST", "/runs", body), "Run started");
   store.set("adef_pending_metadata", null);
   WZ.data = null;
