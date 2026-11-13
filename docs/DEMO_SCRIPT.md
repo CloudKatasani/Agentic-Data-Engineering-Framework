@@ -27,7 +27,9 @@ artifact."
 Use the **How the AI team works with your team** table on the dashboard: for each stage it shows the
 agent that does the work, what it produces, the gate, and the human role that decides.
 
-During the run, the banner under the stage strip always says whose turn it is: *AI team working*
+The run page shows two lanes across the lifecycle: the **AI team** lane (which agent is working, done
+or queued) above the **Human team** lane (which role decides at each gate, and when it is their turn).
+The banner under the lanes always says whose turn it is: *AI team working*
 (with the agent, model and elapsed time) or *Your turn* (with the named approver and a **Review**
 button). At the end, **Team & cost** shows measured agent working time against time spent waiting on
 people, and the number of human decisions.

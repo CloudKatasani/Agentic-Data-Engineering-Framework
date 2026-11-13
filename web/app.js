@@ -278,6 +278,33 @@ function operatingModel() {
     </div>
     <div class="table-wrap"><table><thead><tr><th>Stage</th><th>Who does the work</th><th>What it produces</th><th>Gate</th><th>Who decides</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
+// Two swimlanes across the lifecycle: the AI team on top, the human team underneath, so the hand-offs are visible.
+function teamLanes(st) {
+  const rows = st.team.stages;
+  const stageCells = st.stage_defs.map((s, i) => `<div class="lane-stage"><span class="muted">${i}</span> ${esc(s.label)}</div>`).join("");
+  const AI_STATE = { pending: ["queued", ""], running: ["working", "live"], failed: ["stopped", "bad"], blocked: ["blocked", "bad"], rejected: ["rework needed", "bad"],
+    "awaiting-approval": ["handed over", "done"], approved: ["done", "done"], done: ["done", "done"] };
+  const aiCells = st.stage_defs.map((s) => {
+    const ss = st.stages[s.key]; const [label, cls] = AI_STATE[ss.status] || [ss.status, ""];
+    return `<div class="lane-cell ai ${cls}" title="${esc(ss.error || ss.summary || s.agent)}"><div class="nm">${esc(agentShort(s.agent))}</div>
+      <div class="stt">${cls === "live" ? '<span class="pulse"></span>' : ""}${esc(label)}</div></div>`;
+  }).join("");
+  const huCells = st.stage_defs.map((s, i) => {
+    const r = rows[i]; const states = s.gates.map((g) => st.gates_detail[g]?.state || "not-requested");
+    if (!s.gates.length) return `<div class="lane-cell hu none"><div class="nm">Receives the pack</div><div class="stt">${st.status === "completed" ? "delivered" : "at the end"}</div></div>`;
+    const [label, cls] = states.includes("pending") ? ["your turn", "live"] : states.includes("rejected") ? ["rejected", "bad"] : states.includes("stale") ? ["re-approve", "bad"]
+      : states.every((x) => x === "approved") ? ["approved", "done"] : states.includes("approved") ? ["next gate soon", ""] : ["waits for the agent", ""];
+    const roles = [...new Set(r.humans.map((h) => h.role))];
+    return `<div class="lane-cell hu ${cls}" ${cls === "live" ? 'data-now="approvals" role="button" tabindex="0"' : ""} title="${esc(r.humans.map((h) => `${h.name} (${h.role})`).join(", "))}">
+      <div class="nm">${roles.map(esc).join(", ")}</div>
+      <div class="stt">${s.gates.map((g) => `<span class="chip ${esc(st.gates_detail[g]?.state || "")}">${esc(g)}</span>`).join("")} ${esc(label)}</div></div>`;
+  }).join("");
+  return `<div class="lanes-wrap"><div class="lanes">
+    <div class="lane-label"></div>${stageCells}
+    <div class="lane-label"><span class="who ai">AI</span>team<div class="small muted">does the work</div></div>${aiCells}
+    <div class="lane-label"><span class="who hu">Human</span>team<div class="small muted">decides</div></div>${huCells}
+  </div></div>`;
+}
 // One line that says what the run is doing right now and who it is waiting on. Shown on every tab.
 function nowBar(st) {
   const n = st.now || {};
@@ -297,7 +324,7 @@ function nowBar(st) {
   }
 }
 function bindNowBar(st) {
-  $$("#nowBar [data-now]").forEach((b) => (b.onclick = async () => {
+  $$("#nowBar [data-now], #stepper [data-now]").forEach((b) => (b.onclick = async () => {
     const act = b.dataset.now;
     if (act === "approvals" || act === "pack") {
       RUN.tab = act === "pack" ? "artifacts" : "approvals";
@@ -526,7 +553,7 @@ const RUN = { id: null, tab: "approvals", eventsNext: 0, file: null, status: nul
 route("run", async (rid) => {
   RUN.id = rid; RUN.eventsNext = 0; RUN.file = null;
   RUN.tab = store.get("adef_run_tab", "approvals");
-  main().innerHTML = `<div id="runHead"></div><div id="stepper" class="stepper"></div><div id="nowBar"></div>
+  main().innerHTML = `<div id="runHead"></div><div id="stepper"></div><div id="nowBar"></div>
     <div class="run-layout"><div><div class="tabs" id="runTabs"></div><div id="runBody"></div></div>
     <div class="card"><div class="spread"><h2>Agent activity</h2><span class="badge b-info" id="liveBadge">live</span></div><div class="feed" id="feed"></div></div></div>`;
   await refreshRun(true);
@@ -556,12 +583,7 @@ function renderRunHead(st) {
     const r2 = await guard(() => api("GET", `/runs/${RUN.id}/integrity`));
     modal(`<h2>Append-only log integrity</h2><p class="muted">Each entry carries the hash of the previous one; editing any past entry breaks the chain.</p><table>${r2.logs.map((l) => `<tr><td class="mono">${esc(l.log)}.jsonl</td><td>${l.ok ? badge("pass", `intact · ${l.entries} entries`) : badge("fail", `broken at entry ${l.broken_at}`)}</td></tr>`).join("")}</table><div style="margin-top:14px"><button class="btn" onclick="closeModal()">Close</button></div>`);
   };
-  $("#stepper").innerHTML = st.stage_defs.map((s, i) => {
-    const ss = st.stages[s.key]; const disp = ss.display || ss.status;
-    return `<div class="step s-${esc(disp)}" title="${esc(ss.error || ss.summary || disp)}"><div class="n">${i} · ${esc(disp)}</div><div class="t">${esc(s.label)}</div>
-      <div class="ag" title="${esc(s.agent)}">${esc(agentShort(s.agent))}</div>
-      <div class="gates">${s.gates.map((g) => `<span class="chip ${esc(st.gates_detail[g]?.state || "")}">${esc(g)}</span>`).join("")}</div></div>`;
-  }).join("");
+  $("#stepper").innerHTML = teamLanes(st);
   $("#nowBar").innerHTML = nowBar(st); bindNowBar(st);
   const tabs = [["approvals", "Approvals"], ["lakehouse", "Lakehouse"], ["artifacts", "Artifacts"], ["model", "Data model & exports"], ["code", "Code"], ["handoffs", "Handoffs"], ["audit", "Audit logs"], ["metrics", "Team & cost"]];
   $("#runTabs").innerHTML = tabs.map(([k, l]) => `<div class="tab ${RUN.tab === k ? "active" : ""}" data-tab="${k}">${l}</div>`).join("");
@@ -595,7 +617,6 @@ function renderApprovals(st, el) {
   gates.forEach(([g, gd]) => blocks.push(gateCard(st, g, gd)));
   const running = st.stage_defs.filter((s) => st.stages[s.key].status === "running");
   if (running.length && !blocks.length) blocks.push(`<div class="empty">${running.map((s) => `${esc(s.label)} is in progress. Its approval gate appears here when ${esc(agentShort(s.agent))} hands over.`).join("<br>")}</div>`);
-  if (st.status === "completed") blocks.unshift(`<div class="card"><div class="notice">Run complete. <a href="#" id="openPack">Open the delivery pack</a> · exports are under <b>Data model &amp; exports</b>.</div></div>`);
   el.innerHTML = blocks.join("") || '<div class="empty">No gates requested yet.</div>';
   $$("[data-rework]").forEach((b) => (b.onclick = () => guard(() => api("POST", `/runs/${RUN.id}/stages/${b.dataset.rework}/rework`, { feedback: $(`#fb-${b.dataset.rework}`).value }), "Sent back for rework")));
   $$("[data-retry]").forEach((b) => (b.onclick = () => guard(() => api("POST", `/runs/${RUN.id}/stages/${b.dataset.retry}/start`), "Retrying")));
