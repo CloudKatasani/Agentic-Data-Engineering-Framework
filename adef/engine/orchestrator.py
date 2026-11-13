@@ -13,6 +13,7 @@ import traceback
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
+from .. import context_hub
 from ..catalog import stacks
 from ..catalog.domains import load_pack_text
 from ..config import runs_dir
@@ -255,6 +256,9 @@ class Engine:
                 raise GuardrailBlocked("three-returns", f"Handoff returned {returns} times; escalated to the human owner (GT-14)")
             raise GuardrailBlocked("receiver-check", "; ".join(problems))
         call = self._call(ws, s["agent"])
+        call.context, ctx_ids = context_hub.prompt_block(ws, key)
+        if ctx_ids:
+            self.event(ws, f"{s['agent']} was given {len(ctx_ids)} context item(s) attached by the team: {', '.join(ctx_ids)}", "agent")
         sc = for_domain(ws.run["domain_pack"])
         ctx = StageCtx(ws=ws, call=call, scenario=sc, log=lambda t: self.event(ws, t, "agent"), feedback=feedback,
                        settings=self.settings.load())
@@ -268,6 +272,14 @@ class Engine:
             call = self._call(ws, s["agent"], force_fallback=f"the call failed ({e})")
             ctx.call = call
             out = runner(ctx)
+        if ctx_ids:
+            # the record of what the agent was given goes to the gate with the stage's own artifacts
+            used = context_hub.mark_used(ws, key, ctx_ids, out.artifacts)
+            pack = f"{s['folder']}/context-pack.md"
+            ctx.write(pack, context_hub.pack_md(ws, key, s["label"], s["agent"], used, out.inputs_used, call.simulated),
+                      allow_tech=True)
+            if pack not in out.artifacts:
+                out.artifacts.append(pack)
         usage = call.usage.as_dict()
         if call.fallback_reason:
             usage["models"] = [f"simulated (bound to {call.binding['provider']['type']}:{call.binding['model']})"]
@@ -583,7 +595,8 @@ class Engine:
                 ss["display"] = ss["status"]
         run = ws.run
         return {**st, "gates_detail": gates, "run": run, "stack": ws.stack, "stage_defs": STAGES, "gate_labels": GATE_LABELS,
-                "role_labels": ROLE_LABELS, "now": self._now(ws, st, gates), "team": self._team(ws, st)}
+                "role_labels": ROLE_LABELS, "now": self._now(ws, st, gates), "team": self._team(ws, st),
+                "context_counts": {k: sum(1 for i in context_hub.items(ws) if i["stage"] in (k, "all")) for k in STAGE_KEYS}}
 
     def metrics(self, ws) -> dict:
         st = self._state(ws)

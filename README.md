@@ -81,7 +81,7 @@ SOURCE_DB_PASSWORD=$ORACLE_PASSWORD .venv/bin/python -m adef source-db seed --ty
 ```
 
 Db2 works the same way (`--profile db2`, `--type db2 --user db2inst1`; install the driver with
-`WITH_DB2=true ./run.sh`). Then add the connection on **Jira & metadata → Source databases** and pick
+`WITH_DB2=true ./run.sh`). Then add the connection on **Integrations → Source databases** and pick
 it in the run wizard. Seed scripts for every industry are also in `demo-data/<domain>/source-database/`.
 
 ### Tests and headless demo
@@ -145,6 +145,40 @@ that stage runs on the Demo Simulator. The fallback is recorded in the activity 
 and the run's *Agents & cost* tab shows both the bound model and what actually served each stage. Turn it
 off on **Agents & models** for real client work; a missing key then stops the stage with a clear error.
 
+## Context for every agent (optional integrations)
+
+An agent that lacks a fact tends to invent one. So each stage declares what its agent needs, and a
+person can attach more at any time from an integration, a file or a note. Open a run's **Context** tab.
+
+| Stage | What the agent needs | Usually kept in |
+|---|---|---|
+| Intake | Project charter or SOW; epic and backlog; budget and constraints | Confluence, Jira, upload, note |
+| Requirements | Stories with acceptance criteria; business glossary and KPI definitions; workshop decisions | Jira, Confluence, upload |
+| Mapping | Source data dictionary or catalog export; rules for derived fields; known data quality issues | Upload, Confluence, Jira, ServiceNow |
+| Design | Architecture and naming standards; existing models; cost guardrails | Confluence, GitHub |
+| Build | Coding standards and SQL style guide; CI checks and branch rules; pipeline templates | GitHub, Confluence |
+| Test | Test strategy and quality thresholds; known defects and incidents; figures to reconcile against | Confluence, Jira, ServiceNow, upload |
+| Release | Change policy; change calendar and freeze windows; deployment configuration | Confluence, ServiceNow, GitHub |
+| Operations | On-call runbook and service levels; past incidents | Confluence, ServiceNow, Jira |
+| Consumption | Access and masking policy; glossary; BI standards | Confluence, upload |
+
+- **Integrations** (all read-only, all optional): Confluence (Cloud or Data Center), Jira, GitHub (or GitHub
+  Enterprise) and ServiceNow. Configure them on the **Integrations** page; tokens go in the encrypted vault.
+  Each works in demo mode, with sample content for the run's industry, until you connect it.
+- **Uploads and notes**: text, Markdown, CSV, JSON, YAML, SQL, HTML or Word (.docx), up to 5 MB.
+- **How the agent uses it**: every item gets an id (`CTX-001`) and is passed to the stage's model calls as
+  reference data, never as instructions. The agent is told to prefer it over assumptions, cite the ids it
+  relies on, and raise an open question rather than invent a missing fact.
+- **What the approver sees**: the stage writes `context-pack.md` listing every item the agent was given
+  (source, who attached it, hash, whether it was cited) and the recommended context that was not provided.
+  It is one of the artifacts reviewed at the gate.
+- **Adding context later**: attach it, then use **Re-run with the new context** on the stage.
+- **Safeguards**: secrets are redacted, instruction-like text is flagged and still treated as data, only a
+  named person can attach, and every attach or removal is in the action log. Each item is capped at 20,000
+  characters and each stage at 60,000.
+- The Demo Simulator does not read attached context; the context pack says so. Use a live model key to see
+  context change the output.
+
 ## Demo data packs
 
 `demo-data/` holds synthetic, deterministic files for each industry. Regenerate them with
@@ -152,7 +186,7 @@ off on **Agents & models** for real client work; a missing key then stops the st
 
 **Telco client demo kit** (`demo-data/telco/client-demo-kit/`): only the *input* files a client hands
 over, numbered in upload order, for a fictional client (Nimbus Mobile). Download it as one zip from
-**Jira & metadata → Demo data packs → Download all (.zip)**; `00-README.md` says where each file goes.
+**Integrations → Demo data packs → Download all (.zip)**; `00-README.md` says where each file goes.
 
 | File | Upload it in |
 |---|---|
@@ -174,7 +208,7 @@ The packs below also include ADEF's *outputs* (model, catalog and lineage export
 | `lineage/` | OpenLineage events, column- and table-level lineage CSV, Mermaid lineage diagram |
 
 In the console: **New run** has *Use sample export* (Jira) and *Use sample source catalog* buttons;
-**Jira & metadata** lists every pack with download, preview and import actions; **Model & catalog
+**Integrations** lists every pack with download, preview and import actions; **Model & catalog
 studio** loads a sample model. A Jira export from your own Jira can be uploaded in the same places.
 No connection is needed. The data contains no real people: names come from fixed word lists, phone
 numbers use the fictional 555 range, and emails use example.com.

@@ -246,3 +246,14 @@ td.mono { white-space: nowrap; }
 .lane-cell.bad .stt { color: var(--bad); font-weight: 600; }
 .lane-cell.none { border-style: dashed; }
 .lane-cell .pulse { width: 7px; height: 7px; }
+
+/* context for agents */
+.ctx-stage > summary { display: flex; justify-content: space-between; align-items: center; gap: 10px; cursor: pointer; list-style: none; flex-wrap: wrap; }
+.ctx-stage > summary::-webkit-details-marker { display: none; }
+.ctx-stage > summary::before { content: "▸"; color: var(--muted); margin-right: 6px; }
+.ctx-stage[open] > summary::before { content: "▾"; }
+.ctx-stage > summary > span:first-child { flex: 1; min-width: 240px; }
+.ctx-stage { margin-top: 10px; }
+.integ { border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+.lane-cell .stt.ctxn { color: var(--accent); cursor: pointer; font-weight: 600; }
+#integCards { margin-bottom: 16px; }

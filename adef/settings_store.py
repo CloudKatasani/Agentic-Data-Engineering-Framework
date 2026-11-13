@@ -19,12 +19,15 @@ AGENT_NAMES = [
     "adef-release-deploy", "adef-operations-observability", "adef-data-consumption",
 ]
 
+from .connectors.context_sources import DEFAULT_SETTINGS as CONTEXT_DEFAULTS  # noqa: E402
+
 DEFAULTS: dict[str, Any] = {
     "providers": copy.deepcopy(SEED_PROVIDERS),
     "agents": copy.deepcopy(TEAM_PRESETS["multi-vendor"]["agents"]),
     "runtime": {"simulate_unavailable_providers": True, "team_preset": "multi-vendor"},
     "jira": {"mode": "demo", "base_url": "", "deployment": "cloud", "email": "",
              "token_ref": "", "default_jql": "project = DATA AND issuetype in (Story, Epic) ORDER BY key"},
+    "integrations": copy.deepcopy(CONTEXT_DEFAULTS),   # optional context sources: Confluence, GitHub, ServiceNow
     "stack_profiles": [],
     "approver_defaults": {
         "product_owner": "Demo Presenter", "data_architect": "Demo Presenter",
@@ -53,7 +56,10 @@ class SettingsStore:
             if isinstance(saved.get("agents"), dict):
                 saved["agents"] = {("adef-" + k[5:] if k.startswith("adpe-") else k): v for k, v in saved["agents"].items()}
             for k, v in saved.items():
-                if isinstance(v, dict) and isinstance(data.get(k), dict):
+                if k == "integrations" and isinstance(v, dict):
+                    for name, cfg in v.items():
+                        data[k].setdefault(name, {}).update(cfg)
+                elif isinstance(v, dict) and isinstance(data.get(k), dict):
                     data[k].update(v)
                 else:
                     data[k] = v
