@@ -1177,6 +1177,10 @@ window.closeModal = closeModal;
     await loadBase();
     const h = await api("GET", "/health");
     $("#version").textContent = `v${h.version}`;
+    if (h.brand) {
+      $(".brand-name").textContent = h.brand.name; $(".brand-sub").textContent = h.brand.tagline;
+      $(".logo").textContent = h.brand.name.trim().charAt(0).toUpperCase(); document.title = `${h.brand.name} Console`;
+    }
     await navigate();
-  } catch (e) { main().innerHTML = `<div class="card"><div class="notice bad">Cannot reach the ADEF API: ${esc(e.message)}</div></div>`; }
+  } catch (e) { main().innerHTML = `<div class="card"><div class="notice bad">Cannot reach the API: ${esc(e.message)}</div></div>`; }
 })();
