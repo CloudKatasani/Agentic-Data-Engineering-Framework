@@ -31,7 +31,8 @@ class AnthropicProvider(Provider):
         kw: dict = {"model": model, "max_tokens": max_tokens, "system": system,
                     "messages": [{"role": "user", "content": prompt}]}
         if model.startswith(EFFORT_MODELS_PREFIX) and effort:
-            kw["output_config"] = {"effort": effort}
+            # Opus 4.6 and Sonnet 4.6 have no xhigh level
+            kw["output_config"] = {"effort": "high" if effort == "xhigh" and model.endswith("-4-6") else effort}
         if model in FALLBACK_MODELS:
             kw["betas"] = ["server-side-fallback-2026-07-01"]
             kw["fallbacks"] = "default"
