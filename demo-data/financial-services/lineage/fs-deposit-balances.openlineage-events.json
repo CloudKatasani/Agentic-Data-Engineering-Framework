@@ -20,7 +20,7 @@
     "outputs": [
       {
         "namespace": "adef://azure-fabric",
-        "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER",
+        "name": "acme_customer_gold.dim_customer",
         "facets": {
           "columnLineage": {
             "_producer": "https://adef.local/adef-framework",
@@ -93,7 +93,7 @@
     "outputs": [
       {
         "namespace": "adef://azure-fabric",
-        "name": "ACME_CUSTOMER_CURATED.DIM_PRODUCT",
+        "name": "acme_customer_gold.dim_product",
         "facets": {
           "columnLineage": {
             "_producer": "https://adef.local/adef-framework",
@@ -156,7 +156,7 @@
     "outputs": [
       {
         "namespace": "adef://azure-fabric",
-        "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT",
+        "name": "acme_customer_gold.dim_account",
         "facets": {
           "columnLineage": {
             "_producer": "https://adef.local/adef-framework",
@@ -249,7 +249,7 @@
     "outputs": [
       {
         "namespace": "adef://azure-fabric",
-        "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE",
+        "name": "acme_customer_gold.fct_daily_balance",
         "facets": {
           "columnLineage": {
             "_producer": "https://adef.local/adef-framework",

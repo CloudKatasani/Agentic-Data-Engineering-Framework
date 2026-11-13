@@ -156,6 +156,16 @@ TEAM_PRESETS: dict[str, dict] = {
             "adef-data-consumption": _b("google-gemini", "gemini-3.5-flash-lite", "low"),
         },
     },
+    "all-gemini": {
+        "label": "All Google Gemini",
+        "description": "Gemini 4 Argon for heavy stages, Gemini 3.8 Flash for the rest.",
+        "agents": {a: _b("google-gemini", m, e) for a, m, e in [
+            ("adef-orchestrator", "gemini-4-argon", "high"), ("adef-intent-requirements", "gemini-4-argon", "high"),
+            ("adef-source-target-mapping", "gemini-4-argon", "high"), ("adef-solution-design", "gemini-4-argon", "high"),
+            ("adef-pipeline-build", "gemini-4-argon", "medium"), ("adef-test-quality", "gemini-3.8-flash", "medium"),
+            ("adef-release-deploy", "gemini-3.8-flash", "low"), ("adef-operations-observability", "gemini-3.8-flash", "low"),
+            ("adef-data-consumption", "gemini-3.8-flash", "medium")]},
+    },
     "simulator": {
         "label": "Demo Simulator only",
         "description": "Every agent offline and deterministic. No keys, no network.",
@@ -171,3 +181,38 @@ def provider_ready(p: dict) -> bool:
     """True when the provider has what it needs to be called (a key where one is required)."""
     t = PROVIDER_TYPES.get(p.get("type"), {})
     return p.get("type") == "simulator" or not t.get("needs_key") or bool(p.get("api_key_ref"))
+
+
+# Standard environment variables per seeded provider. When a key is present in the environment the
+# provider references it (env:VAR); the value itself is never copied into settings or the vault.
+ENV_KEYS = {
+    "anthropic": {"key": ["ANTHROPIC_API_KEY"]},
+    "openai": {"key": ["OPENAI_API_KEY"]},
+    "google-gemini": {"key": ["GEMINI_API_KEY", "GOOGLE_API_KEY"]},
+    "azure-openai": {"key": ["AZURE_OPENAI_API_KEY"], "base_url": "AZURE_OPENAI_ENDPOINT"},
+    "aws-bedrock": {"key": ["AWS_BEARER_TOKEN_BEDROCK"], "region": "AWS_REGION"},
+    "ollama-local": {"base_url": "OLLAMA_BASE_URL"},
+}
+
+
+def env_key_for(provider_id: str) -> str | None:
+    import os
+    for var in ENV_KEYS.get(provider_id, {}).get("key", []):
+        if os.environ.get(var):
+            return var
+    return None
+
+
+def preset_for_env() -> str:
+    """Pick the agent team for a fresh install from the keys present in the environment."""
+    import os
+    if os.environ.get("ADEF_TEAM_PRESET") in TEAM_PRESETS:
+        return os.environ["ADEF_TEAM_PRESET"]
+    vendors = {p for p in ("anthropic", "openai", "google-gemini", "azure-openai", "aws-bedrock") if env_key_for(p)}
+    if vendors == {"anthropic"}:
+        return "all-claude"
+    if vendors == {"openai"}:
+        return "all-openai"
+    if vendors == {"google-gemini"}:
+        return "all-gemini"
+    return "multi-vendor"

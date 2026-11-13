@@ -8,10 +8,10 @@ python -m adef demo-data --out demo-data
 
 | Domain | Jira project | Reference stack | Folder |
 |---|---|---|---|
-| utilities | UTIL | AWS + Snowflake + dbt + Airflow | [`utilities/`](utilities/README.md) |
-| telco | TEL | Azure + Databricks Lakehouse | [`telco/`](telco/README.md) |
-| financial-services | FIN | Microsoft Fabric + Purview + Power BI | [`financial-services/`](financial-services/README.md) |
-| retail | RET | AWS + Redshift + Glue + Tableau | [`retail/`](retail/README.md) |
+| utilities | UTIL | Oracle → AWS S3 Iceberg → Snowflake | [`utilities/`](utilities/README.md) |
+| telco | TEL | DB2 → Azure ADLS Delta → Databricks | [`telco/`](telco/README.md) |
+| financial-services | FIN | DB2 → OneLake Delta → Microsoft Fabric | [`financial-services/`](financial-services/README.md) |
+| retail | RET | DB2 → AWS S3 Iceberg → Redshift | [`retail/`](retail/README.md) |
 
 Each pack has `jira/`, `source-metadata/`, `source-data/`, `model/`, `catalog/` and `lineage/` folders. `manifest.json` lists every file with its SHA-256.
 

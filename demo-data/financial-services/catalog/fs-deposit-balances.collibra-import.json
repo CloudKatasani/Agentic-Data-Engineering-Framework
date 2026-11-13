@@ -2,7 +2,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER",
+      "name": "acme_customer_gold.dim_customer",
       "domain": {
         "name": "fs-deposit-balances - Physical Data Dictionary",
         "community": {
@@ -10,7 +10,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER",
+    "name": "acme_customer_gold.dim_customer",
     "displayName": "Customer",
     "type": {
       "name": "Table"
@@ -31,7 +31,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER.CUSTOMER_ID",
+      "name": "acme_customer_gold.dim_customer.customer_id",
       "domain": {
         "name": "fs-deposit-balances - Physical Data Dictionary",
         "community": {
@@ -39,7 +39,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER.CUSTOMER_ID",
+    "name": "acme_customer_gold.dim_customer.customer_id",
     "displayName": "Customer Id",
     "type": {
       "name": "Column"
@@ -74,7 +74,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER",
+          "name": "acme_customer_gold.dim_customer",
           "domain": {
             "name": "fs-deposit-balances - Physical Data Dictionary",
             "community": {
@@ -88,7 +88,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER.SEGMENT",
+      "name": "acme_customer_gold.dim_customer.segment",
       "domain": {
         "name": "fs-deposit-balances - Physical Data Dictionary",
         "community": {
@@ -96,7 +96,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER.SEGMENT",
+    "name": "acme_customer_gold.dim_customer.segment",
     "displayName": "Segment",
     "type": {
       "name": "Column"
@@ -131,7 +131,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER",
+          "name": "acme_customer_gold.dim_customer",
           "domain": {
             "name": "fs-deposit-balances - Physical Data Dictionary",
             "community": {
@@ -145,7 +145,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER.KYC_STATUS",
+      "name": "acme_customer_gold.dim_customer.kyc_status",
       "domain": {
         "name": "fs-deposit-balances - Physical Data Dictionary",
         "community": {
@@ -153,7 +153,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER.KYC_STATUS",
+    "name": "acme_customer_gold.dim_customer.kyc_status",
     "displayName": "Kyc Status",
     "type": {
       "name": "Column"
@@ -188,7 +188,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER",
+          "name": "acme_customer_gold.dim_customer",
           "domain": {
             "name": "fs-deposit-balances - Physical Data Dictionary",
             "community": {
@@ -202,7 +202,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER.FULL_NAME",
+      "name": "acme_customer_gold.dim_customer.full_name",
       "domain": {
         "name": "fs-deposit-balances - Physical Data Dictionary",
         "community": {
@@ -210,7 +210,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER.FULL_NAME",
+    "name": "acme_customer_gold.dim_customer.full_name",
     "displayName": "Full Name",
     "type": {
       "name": "Column"
@@ -245,7 +245,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER",
+          "name": "acme_customer_gold.dim_customer",
           "domain": {
             "name": "fs-deposit-balances - Physical Data Dictionary",
             "community": {
@@ -259,7 +259,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_PRODUCT",
+      "name": "acme_customer_gold.dim_product",
       "domain": {
         "name": "fs-deposit-balances - Physical Data Dictionary",
         "community": {
@@ -267,7 +267,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_PRODUCT",
+    "name": "acme_customer_gold.dim_product",
     "displayName": "Product",
     "type": {
       "name": "Table"
@@ -288,7 +288,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_PRODUCT.PRODUCT_CODE",
+      "name": "acme_customer_gold.dim_product.product_code",
       "domain": {
         "name": "fs-deposit-balances - Physical Data Dictionary",
         "community": {
@@ -296,7 +296,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_PRODUCT.PRODUCT_CODE",
+    "name": "acme_customer_gold.dim_product.product_code",
     "displayName": "Product Code",
     "type": {
       "name": "Column"
@@ -331,7 +331,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_PRODUCT",
+          "name": "acme_customer_gold.dim_product",
           "domain": {
             "name": "fs-deposit-balances - Physical Data Dictionary",
             "community": {
@@ -345,7 +345,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_PRODUCT.PRODUCT_NAME",
+      "name": "acme_customer_gold.dim_product.product_name",
       "domain": {
         "name": "fs-deposit-balances - Physical Data Dictionary",
         "community": {
@@ -353,7 +353,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_PRODUCT.PRODUCT_NAME",
+    "name": "acme_customer_gold.dim_product.product_name",
     "displayName": "Product Name",
     "type": {
       "name": "Column"
@@ -388,7 +388,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_PRODUCT",
+          "name": "acme_customer_gold.dim_product",
           "domain": {
             "name": "fs-deposit-balances - Physical Data Dictionary",
             "community": {
@@ -402,7 +402,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_PRODUCT.PRODUCT_TYPE",
+      "name": "acme_customer_gold.dim_product.product_type",
       "domain": {
         "name": "fs-deposit-balances - Physical Data Dictionary",
         "community": {
@@ -410,7 +410,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_PRODUCT.PRODUCT_TYPE",
+    "name": "acme_customer_gold.dim_product.product_type",
     "displayName": "Product Type",
     "type": {
       "name": "Column"
@@ -445,7 +445,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_PRODUCT",
+          "name": "acme_customer_gold.dim_product",
           "domain": {
             "name": "fs-deposit-balances - Physical Data Dictionary",
             "community": {
@@ -459,7 +459,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT",
+      "name": "acme_customer_gold.dim_account",
       "domain": {
         "name": "fs-deposit-balances - Physical Data Dictionary",
         "community": {
@@ -467,7 +467,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT",
+    "name": "acme_customer_gold.dim_account",
     "displayName": "Account",
     "type": {
       "name": "Table"
@@ -488,7 +488,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT.ACCOUNT_ID",
+      "name": "acme_customer_gold.dim_account.account_id",
       "domain": {
         "name": "fs-deposit-balances - Physical Data Dictionary",
         "community": {
@@ -496,7 +496,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT.ACCOUNT_ID",
+    "name": "acme_customer_gold.dim_account.account_id",
     "displayName": "Account Id",
     "type": {
       "name": "Column"
@@ -531,7 +531,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT",
+          "name": "acme_customer_gold.dim_account",
           "domain": {
             "name": "fs-deposit-balances - Physical Data Dictionary",
             "community": {
@@ -545,7 +545,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT.CUSTOMER_ID",
+      "name": "acme_customer_gold.dim_account.customer_id",
       "domain": {
         "name": "fs-deposit-balances - Physical Data Dictionary",
         "community": {
@@ -553,7 +553,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT.CUSTOMER_ID",
+    "name": "acme_customer_gold.dim_account.customer_id",
     "displayName": "Customer Id",
     "type": {
       "name": "Column"
@@ -588,7 +588,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT",
+          "name": "acme_customer_gold.dim_account",
           "domain": {
             "name": "fs-deposit-balances - Physical Data Dictionary",
             "community": {
@@ -602,7 +602,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT.PRODUCT_CODE",
+      "name": "acme_customer_gold.dim_account.product_code",
       "domain": {
         "name": "fs-deposit-balances - Physical Data Dictionary",
         "community": {
@@ -610,7 +610,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT.PRODUCT_CODE",
+    "name": "acme_customer_gold.dim_account.product_code",
     "displayName": "Product Code",
     "type": {
       "name": "Column"
@@ -645,7 +645,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT",
+          "name": "acme_customer_gold.dim_account",
           "domain": {
             "name": "fs-deposit-balances - Physical Data Dictionary",
             "community": {
@@ -659,7 +659,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT.BRANCH_CODE",
+      "name": "acme_customer_gold.dim_account.branch_code",
       "domain": {
         "name": "fs-deposit-balances - Physical Data Dictionary",
         "community": {
@@ -667,7 +667,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT.BRANCH_CODE",
+    "name": "acme_customer_gold.dim_account.branch_code",
     "displayName": "Branch Code",
     "type": {
       "name": "Column"
@@ -702,7 +702,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT",
+          "name": "acme_customer_gold.dim_account",
           "domain": {
             "name": "fs-deposit-balances - Physical Data Dictionary",
             "community": {
@@ -716,7 +716,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT.STATUS",
+      "name": "acme_customer_gold.dim_account.status",
       "domain": {
         "name": "fs-deposit-balances - Physical Data Dictionary",
         "community": {
@@ -724,7 +724,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT.STATUS",
+    "name": "acme_customer_gold.dim_account.status",
     "displayName": "Status",
     "type": {
       "name": "Column"
@@ -759,7 +759,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT",
+          "name": "acme_customer_gold.dim_account",
           "domain": {
             "name": "fs-deposit-balances - Physical Data Dictionary",
             "community": {
@@ -773,7 +773,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT.CURRENCY",
+      "name": "acme_customer_gold.dim_account.currency",
       "domain": {
         "name": "fs-deposit-balances - Physical Data Dictionary",
         "community": {
@@ -781,7 +781,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT.CURRENCY",
+    "name": "acme_customer_gold.dim_account.currency",
     "displayName": "Currency",
     "type": {
       "name": "Column"
@@ -816,7 +816,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT",
+          "name": "acme_customer_gold.dim_account",
           "domain": {
             "name": "fs-deposit-balances - Physical Data Dictionary",
             "community": {
@@ -830,7 +830,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE",
+      "name": "acme_customer_gold.fct_daily_balance",
       "domain": {
         "name": "fs-deposit-balances - Physical Data Dictionary",
         "community": {
@@ -838,7 +838,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE",
+    "name": "acme_customer_gold.fct_daily_balance",
     "displayName": "Daily Balance",
     "type": {
       "name": "Table"
@@ -859,7 +859,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.DAILY_BALANCE_ID",
+      "name": "acme_customer_gold.fct_daily_balance.daily_balance_id",
       "domain": {
         "name": "fs-deposit-balances - Physical Data Dictionary",
         "community": {
@@ -867,7 +867,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.DAILY_BALANCE_ID",
+    "name": "acme_customer_gold.fct_daily_balance.daily_balance_id",
     "displayName": "Daily Balance Id",
     "type": {
       "name": "Column"
@@ -902,7 +902,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE",
+          "name": "acme_customer_gold.fct_daily_balance",
           "domain": {
             "name": "fs-deposit-balances - Physical Data Dictionary",
             "community": {
@@ -916,7 +916,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.ACCOUNT_ID",
+      "name": "acme_customer_gold.fct_daily_balance.account_id",
       "domain": {
         "name": "fs-deposit-balances - Physical Data Dictionary",
         "community": {
@@ -924,7 +924,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.ACCOUNT_ID",
+    "name": "acme_customer_gold.fct_daily_balance.account_id",
     "displayName": "Account Id",
     "type": {
       "name": "Column"
@@ -959,7 +959,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE",
+          "name": "acme_customer_gold.fct_daily_balance",
           "domain": {
             "name": "fs-deposit-balances - Physical Data Dictionary",
             "community": {
@@ -973,7 +973,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.BALANCE_DATE",
+      "name": "acme_customer_gold.fct_daily_balance.balance_date",
       "domain": {
         "name": "fs-deposit-balances - Physical Data Dictionary",
         "community": {
@@ -981,7 +981,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.BALANCE_DATE",
+    "name": "acme_customer_gold.fct_daily_balance.balance_date",
     "displayName": "Balance Date",
     "type": {
       "name": "Column"
@@ -1016,7 +1016,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE",
+          "name": "acme_customer_gold.fct_daily_balance",
           "domain": {
             "name": "fs-deposit-balances - Physical Data Dictionary",
             "community": {
@@ -1030,7 +1030,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.LEDGER_BALANCE",
+      "name": "acme_customer_gold.fct_daily_balance.ledger_balance",
       "domain": {
         "name": "fs-deposit-balances - Physical Data Dictionary",
         "community": {
@@ -1038,7 +1038,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.LEDGER_BALANCE",
+    "name": "acme_customer_gold.fct_daily_balance.ledger_balance",
     "displayName": "Ledger Balance",
     "type": {
       "name": "Column"
@@ -1073,7 +1073,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE",
+          "name": "acme_customer_gold.fct_daily_balance",
           "domain": {
             "name": "fs-deposit-balances - Physical Data Dictionary",
             "community": {
@@ -1087,7 +1087,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.AVAILABLE_BALANCE",
+      "name": "acme_customer_gold.fct_daily_balance.available_balance",
       "domain": {
         "name": "fs-deposit-balances - Physical Data Dictionary",
         "community": {
@@ -1095,7 +1095,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.AVAILABLE_BALANCE",
+    "name": "acme_customer_gold.fct_daily_balance.available_balance",
     "displayName": "Available Balance",
     "type": {
       "name": "Column"
@@ -1130,7 +1130,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE",
+          "name": "acme_customer_gold.fct_daily_balance",
           "domain": {
             "name": "fs-deposit-balances - Physical Data Dictionary",
             "community": {

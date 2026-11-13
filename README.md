@@ -1,62 +1,100 @@
 # ADEF - Agentic Data Engineering Framework
 
-An approval-gated team of nine AI agents that delivers a data product end to end:
+An approval-gated team of nine AI agents that takes a business request to a governed data product:
 
 **Business intent → Requirements → Mapping → Design → Build → Test → Release → Operations → Consumption**
 
-This repository is the runtime for the ADEF specification pack (`skills/`, `agents/`, `docs/spec/`).
-It adds an enterprise web console and API with:
+The agents design and build the modern enterprise data path, then prove it by running it:
 
-- **Bring your own model, per agent.** Pick a provider and model for each of the nine agents:
-  Anthropic (Claude), OpenAI, Azure OpenAI, Google Gemini, Amazon Bedrock, or any OpenAI-compatible
-  endpoint (Ollama, vLLM, Mistral, Groq, LiteLLM, enterprise gateways). There is also an offline
-  **Demo Simulator**, so a full lifecycle runs with no API key at all.
-- **API keys handled properly.** Keys go into an encrypted vault and are referenced by name. They are
-  never returned by the API, never written to run artifacts or logs, and never sent to a model.
-- **Choose the technology stack.** Five reference Stack Profiles (Snowflake/dbt/Airflow on AWS,
-  Databricks lakehouse on Azure, BigQuery/Dataform/Looker on GCP, Microsoft Fabric/Purview, and
-  Redshift/Glue/Tableau), or build your own slot by slot with validation. The same logical design
-  binds to any of them.
-- **Jira integration.** Read epics and stories (Cloud or Data Center) by JQL and turn them into a
-  traceable requirements baseline. A built-in demo Jira (projects UTIL, TEL, FIN, RET) works offline.
-- **Data modelling and data catalog imports and exports.** Import CSV dictionaries, JSON models, DBML or
-  DDL from modelling tools and catalogs. Export 16 formats: physical DDL in 7 dialects, DBML, Mermaid,
-  PlantUML, dbt `schema.yml`, an ODCS data contract, a data dictionary, Collibra, Purview/Atlas,
-  DataHub, Alation, a business glossary, Unity Catalog and Snowflake governance SQL, and OpenLineage.
-- **Guardrails enforced in code, not just in prompts.** Action classes A0-A4, approvals bound to
-  artifact hashes, one writer per folder, secret and prompt-injection scanning, hash-chained audit
-  logs, and the 14 guardrail scenarios from the build spec, all executable.
+```
+ Oracle / Db2 / SQL Server        AWS S3 · Azure ADLS · GCS · OneLake                  Snowflake · Databricks
+ source database ──Pipeline 1──▶ bronze ──Pipeline 2──▶ silver ──▶ gold ──Pipeline 3──▶ BigQuery · Redshift · Fabric
+       (incremental, watermark)   Iceberg or Delta, in the lake catalog                 (zero-copy where possible)
+```
+
+- **Three pipelines, generated for your stack.** Pipeline 1 is a PySpark JDBC extract, plus AWS DMS,
+  Azure Data Factory or Datastream configuration. Pipeline 2 is Spark SQL `MERGE` from bronze to
+  silver to gold (or Lakeflow, dbt, Dataform). Pipeline 3 publishes to Snowflake Iceberg tables,
+  Databricks SQL, BigQuery BigLake, Redshift Spectrum or Fabric, with orchestration chaining all three.
+- **Proved on real data.** Every run rehearses all three pipelines on a synthetic source database:
+  real Delta or Iceberg tables, real gold built by the generated SQL, quality rules on real rows, and
+  metrics reconciled between the lake and the analytics layer. On the **Local lakehouse** stack the
+  G6a/G6b releases really deploy to `test` and `prod`.
+- **Source databases with synthetic data.** Built-in SQLite sources for four industries, plus Oracle
+  and Db2 schemas and data that run on real Oracle Database Free and Db2 Community containers.
+- **Bring your own model, per agent.** Anthropic, OpenAI, Azure OpenAI, Gemini, Bedrock or any
+  OpenAI-compatible endpoint. Pass keys as environment variables; the agent team is chosen from them.
+  The offline **Demo Simulator** runs everything without a key.
+- **Jira, data modelling and catalogs.** Jira Cloud/Data Center or exported files; imports from
+  modelling tools and catalogs; 16 model, catalog and lineage export formats.
+- **Guardrails enforced in code.** Action classes A0-A4, hash-bound approvals, one writer per folder,
+  secret and prompt-injection scanning, hash-chained audit logs, and 14 executable guardrail scenarios.
+
+See [docs/PRODUCT_REVIEW.md](docs/PRODUCT_REVIEW.md) for the product review behind this release.
 
 ## Quick start
 
 ```bash
-make install
+./run.sh
+```
+
+That creates a virtual environment, installs dependencies and opens the console on
+http://127.0.0.1:8000 in demo mode. To use real models, pass a key (one or several):
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-... ./run.sh
+```
+
+Keys are read from the environment and never written to disk by ADEF. Supported variables:
+`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, `AZURE_OPENAI_API_KEY` +
+`AZURE_OPENAI_ENDPOINT`, `AWS_BEARER_TOKEN_BEDROCK` + `AWS_REGION`, `OLLAMA_BASE_URL`.
+
+Then: **New run** → pick an industry → *Use sample export* (Jira) → choose a stack (try **Local
+lakehouse**) → launch and approve the gates. The **Lakehouse** tab shows the data moving through each layer.
+
+### Host it for others (EC2, any VM, Docker)
+
+```bash
+ADEF_API_TOKEN=$(openssl rand -hex 24) ANTHROPIC_API_KEY=sk-ant-... ./run.sh --host 0.0.0.0
+```
+
+The server refuses to listen beyond localhost without `ADEF_API_TOKEN`. With Docker
+(copy `.env.example` to `.env` first):
+
+```bash
+docker compose up -d --build
+```
+
+Optional profiles: `--profile oracle` and `--profile db2` start synthetic source databases, and
+`--profile https` adds Caddy with automatic TLS for `DOMAIN`. For AWS, see
+[deploy/ec2/README.md](deploy/ec2/README.md): a user-data script that pulls keys from SSM Parameter
+Store. For a VM without Docker, use [deploy/systemd/adef.service](deploy/systemd/adef.service).
+
+### Source databases
+
+```bash
+docker compose --profile oracle up -d
 ```
 
 ```bash
-make run
+SOURCE_DB_PASSWORD=$ORACLE_PASSWORD .venv/bin/python -m adef source-db seed --type oracle --dsn localhost:1521/FREEPDB1 --user system --domain telco
 ```
 
-Open http://127.0.0.1:8000, choose **New run**, accept the defaults, and launch. The Demo Simulator
-produces the whole lifecycle. You approve each gate as the named approver.
+Db2 works the same way (`--profile db2`, `--type db2 --user db2inst1`; install the driver with
+`WITH_DB2=true ./run.sh`). Then add the connection on **Jira & metadata → Source databases** and pick
+it in the run wizard. Seed scripts for every industry are also in `demo-data/<domain>/source-database/`.
 
-A headless run that auto-approves every gate:
-
-```bash
-.venv/bin/python -m adef demo --domain telco --stack gcp-bigquery
-```
-
-To run with Docker, put `ADEF_API_TOKEN` and `ADEF_MASTER_KEY` in `.env` first:
-
-```bash
-docker compose up --build
-```
-
-Tests (52, including the full lifecycle for 4 domains and stacks, all 14 guardrail scenarios, and the
-live-LLM path):
+### Tests and headless demo
 
 ```bash
 make test
+```
+
+84 tests, including the full lifecycle for every industry and stack, real three-pipeline execution in
+Delta and Iceberg, incremental extraction, all 14 guardrail scenarios and the live-LLM path.
+
+```bash
+.venv/bin/python -m adef demo --domain telco --stack local-lakehouse
 ```
 
 See [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md) for a 15-minute client demo walkthrough.
@@ -208,13 +246,14 @@ repository (`repo/`) standing in for the client's version-control slot.
 
 ## Honest limits of this release
 
-- **Deployments are simulated.** There is no connection to a client platform, so G6a/G6b promotion,
-  verification and publication run against the in-memory sandbox and are labelled as simulated in
-  every artifact. Connecting a platform means implementing the reviewed adapter for that slot (E3-2/E3-3).
-- **Tests run on synthetic data in SQLite.** They are real executions with recorded SQL, but they do not
-  replace platform tests on the bound engine.
+- **Cloud pipelines are generated, not executed here.** The PySpark, Spark SQL, DMS, ADF, Datastream
+  and publish code is syntax-checked, and its gold SQL is executed by the local rehearsal, but nothing
+  runs against a real AWS, Azure or GCP account from this tool yet. Cloud promotion at G6a/G6b is
+  labelled *simulated*. The **Local lakehouse** stack really executes end to end.
+- **Local type-2 dimensions are current versions only.** The generated cloud code implements full SCD2
+  `MERGE`; the local runner rebuilds gold from silver on each run.
 - **Adapters still need review.** Built-in templates are flagged as such by stack validation until a
   reviewed adapter is added under `adapters/`.
 - **Domain Packs are starters.** Their controls are not legal or compliance advice.
-- **Single tenant.** One console per environment, file-based state, optional bearer-token auth
-  (`ADEF_API_TOKEN`). Put it behind your SSO proxy for shared use.
+- **Single tenant.** One console per environment, file-based state, bearer-token auth (`ADEF_API_TOKEN`)
+  and TLS via Caddy. Use your SSO proxy for shared use.

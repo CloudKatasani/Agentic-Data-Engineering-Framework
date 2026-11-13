@@ -1,19 +1,19 @@
 entity,physical_table,kind,history,attribute,physical_column,logical_type,physical_type,pk,fk,nullable,classification,business_rule,requirements,description
-customer,DIM_CUSTOMER,dimension,type2,customer_id,CUSTOMER_ID,string(20),VARCHAR(20),Y,,N,internal,,REQ-002,Business key
-customer,DIM_CUSTOMER,dimension,type2,segment,SEGMENT,string(20),VARCHAR(20),,,Y,internal,,REQ-002,"Mass, affluent or private"
-customer,DIM_CUSTOMER,dimension,type2,kyc_status,KYC_STATUS,string(10),VARCHAR(10),,,Y,internal,,,"VERIFIED, PENDING or EXPIRED"
-customer,DIM_CUSTOMER,dimension,type2,full_name,FULL_NAME,string(200),VARCHAR(200),,,Y,restricted,,REQ-005,Customer name (masked)
-product,DIM_PRODUCT,dimension,type1,product_code,PRODUCT_CODE,string(10),VARCHAR(10),Y,,N,internal,,,Business key
-product,DIM_PRODUCT,dimension,type1,product_name,PRODUCT_NAME,string(100),VARCHAR(100),,,Y,internal,,,Product name
-product,DIM_PRODUCT,dimension,type1,product_type,PRODUCT_TYPE,string(20),VARCHAR(20),,,Y,internal,,REQ-001,"Current, savings or term"
-account,DIM_ACCOUNT,dimension,type2,account_id,ACCOUNT_ID,string(20),VARCHAR(20),Y,,N,internal,,REQ-001,Business key
-account,DIM_ACCOUNT,dimension,type2,customer_id,CUSTOMER_ID,string(20),VARCHAR(20),,customer.customer_id,Y,internal,,,Account holder
-account,DIM_ACCOUNT,dimension,type2,product_code,PRODUCT_CODE,string(10),VARCHAR(10),,product.product_code,Y,internal,,REQ-001,Product
-account,DIM_ACCOUNT,dimension,type2,branch_code,BRANCH_CODE,string(8),VARCHAR(8),,,Y,internal,,REQ-002,Servicing branch
-account,DIM_ACCOUNT,dimension,type2,status,STATUS,string(10),VARCHAR(10),,,Y,internal,,,"OPEN, DORMANT or CLOSED"
-account,DIM_ACCOUNT,dimension,type2,currency,CURRENCY,string(3),VARCHAR(3),,,Y,internal,,,ISO currency
-daily_balance,FCT_DAILY_BALANCE,fact,none,daily_balance_id,DAILY_BALANCE_ID,string(32),VARCHAR(32),Y,,N,internal,,,Business key
-daily_balance,FCT_DAILY_BALANCE,fact,none,account_id,ACCOUNT_ID,string(20),VARCHAR(20),,account.account_id,Y,internal,,REQ-001,Account
-daily_balance,FCT_DAILY_BALANCE,fact,none,balance_date,BALANCE_DATE,date,DATE,,,Y,internal,,REQ-001,Business date
-daily_balance,FCT_DAILY_BALANCE,fact,none,ledger_balance,LEDGER_BALANCE,"decimal(18,2)","DECIMAL(18,2)",,,Y,confidential,BR-001,REQ-001,Ledger balance
-daily_balance,FCT_DAILY_BALANCE,fact,none,available_balance,AVAILABLE_BALANCE,"decimal(18,2)","DECIMAL(18,2)",,,Y,confidential,,,Available balance
+customer,dim_customer,dimension,type2,customer_id,customer_id,string(20),VARCHAR(20),Y,,N,internal,,REQ-002,Business key
+customer,dim_customer,dimension,type2,segment,segment,string(20),VARCHAR(20),,,Y,internal,,REQ-002,"Mass, affluent or private"
+customer,dim_customer,dimension,type2,kyc_status,kyc_status,string(10),VARCHAR(10),,,Y,internal,,,"VERIFIED, PENDING or EXPIRED"
+customer,dim_customer,dimension,type2,full_name,full_name,string(200),VARCHAR(200),,,Y,restricted,,REQ-005,Customer name (masked)
+product,dim_product,dimension,type1,product_code,product_code,string(10),VARCHAR(10),Y,,N,internal,,,Business key
+product,dim_product,dimension,type1,product_name,product_name,string(100),VARCHAR(100),,,Y,internal,,,Product name
+product,dim_product,dimension,type1,product_type,product_type,string(20),VARCHAR(20),,,Y,internal,,REQ-001,"Current, savings or term"
+account,dim_account,dimension,type2,account_id,account_id,string(20),VARCHAR(20),Y,,N,internal,,REQ-001,Business key
+account,dim_account,dimension,type2,customer_id,customer_id,string(20),VARCHAR(20),,customer.customer_id,Y,internal,,,Account holder
+account,dim_account,dimension,type2,product_code,product_code,string(10),VARCHAR(10),,product.product_code,Y,internal,,REQ-001,Product
+account,dim_account,dimension,type2,branch_code,branch_code,string(8),VARCHAR(8),,,Y,internal,,REQ-002,Servicing branch
+account,dim_account,dimension,type2,status,status,string(10),VARCHAR(10),,,Y,internal,,,"OPEN, DORMANT or CLOSED"
+account,dim_account,dimension,type2,currency,currency,string(3),VARCHAR(3),,,Y,internal,,,ISO currency
+daily_balance,fct_daily_balance,fact,none,daily_balance_id,daily_balance_id,string(32),VARCHAR(32),Y,,N,internal,,,Business key
+daily_balance,fct_daily_balance,fact,none,account_id,account_id,string(20),VARCHAR(20),,account.account_id,Y,internal,,REQ-001,Account
+daily_balance,fct_daily_balance,fact,none,balance_date,balance_date,date,DATE,,,Y,internal,,REQ-001,Business date
+daily_balance,fct_daily_balance,fact,none,ledger_balance,ledger_balance,"decimal(18,2)","DECIMAL(18,2)",,,Y,confidential,BR-001,REQ-001,Ledger balance
+daily_balance,fct_daily_balance,fact,none,available_balance,available_balance,"decimal(18,2)","DECIMAL(18,2)",,,Y,confidential,,,Available balance

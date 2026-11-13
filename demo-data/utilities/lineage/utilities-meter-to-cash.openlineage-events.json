@@ -20,7 +20,7 @@
     "outputs": [
       {
         "namespace": "adef://example-a",
-        "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT",
+        "name": "ACME_CUSTOMER_GOLD.DIM_CUSTOMER_ACCOUNT",
         "facets": {
           "columnLineage": {
             "_producer": "https://adef.local/adef-framework",
@@ -103,7 +103,7 @@
     "outputs": [
       {
         "namespace": "adef://example-a",
-        "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE",
+        "name": "ACME_CUSTOMER_GOLD.DIM_PREMISE",
         "facets": {
           "columnLineage": {
             "_producer": "https://adef.local/adef-framework",
@@ -176,7 +176,7 @@
     "outputs": [
       {
         "namespace": "adef://example-a",
-        "name": "ACME_CUSTOMER_CURATED.DIM_METER",
+        "name": "ACME_CUSTOMER_GOLD.DIM_METER",
         "facets": {
           "columnLineage": {
             "_producer": "https://adef.local/adef-framework",
@@ -253,7 +253,7 @@
     "outputs": [
       {
         "namespace": "adef://example-a",
-        "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION",
+        "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION",
         "facets": {
           "columnLineage": {
             "_producer": "https://adef.local/adef-framework",

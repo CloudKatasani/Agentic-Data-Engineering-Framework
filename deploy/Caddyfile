@@ -1,0 +1,9 @@
+# HTTPS in front of ADEF with an automatic Let's Encrypt certificate for $DOMAIN.
+{$DOMAIN} {
+	encode gzip
+	reverse_proxy adef:8000
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Frame-Options "DENY"
+	}
+}

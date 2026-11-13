@@ -1,12 +1,65 @@
+# ADEF with optional source databases and HTTPS.
+#   docker compose up -d                                  # ADEF only
+#   docker compose --profile oracle up -d                 # + Oracle Database Free (synthetic source)
+#   docker compose --profile db2 up -d                    # + IBM Db2 Community (synthetic source)
+#   DOMAIN=adef.example.com docker compose --profile https up -d   # + Caddy with automatic TLS
+# Put secrets in .env (chmod 600), never in this file. See .env.example.
 services:
   adef:
-    build: .
-    ports: ["8000:8000"]
+    build:
+      context: .
+      args:
+        WITH_DB2: ${WITH_DB2:-false}
+    ports: ["${ADEF_PORT:-8000}:8000"]
     volumes: ["adef-data:/data"]
+    restart: unless-stopped
     environment:
-      # Fernet key for the secret vault (generate: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
+      ADEF_API_TOKEN: ${ADEF_API_TOKEN:?set ADEF_API_TOKEN in .env}
       ADEF_MASTER_KEY: ${ADEF_MASTER_KEY:-}
-      # Bearer token required by the API/console when exposed beyond localhost
-      ADEF_API_TOKEN: ${ADEF_API_TOKEN:-}
+      ADEF_TEAM_PRESET: ${ADEF_TEAM_PRESET:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY:-}
+      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT:-}
+      AWS_BEARER_TOKEN_BEDROCK: ${AWS_BEARER_TOKEN_BEDROCK:-}
+      AWS_REGION: ${AWS_REGION:-}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-}
+
+  oracle:
+    profiles: ["oracle"]
+    image: gvenzl/oracle-free:23-slim-faststart
+    ports: ["1521:1521"]
+    environment:
+      ORACLE_PASSWORD: ${ORACLE_PASSWORD:?set ORACLE_PASSWORD in .env}
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 10s
+      retries: 30
+
+  db2:
+    profiles: ["db2"]
+    image: ${DB2_IMAGE:-ibmcom/db2:11.5.8.0}
+    privileged: true
+    ports: ["50000:50000"]
+    environment:
+      LICENSE: accept
+      DB2INSTANCE: db2inst1
+      DB2INST1_PASSWORD: ${DB2_PASSWORD:?set DB2_PASSWORD in .env}
+      DBNAME: ADEF
+      SAMPLEDB: "false"
+
+  caddy:
+    profiles: ["https"]
+    image: caddy:2
+    ports: ["80:80", "443:443"]
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN for HTTPS}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+    depends_on: [adef]
+
 volumes:
   adef-data:
+  caddy-data:

@@ -10,24 +10,24 @@ models:
     contract:
       enforced: true
   columns:
-  - name: CUSTOMER_ID
+  - name: customer_id
     description: Business key
     meta:
       classification: internal
       business_rule: null
     data_tests:
     - not_null
-  - name: SEGMENT
+  - name: segment
     description: Mass, affluent or private
     meta:
       classification: internal
       business_rule: null
-  - name: KYC_STATUS
+  - name: kyc_status
     description: VERIFIED, PENDING or EXPIRED
     meta:
       classification: internal
       business_rule: null
-  - name: FULL_NAME
+  - name: full_name
     description: Customer name (masked)
     meta:
       classification: restricted
@@ -45,7 +45,7 @@ models:
     contract:
       enforced: true
   columns:
-  - name: PRODUCT_CODE
+  - name: product_code
     description: Business key
     meta:
       classification: internal
@@ -53,12 +53,12 @@ models:
     data_tests:
     - unique
     - not_null
-  - name: PRODUCT_NAME
+  - name: product_name
     description: Product name
     meta:
       classification: internal
       business_rule: null
-  - name: PRODUCT_TYPE
+  - name: product_type
     description: Current, savings or term
     meta:
       classification: internal
@@ -73,14 +73,14 @@ models:
     contract:
       enforced: true
   columns:
-  - name: ACCOUNT_ID
+  - name: account_id
     description: Business key
     meta:
       classification: internal
       business_rule: null
     data_tests:
     - not_null
-  - name: CUSTOMER_ID
+  - name: customer_id
     description: Account holder
     meta:
       classification: internal
@@ -89,7 +89,7 @@ models:
     - relationships:
         to: ref('dim_customer')
         field: customer_id
-  - name: PRODUCT_CODE
+  - name: product_code
     description: Product
     meta:
       classification: internal
@@ -98,12 +98,12 @@ models:
     - relationships:
         to: ref('dim_product')
         field: product_code
-  - name: BRANCH_CODE
+  - name: branch_code
     description: Servicing branch
     meta:
       classification: internal
       business_rule: null
-  - name: STATUS
+  - name: status
     description: OPEN, DORMANT or CLOSED
     meta:
       classification: internal
@@ -114,7 +114,7 @@ models:
         - OPEN
         - DORMANT
         - CLOSED
-  - name: CURRENCY
+  - name: currency
     description: ISO currency
     meta:
       classification: internal
@@ -135,7 +135,7 @@ models:
     contract:
       enforced: true
   columns:
-  - name: DAILY_BALANCE_ID
+  - name: daily_balance_id
     description: Business key
     meta:
       classification: internal
@@ -143,7 +143,7 @@ models:
     data_tests:
     - unique
     - not_null
-  - name: ACCOUNT_ID
+  - name: account_id
     description: Account
     meta:
       classification: internal
@@ -152,17 +152,17 @@ models:
     - relationships:
         to: ref('dim_account')
         field: account_id
-  - name: BALANCE_DATE
+  - name: balance_date
     description: Business date
     meta:
       classification: internal
       business_rule: null
-  - name: LEDGER_BALANCE
+  - name: ledger_balance
     description: Ledger balance
     meta:
       classification: confidential
       business_rule: BR-001
-  - name: AVAILABLE_BALANCE
+  - name: available_balance
     description: Available balance
     meta:
       classification: confidential

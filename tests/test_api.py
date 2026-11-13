@@ -8,7 +8,7 @@ c = TestClient(app)
 def test_catalog_and_health():
     assert c.get("/api/health").json()["ok"]
     cat = c.get("/api/catalog").json()
-    assert len(cat["agents"]) == 9 and len(cat["presets"]) == 5 and len(cat["exporters"]) >= 15
+    assert len(cat["agents"]) == 9 and len(cat["presets"]) == 6 and len(cat["exporters"]) >= 15
     assert {p["pack_id"] for p in cat["domain_packs"]} >= {"utilities", "telco", "financial-services", "retail"}
 
 

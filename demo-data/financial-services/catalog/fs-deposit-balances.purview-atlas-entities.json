@@ -4,8 +4,8 @@
       "typeName": "rdbms_db",
       "guid": "-1",
       "attributes": {
-        "qualifiedName": "adef.ACME_CUSTOMER_CURATED",
-        "name": "ACME_CUSTOMER_CURATED",
+        "qualifiedName": "adef.acme_customer_gold",
+        "name": "acme_customer_gold",
         "description": "Deposit balances and average daily balance data product"
       }
     },
@@ -13,8 +13,8 @@
       "typeName": "rdbms_table",
       "guid": "-2",
       "attributes": {
-        "qualifiedName": "adef.ACME_CUSTOMER_CURATED.DIM_CUSTOMER",
-        "name": "DIM_CUSTOMER",
+        "qualifiedName": "adef.acme_customer_gold.dim_customer",
+        "name": "dim_customer",
         "description": "Bank customer",
         "comment": "grain: one row per customer version",
         "db": {
@@ -27,8 +27,8 @@
       "typeName": "rdbms_column",
       "guid": "-3",
       "attributes": {
-        "qualifiedName": "adef.ACME_CUSTOMER_CURATED.DIM_CUSTOMER.CUSTOMER_ID",
-        "name": "CUSTOMER_ID",
+        "qualifiedName": "adef.acme_customer_gold.dim_customer.customer_id",
+        "name": "customer_id",
         "data_type": "VARCHAR(20)",
         "isPrimaryKey": true,
         "isNullable": false,
@@ -43,8 +43,8 @@
       "typeName": "rdbms_column",
       "guid": "-4",
       "attributes": {
-        "qualifiedName": "adef.ACME_CUSTOMER_CURATED.DIM_CUSTOMER.SEGMENT",
-        "name": "SEGMENT",
+        "qualifiedName": "adef.acme_customer_gold.dim_customer.segment",
+        "name": "segment",
         "data_type": "VARCHAR(20)",
         "isPrimaryKey": false,
         "isNullable": true,
@@ -59,8 +59,8 @@
       "typeName": "rdbms_column",
       "guid": "-5",
       "attributes": {
-        "qualifiedName": "adef.ACME_CUSTOMER_CURATED.DIM_CUSTOMER.KYC_STATUS",
-        "name": "KYC_STATUS",
+        "qualifiedName": "adef.acme_customer_gold.dim_customer.kyc_status",
+        "name": "kyc_status",
         "data_type": "VARCHAR(10)",
         "isPrimaryKey": false,
         "isNullable": true,
@@ -75,8 +75,8 @@
       "typeName": "rdbms_column",
       "guid": "-6",
       "attributes": {
-        "qualifiedName": "adef.ACME_CUSTOMER_CURATED.DIM_CUSTOMER.FULL_NAME",
-        "name": "FULL_NAME",
+        "qualifiedName": "adef.acme_customer_gold.dim_customer.full_name",
+        "name": "full_name",
         "data_type": "VARCHAR(200)",
         "isPrimaryKey": false,
         "isNullable": true,
@@ -96,8 +96,8 @@
       "typeName": "rdbms_table",
       "guid": "-7",
       "attributes": {
-        "qualifiedName": "adef.ACME_CUSTOMER_CURATED.DIM_PRODUCT",
-        "name": "DIM_PRODUCT",
+        "qualifiedName": "adef.acme_customer_gold.dim_product",
+        "name": "dim_product",
         "description": "Deposit product",
         "comment": "grain: one row per product",
         "db": {
@@ -110,8 +110,8 @@
       "typeName": "rdbms_column",
       "guid": "-8",
       "attributes": {
-        "qualifiedName": "adef.ACME_CUSTOMER_CURATED.DIM_PRODUCT.PRODUCT_CODE",
-        "name": "PRODUCT_CODE",
+        "qualifiedName": "adef.acme_customer_gold.dim_product.product_code",
+        "name": "product_code",
         "data_type": "VARCHAR(10)",
         "isPrimaryKey": true,
         "isNullable": false,
@@ -126,8 +126,8 @@
       "typeName": "rdbms_column",
       "guid": "-9",
       "attributes": {
-        "qualifiedName": "adef.ACME_CUSTOMER_CURATED.DIM_PRODUCT.PRODUCT_NAME",
-        "name": "PRODUCT_NAME",
+        "qualifiedName": "adef.acme_customer_gold.dim_product.product_name",
+        "name": "product_name",
         "data_type": "VARCHAR(100)",
         "isPrimaryKey": false,
         "isNullable": true,
@@ -142,8 +142,8 @@
       "typeName": "rdbms_column",
       "guid": "-10",
       "attributes": {
-        "qualifiedName": "adef.ACME_CUSTOMER_CURATED.DIM_PRODUCT.PRODUCT_TYPE",
-        "name": "PRODUCT_TYPE",
+        "qualifiedName": "adef.acme_customer_gold.dim_product.product_type",
+        "name": "product_type",
         "data_type": "VARCHAR(20)",
         "isPrimaryKey": false,
         "isNullable": true,
@@ -158,8 +158,8 @@
       "typeName": "rdbms_table",
       "guid": "-11",
       "attributes": {
-        "qualifiedName": "adef.ACME_CUSTOMER_CURATED.DIM_ACCOUNT",
-        "name": "DIM_ACCOUNT",
+        "qualifiedName": "adef.acme_customer_gold.dim_account",
+        "name": "dim_account",
         "description": "Deposit account",
         "comment": "grain: one row per account version",
         "db": {
@@ -172,8 +172,8 @@
       "typeName": "rdbms_column",
       "guid": "-12",
       "attributes": {
-        "qualifiedName": "adef.ACME_CUSTOMER_CURATED.DIM_ACCOUNT.ACCOUNT_ID",
-        "name": "ACCOUNT_ID",
+        "qualifiedName": "adef.acme_customer_gold.dim_account.account_id",
+        "name": "account_id",
         "data_type": "VARCHAR(20)",
         "isPrimaryKey": true,
         "isNullable": false,
@@ -188,8 +188,8 @@
       "typeName": "rdbms_column",
       "guid": "-13",
       "attributes": {
-        "qualifiedName": "adef.ACME_CUSTOMER_CURATED.DIM_ACCOUNT.CUSTOMER_ID",
-        "name": "CUSTOMER_ID",
+        "qualifiedName": "adef.acme_customer_gold.dim_account.customer_id",
+        "name": "customer_id",
         "data_type": "VARCHAR(20)",
         "isPrimaryKey": false,
         "isNullable": true,
@@ -204,8 +204,8 @@
       "typeName": "rdbms_column",
       "guid": "-14",
       "attributes": {
-        "qualifiedName": "adef.ACME_CUSTOMER_CURATED.DIM_ACCOUNT.PRODUCT_CODE",
-        "name": "PRODUCT_CODE",
+        "qualifiedName": "adef.acme_customer_gold.dim_account.product_code",
+        "name": "product_code",
         "data_type": "VARCHAR(10)",
         "isPrimaryKey": false,
         "isNullable": true,
@@ -220,8 +220,8 @@
       "typeName": "rdbms_column",
       "guid": "-15",
       "attributes": {
-        "qualifiedName": "adef.ACME_CUSTOMER_CURATED.DIM_ACCOUNT.BRANCH_CODE",
-        "name": "BRANCH_CODE",
+        "qualifiedName": "adef.acme_customer_gold.dim_account.branch_code",
+        "name": "branch_code",
         "data_type": "VARCHAR(8)",
         "isPrimaryKey": false,
         "isNullable": true,
@@ -236,8 +236,8 @@
       "typeName": "rdbms_column",
       "guid": "-16",
       "attributes": {
-        "qualifiedName": "adef.ACME_CUSTOMER_CURATED.DIM_ACCOUNT.STATUS",
-        "name": "STATUS",
+        "qualifiedName": "adef.acme_customer_gold.dim_account.status",
+        "name": "status",
         "data_type": "VARCHAR(10)",
         "isPrimaryKey": false,
         "isNullable": true,
@@ -252,8 +252,8 @@
       "typeName": "rdbms_column",
       "guid": "-17",
       "attributes": {
-        "qualifiedName": "adef.ACME_CUSTOMER_CURATED.DIM_ACCOUNT.CURRENCY",
-        "name": "CURRENCY",
+        "qualifiedName": "adef.acme_customer_gold.dim_account.currency",
+        "name": "currency",
         "data_type": "VARCHAR(3)",
         "isPrimaryKey": false,
         "isNullable": true,
@@ -268,8 +268,8 @@
       "typeName": "rdbms_table",
       "guid": "-18",
       "attributes": {
-        "qualifiedName": "adef.ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE",
-        "name": "FCT_DAILY_BALANCE",
+        "qualifiedName": "adef.acme_customer_gold.fct_daily_balance",
+        "name": "fct_daily_balance",
         "description": "End-of-day deposit balance",
         "comment": "grain: one row per account per business day",
         "db": {
@@ -282,8 +282,8 @@
       "typeName": "rdbms_column",
       "guid": "-19",
       "attributes": {
-        "qualifiedName": "adef.ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.DAILY_BALANCE_ID",
-        "name": "DAILY_BALANCE_ID",
+        "qualifiedName": "adef.acme_customer_gold.fct_daily_balance.daily_balance_id",
+        "name": "daily_balance_id",
         "data_type": "VARCHAR(32)",
         "isPrimaryKey": true,
         "isNullable": false,
@@ -298,8 +298,8 @@
       "typeName": "rdbms_column",
       "guid": "-20",
       "attributes": {
-        "qualifiedName": "adef.ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.ACCOUNT_ID",
-        "name": "ACCOUNT_ID",
+        "qualifiedName": "adef.acme_customer_gold.fct_daily_balance.account_id",
+        "name": "account_id",
         "data_type": "VARCHAR(20)",
         "isPrimaryKey": false,
         "isNullable": true,
@@ -314,8 +314,8 @@
       "typeName": "rdbms_column",
       "guid": "-21",
       "attributes": {
-        "qualifiedName": "adef.ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.BALANCE_DATE",
-        "name": "BALANCE_DATE",
+        "qualifiedName": "adef.acme_customer_gold.fct_daily_balance.balance_date",
+        "name": "balance_date",
         "data_type": "DATE",
         "isPrimaryKey": false,
         "isNullable": true,
@@ -330,8 +330,8 @@
       "typeName": "rdbms_column",
       "guid": "-22",
       "attributes": {
-        "qualifiedName": "adef.ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.LEDGER_BALANCE",
-        "name": "LEDGER_BALANCE",
+        "qualifiedName": "adef.acme_customer_gold.fct_daily_balance.ledger_balance",
+        "name": "ledger_balance",
         "data_type": "DECIMAL(18,2)",
         "isPrimaryKey": false,
         "isNullable": true,
@@ -351,8 +351,8 @@
       "typeName": "rdbms_column",
       "guid": "-23",
       "attributes": {
-        "qualifiedName": "adef.ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE.AVAILABLE_BALANCE",
-        "name": "AVAILABLE_BALANCE",
+        "qualifiedName": "adef.acme_customer_gold.fct_daily_balance.available_balance",
+        "name": "available_balance",
         "data_type": "DECIMAL(18,2)",
         "isPrimaryKey": false,
         "isNullable": true,

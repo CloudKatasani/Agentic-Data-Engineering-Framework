@@ -21,7 +21,7 @@ def test_generator_is_deterministic_and_complete(tmp_path):
     assert m1 == m2
     for pack in SCENARIOS:
         folders = {k.split("/")[1] for k in m1 if k.startswith(pack + "/") and k.count("/") >= 2}
-        assert folders - {"client-demo-kit"} == {"jira", "source-metadata", "source-data", "model", "catalog", "lineage"}
+        assert folders - {"client-demo-kit", "source-database"} == {"jira", "source-metadata", "source-data", "model", "catalog", "lineage"}
 
 
 def test_committed_demo_data_is_current():
@@ -30,6 +30,9 @@ def test_committed_demo_data_is_current():
     manifest = json.loads((DEMO_DATA_DIR / "manifest.json").read_text())
     expected = {f"{p}/{r}": c for p in SCENARIOS for r, c in build_pack(p).items()}
     expected.update({f"{p}/client-demo-kit/{r}": c for p in KITS for r, c in build_kit(p).items()})
+    from adef.sources import ddl, inserts
+    expected.update({f"{p}/source-database/{d}/{n}": f(p, d) for p in SCENARIOS for d in ("oracle", "db2")
+                     for n, f in (("01-schema.sql", ddl), ("02-data.sql", inserts))})
     for key, content in expected.items():
         assert manifest[key]["sha256"] == sha256_text(content), f"regenerate demo-data: {key}"
         assert (DEMO_DATA_DIR / key).read_bytes() == content.encode(), f"regenerate demo-data: {key}"

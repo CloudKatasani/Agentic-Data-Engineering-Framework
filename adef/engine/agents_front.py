@@ -421,12 +421,16 @@ def design(ctx: StageCtx) -> StageOutput:
     lm += ["## Metrics", "", md_table(["Metric", "Definition", "Rule"], [[m["label"], m["definition"], m.get("business_rule") or ""] for m in model["metrics"]])]
     ctx.write("03-design/logical/logical-data-model.md", "\n".join(lm) + "\n")
     srcs = sorted({m["source"].rsplit(".", 1)[0] for m in mp["mappings"] if m["source"].count(".") >= 2})
-    flow = ["# Logical data flow", "", "| Step | From | To | Trigger | Latency |", "|---|---|---|---|---|",
-            f"| 1 Land | {', '.join(srcs)} | raw layer (as received) | source extract available | daily |",
-            "| 2 Conform | raw | conformed layer (typed, deduplicated, keyed) | after landing | daily |",
-            "| 3 Curate | conformed | " + ", ".join(e["name"] for e in model["entities"]) + " | after conform | daily |",
-            "| 4 Serve | curated | data product output port + semantic model | after quality checks pass | daily |", "",
-            "Quality rules run after steps 2 and 3; a critical failure stops promotion to step 4."]
+    flow = ["# Logical data flow (medallion)", "", "| Step | From | To | Trigger | Latency |", "|---|---|---|---|---|",
+            f"| 1 Ingest | source systems: {', '.join(srcs)} | bronze: as received, every batch kept, change watermark | "
+            "source change window | daily, incremental |",
+            "| 2a Conform | bronze | silver: typed, trimmed, de-duplicated on the business key (latest change wins) | "
+            "after ingest | daily |",
+            "| 2b Curate | silver | gold: " + ", ".join(e["name"] for e in model["entities"]) + " | after conform | daily |",
+            "| 3 Serve | gold | analytics layer: data product output port, masked consumer views, semantic model | "
+            "after quality checks pass | daily |", "",
+            "Bronze, silver and gold are stored in an open table format so any engine can read them. Quality rules run "
+            "after steps 2a and 2b; a critical failure stops step 3."]
     ctx.write("03-design/logical/data-flow.md", "\n".join(flow) + "\n")
     ctx.write("03-design/logical/data-contract.yaml", export_odcs(model, {"run_id": ws.run_id, "dq_rules": dq,
                                                                           "approvers": run.get("approvers")}))
@@ -464,6 +468,11 @@ def design(ctx: StageCtx) -> StageOutput:
           "", "## Pipelines", "", f"- Orchestration: `{stacks.tool(prof, 'orchestration')}`, daily 03:00 UTC, max one active run.",
           f"- Transformation: `{stacks.tool(prof, 'transformation')}`; quality: `{stacks.tool(prof, 'data_quality')}`.",
           f"- CI/CD: `{stacks.tool(prof, 'cicd')}`; deploy only by pipeline identity after G6.", "",
+          "## The three pipelines", "",
+          md_table(["#", "Pipeline", "From", "To", "Runs on"], [[h["pipeline"], h["name"], h["from"], h["to"], h["tool"]]
+                                                                for h in stacks.pipeline_summary(prof)]),
+          "", "Ingestion is incremental on the source `LAST_UPDATED_TS` watermark; every step is idempotent "
+          "(per-batch partition overwrite, MERGE on business keys).", "",
           "## Rollback", "", "Per-object: restore previous table version (time travel / backup clone) and redeploy the previous "
           "tagged commit. Rehearsed in Release before G6b.", "", "## DDL", "", "See `ddl.sql`."]
     ctx.write("03-design/physical/physical-design.md", "\n".join(pd) + "\n")

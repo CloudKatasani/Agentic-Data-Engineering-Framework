@@ -1,12 +1,12 @@
 [
   {
     "entityType": "dataset",
-    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:fabric,acme_customer_curated.dim_customer,PROD)",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:fabric,acme_customer_gold.dim_customer,PROD)",
     "changeType": "UPSERT",
     "aspectName": "datasetProperties",
     "aspect": {
       "json": {
-        "name": "DIM_CUSTOMER",
+        "name": "dim_customer",
         "description": "Bank customer",
         "customProperties": {
           "grain": "one row per customer version",
@@ -18,12 +18,12 @@
   },
   {
     "entityType": "dataset",
-    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:fabric,acme_customer_curated.dim_customer,PROD)",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:fabric,acme_customer_gold.dim_customer,PROD)",
     "changeType": "UPSERT",
     "aspectName": "schemaMetadata",
     "aspect": {
       "json": {
-        "schemaName": "acme_customer_curated.dim_customer",
+        "schemaName": "acme_customer_gold.dim_customer",
         "platform": "urn:li:dataPlatform:fabric",
         "version": 0,
         "hash": "",
@@ -94,12 +94,12 @@
   },
   {
     "entityType": "dataset",
-    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:fabric,acme_customer_curated.dim_product,PROD)",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:fabric,acme_customer_gold.dim_product,PROD)",
     "changeType": "UPSERT",
     "aspectName": "datasetProperties",
     "aspect": {
       "json": {
-        "name": "DIM_PRODUCT",
+        "name": "dim_product",
         "description": "Deposit product",
         "customProperties": {
           "grain": "one row per product",
@@ -111,12 +111,12 @@
   },
   {
     "entityType": "dataset",
-    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:fabric,acme_customer_curated.dim_product,PROD)",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:fabric,acme_customer_gold.dim_product,PROD)",
     "changeType": "UPSERT",
     "aspectName": "schemaMetadata",
     "aspect": {
       "json": {
-        "schemaName": "acme_customer_curated.dim_product",
+        "schemaName": "acme_customer_gold.dim_product",
         "platform": "urn:li:dataPlatform:fabric",
         "version": 0,
         "hash": "",
@@ -168,12 +168,12 @@
   },
   {
     "entityType": "dataset",
-    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:fabric,acme_customer_curated.dim_account,PROD)",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:fabric,acme_customer_gold.dim_account,PROD)",
     "changeType": "UPSERT",
     "aspectName": "datasetProperties",
     "aspect": {
       "json": {
-        "name": "DIM_ACCOUNT",
+        "name": "dim_account",
         "description": "Deposit account",
         "customProperties": {
           "grain": "one row per account version",
@@ -185,12 +185,12 @@
   },
   {
     "entityType": "dataset",
-    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:fabric,acme_customer_curated.dim_account,PROD)",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:fabric,acme_customer_gold.dim_account,PROD)",
     "changeType": "UPSERT",
     "aspectName": "schemaMetadata",
     "aspect": {
       "json": {
-        "schemaName": "acme_customer_curated.dim_account",
+        "schemaName": "acme_customer_gold.dim_account",
         "platform": "urn:li:dataPlatform:fabric",
         "version": 0,
         "hash": "",
@@ -278,12 +278,12 @@
   },
   {
     "entityType": "dataset",
-    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:fabric,acme_customer_curated.fct_daily_balance,PROD)",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:fabric,acme_customer_gold.fct_daily_balance,PROD)",
     "changeType": "UPSERT",
     "aspectName": "datasetProperties",
     "aspect": {
       "json": {
-        "name": "FCT_DAILY_BALANCE",
+        "name": "fct_daily_balance",
         "description": "End-of-day deposit balance",
         "customProperties": {
           "grain": "one row per account per business day",
@@ -295,12 +295,12 @@
   },
   {
     "entityType": "dataset",
-    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:fabric,acme_customer_curated.fct_daily_balance,PROD)",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:fabric,acme_customer_gold.fct_daily_balance,PROD)",
     "changeType": "UPSERT",
     "aspectName": "schemaMetadata",
     "aspect": {
       "json": {
-        "schemaName": "acme_customer_curated.fct_daily_balance",
+        "schemaName": "acme_customer_gold.fct_daily_balance",
         "platform": "urn:li:dataPlatform:fabric",
         "version": 0,
         "hash": "",

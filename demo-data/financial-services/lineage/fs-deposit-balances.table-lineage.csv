@@ -1,5 +1,5 @@
 source_table,staging_object,target_table
-cbs.account,stg_cbs__account,ACME_CUSTOMER_CURATED.DIM_ACCOUNT
-cbs.customer,stg_cbs__customer,ACME_CUSTOMER_CURATED.DIM_CUSTOMER
-cbs.daily_balance,stg_cbs__daily_balance,ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE
-cbs.product,stg_cbs__product,ACME_CUSTOMER_CURATED.DIM_PRODUCT
+cbs.account,stg_cbs__account,acme_customer_gold.dim_account
+cbs.customer,stg_cbs__customer,acme_customer_gold.dim_customer
+cbs.daily_balance,stg_cbs__daily_balance,acme_customer_gold.fct_daily_balance
+cbs.product,stg_cbs__product,acme_customer_gold.dim_product

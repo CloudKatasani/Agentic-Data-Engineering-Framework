@@ -9,7 +9,7 @@ description:
   purpose: Deposit balances and average daily balance data product
 schema:
 - name: customer
-  physicalName: DIM_CUSTOMER
+  physicalName: dim_customer
   logicalType: object
   description: Bank customer
   dataGranularityDescription: one row per customer version
@@ -43,7 +43,7 @@ schema:
     classification: restricted
     description: Customer name (masked)
 - name: product
-  physicalName: DIM_PRODUCT
+  physicalName: dim_product
   logicalType: object
   description: Deposit product
   dataGranularityDescription: one row per product
@@ -70,7 +70,7 @@ schema:
     classification: internal
     description: Current, savings or term
 - name: account
-  physicalName: DIM_ACCOUNT
+  physicalName: dim_account
   logicalType: object
   description: Deposit account
   dataGranularityDescription: one row per account version
@@ -118,7 +118,7 @@ schema:
     classification: internal
     description: ISO currency
 - name: daily_balance
-  physicalName: FCT_DAILY_BALANCE
+  physicalName: fct_daily_balance
   logicalType: object
   description: End-of-day deposit balance
   dataGranularityDescription: one row per account per business day

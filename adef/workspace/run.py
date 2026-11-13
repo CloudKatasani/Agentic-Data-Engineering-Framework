@@ -128,7 +128,7 @@ class RunWorkspace:
         for p in sorted(self.root.rglob("*")):
             if p.is_file() and not p.name.endswith((".lock", ".tmp")):
                 rel = str(p.relative_to(self.root))
-                if rel.startswith(("repo/", "sandbox/")):
+                if rel.startswith(("repo/", "sandbox/", "lakehouse/")):
                     continue
                 out.append({"path": rel, "size": p.stat().st_size, "sha256": sha256_bytes(p.read_bytes())})
         return out

@@ -59,6 +59,9 @@ VALUES = {
     "category": ["Grocery", "Home", "Beauty", "Electronics", "Apparel"],
     "brand": ["Northwind", "Contoso", "Fabrikam", "Tailspin", "Adatum", "Litware"],
     "loyalty_tier": ["NONE", "BRONZE", "BRONZE", "SILVER", "GOLD"], "return_flag": ["N"] * 19 + ["Y"],
+    "preferred_language": ["en", "en", "en", "es", "fr"], "created_by": ["crm_batch", "web_portal", "store_pos"],
+    "sales_channel": ["RETAIL", "ONLINE", "ONLINE", "TELESALES"], "contract_term_months": [12, 24, 24, 36],
+    "win_back_offer_code": ["WB-10OFF", "WB-DATA2X", "WB-NONE"],
 }
 # rows per table: int, or (parent table, children per parent) or (parent table, "days", n)
 SIZES = {
@@ -82,11 +85,11 @@ def _csv(header, rows) -> str:
 
 # ----------------------------------------------------------------------------- synthetic source data
 class SourceData:
-    def __init__(self, pack: str, seed: int = SEED):
+    def __init__(self, pack: str, seed: int = SEED, sources: list[dict] | None = None):
         self.sc = SCENARIOS[pack]
         self.pack = pack
         self.rng = random.Random(f"{seed}-{pack}")
-        self.tables = {s["table"]: s for s in self.sc["sources"]}
+        self.tables = {s["table"]: s for s in (sources or self.sc["sources"])}
         self.pk_owner = {}
         # base tables (fixed size) own their key; child tables that share the key name do not
         for t, s in sorted(self.tables.items(), key=lambda kv: not isinstance(SIZES.get(kv[0], 20), int)):
@@ -128,7 +131,7 @@ class SourceData:
         first, last = self._person(i)
         if n in ("customer_name", "full_name"):
             return f"{first} {last}"
-        if n == "email":
+        if n in ("email", "email_address"):
             return f"{first.lower()}.{last.lower()}{i}@example.com"
         if n == "msisdn":
             return f"+1555{r.randint(1000000, 9999999)}"
@@ -460,6 +463,15 @@ def generate(out: Path) -> dict:
             p.parent.mkdir(parents=True, exist_ok=True)
             p.write_text(content)
             manifest[f"{pack}/client-demo-kit/{rel}"] = {"bytes": len(content.encode()), "sha256": sha256_text(content)}
+    from .sources import ddl, inserts
+    for pack in SCENARIOS:
+        for dialect in ("oracle", "db2"):
+            for name, content in (("01-schema.sql", ddl(pack, dialect)), ("02-data.sql", inserts(pack, dialect))):
+                p = out / pack / "source-database" / dialect / name
+                p.parent.mkdir(parents=True, exist_ok=True)
+                p.write_text(content)
+                manifest[f"{pack}/source-database/{dialect}/{name}"] = {"bytes": len(content.encode()),
+                                                                          "sha256": sha256_text(content)}
     (out / "manifest.json").write_text(dump_json(manifest))
     (out / "README.md").write_text(
         "# ADEF demo data packs\n\nSynthetic, deterministic demo files for each Domain Pack. Regenerate with:\n\n"

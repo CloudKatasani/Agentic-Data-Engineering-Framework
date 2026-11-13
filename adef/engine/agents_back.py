@@ -20,9 +20,56 @@ from .context import StageCtx, StageOutput
 from .gitrepo import Repo
 from .sandbox import Sandbox, tname
 
-SIM_NOTE = ("> Target platform: **simulated** - this environment has no connection to the client platform, so promotion "
-            "is executed against the ADEF sandbox and recorded as such. With a platform connection the same step calls "
-            "the bound CI/CD pipeline identity.")
+SIM_NOTE = ("> Target platform: **simulated** - this environment has no connection to the client cloud, so promotion "
+            "is recorded against the ADEF sandbox. The same three pipelines were executed end to end on the synthetic "
+            "source during Test (`05-test/rehearsal/`). With a platform connection this step calls the bound CI/CD "
+            "pipeline identity.")
+
+
+LOCAL_NOTE = ("> Target platform: **local lakehouse** - the three pipelines really execute on this machine: source "
+              "database -> bronze -> silver -> gold (open table format) -> DuckDB analytics database.")
+
+
+def _source_cfg(ws) -> dict:
+    return ws.run.get("source_connection") or {"type": "sqlite-local", "pack": ws.run["domain_pack"]}
+
+
+def run_lakehouse(ws, env: str, log=None) -> dict:
+    """Execute the three pipelines locally for this run (rehearsal, test or prod environment)."""
+    from ..lakehouse.runner import LocalLakehouse
+    fmt = stacks.tool(ws.stack, "table_format")
+    lh = LocalLakehouse(ws.root / "lakehouse", env, _model(ws), _mapping(ws), _source_cfg(ws), fmt, ws.stack,
+                        log=log or (lambda t: None))
+    return lh.run_all()
+
+
+def lakehouse_md(rep: dict, title: str) -> str:
+    def rows(layer):
+        return [[x["table"], x.get("rows", x.get("rows_extracted")), x.get("format", ""), str(x.get("version", ""))]
+                for x in rep["layers"][layer]]
+    p = rep["pipelines"]
+    out = [f"# {title}", "", f"Status: **{rep['status']}** | format `{rep['format']}` | source `{rep['source'].get('type')}` | "
+           f"{rep.get('started')} -> {rep.get('finished')}", "",
+           "| Pipeline | Result | Seconds |", "|---|---|---|",
+           f"| 1 Ingest (source -> bronze) | {p['ingest']['tables']} tables, batch `{p['ingest']['batch_id']}`"
+           f"{', missing: ' + ', '.join(p['ingest']['missing_sources']) if p['ingest']['missing_sources'] else ''} | {p['ingest']['seconds']} |",
+           f"| 2 Curate (bronze -> silver -> gold) | {p['curate']['silver_tables']} silver, {p['curate']['gold_tables']} gold"
+           f"{', ERRORS: ' + '; '.join(e['table'] + ': ' + e['error'] for e in p['curate']['errors']) if p['curate']['errors'] else ''} | {p['curate']['seconds']} |"]
+    if "publish" in p:
+        out.append(f"| 3 Publish (gold -> analytics) | {p['publish']['tables']} serving tables | {p['publish']['seconds']} |")
+    out += ["", "## Bronze", "", md_table(["Table", "Rows", "Format", "Version / snapshot"], rows("bronze")),
+            "", "## Silver", "", md_table(["Table", "Rows", "Format", "Version / snapshot"], rows("silver")),
+            "", "## Gold (built by the generated SQL)", "", md_table(["Table", "Rows", "Format", "Version / snapshot"], rows("gold")),
+            "", "## Serving (analytics layer)", "",
+            md_table(["Table", "Consumer view", "Rows", "Masked"],
+                     [[x["table"], x["consumer_view"], x["rows"], ", ".join(x["masked_columns"]) or "-"] for x in rep["layers"]["serving"]]),
+            "", "## Quality rules on real data", "",
+            md_table(["Rule", "Status", "Failures", "Rows"], [[d["id"], d["status"], d.get("failures", ""), d.get("rows", "")]
+                                                              for d in rep.get("dq", [])]),
+            "", "## Metric reconciliation (gold vs serving)", "",
+            md_table(["Metric", "Gold", "Serving", "Status"], [[m.get("label"), m.get("gold"), m.get("serving"), m["status"]]
+                                                               for m in rep.get("metrics", [])])]
+    return "\n".join(out) + "\n"
 
 
 def _model(ws):
@@ -49,7 +96,7 @@ def build(ctx: StageCtx) -> StageOutput:
     model, mp = _model(ws), _mapping(ws)
     guard = ActionGuard(ws)
     gen = CodeGen(model, mp["mappings"], mp.get("dq_rules", []), prof, ws.run_id,
-                  entity_filters=mp.get("entity_filters") or {})
+                  entity_filters=mp.get("entity_filters") or {}, sources=mp.get("sources") or [])
     out = gen.generate()
     files = out["files"]
     # local checks before anything leaves the sandbox
@@ -197,6 +244,32 @@ def test(ctx: StageCtx) -> StageOutput:
                 missing.append(f"{e['name']}.{a}")
         tc("requirement-coverage", f"{r['id']} attributes present and populated", [r["id"]], "fail" if missing else "pass",
            f"{len(attrs)} attributes; empty: {missing or 'none'}")
+    # End-to-end rehearsal: run the three pipelines for real on the synthetic source database
+    rehearsal, findings, rehearsal_note = None, [], ""
+    try:
+        rehearsal = run_lakehouse(ws, "rehearsal", ctx.log)
+    except Exception as ex:  # noqa: BLE001 - a missing source must not hide the rest of the evidence
+        rehearsal_note = f"Rehearsal not executed: {type(ex).__name__}: {ex}"
+    if rehearsal:
+        ing, cur = rehearsal["pipelines"]["ingest"], rehearsal["pipelines"]["curate"]
+        if ing["missing_sources"]:
+            rehearsal_note = f"Source tables not in the source database: {', '.join(ing['missing_sources'])}"
+        tc("e2e-pipeline", "Pipeline 1: extract every mapped source table into bronze", [],
+           "pass" if ing["tables"] and not ing["missing_sources"] else "fail",
+           f"{ing['tables']} tables, batch {ing['batch_id']}, format {rehearsal['format']}")
+        tc("e2e-pipeline", "Pipeline 2: generated gold SQL builds every entity from silver", [],
+           "pass" if not cur["errors"] else "fail",
+           f"{cur['gold_tables']} gold tables" + (f"; errors: {cur['errors']}" if cur["errors"] else ""))
+        if "publish" in rehearsal["pipelines"]:
+            tc("e2e-pipeline", "Pipeline 3: gold published to the analytics layer with masked views", [],
+               "pass" if rehearsal["layers"]["serving"] else "fail",
+               f"{len(rehearsal['layers']['serving'])} serving tables")
+        for m_ in rehearsal.get("metrics", []):
+            tc("e2e-metric", f"{m_.get('label')}: gold (lake) vs serving (analytics) on real data", recon_reqs[:2],
+               m_["status"], f"gold={m_.get('gold')} serving={m_.get('serving')}")
+        findings = [d for d in rehearsal.get("dq", []) if d.get("status") == "fail"]
+        ctx.write("05-test/rehearsal/lakehouse-report.json", json.dumps(rehearsal, indent=2, default=str))
+        ctx.write("05-test/rehearsal/lakehouse-report.md", lakehouse_md(rehearsal, "End-to-end rehearsal - three pipelines on the synthetic source"))
     covered = {q for t in tcs if t["status"] == "pass" for q in t["requirements"]}
     untested = [r["id"] for r in reqs["requirements"] if r["id"] not in covered]
     failed = [t for t in tcs if t["status"] != "pass"]
@@ -211,7 +284,10 @@ def test(ctx: StageCtx) -> StageOutput:
                                                  "yes" if r["id"] in covered else "NO"] for r in reqs["requirements"]]),
             "", "## Approach", "", "- Every quality rule executed; each rule also proven sensitive by a seeded defect (mutation check).",
             "- Each governed metric computed by two independent paths and reconciled.", "- Run-twice idempotency per table.",
-            "- Restricted attributes verified masked in the consumer view.", "", "## Exclusions", "",
+            "- Restricted attributes verified masked in the consumer view.",
+            "- End-to-end rehearsal: the three pipelines executed for real against the synthetic source database "
+            "(source -> bronze -> silver -> gold -> analytics), see `05-test/rehearsal/`." if rehearsal else f"- {rehearsal_note}",
+            "", "## Exclusions", "",
             "- Platform performance (NFR timings) - measured in shared environment after G6a.",
             f"- Untested requirements: {', '.join(untested) or 'none'}"]
     narrative = _narrative(ctx, "Given these test results, write a short risk assessment for release readiness: residual risks, "
@@ -226,25 +302,37 @@ def test(ctx: StageCtx) -> StageOutput:
               f"client data is used.\n\nRow counts: {results['row_counts']}\n")
     defects = [[f"DEF-{i:03d}", t["id"], "high" if t["kind"] in ("quality-rule", "metric-reconciliation") else "medium",
                 t["title"], ", ".join(t["requirements"]), "open"] for i, t in enumerate(failed, start=1)]
+    sev = {r["id"]: r.get("severity", "medium") for r in dq}
     ctx.write("05-test/defects.md", "# Defects\n\n" + (md_table(["ID", "Test", "Severity", "Title", "Violated", "Status"], defects)
-                                                       if defects else "No defects found.") + "\n")
+                                                       if defects else "No code defects found.") + "\n\n## Source data findings\n\n"
+              + ("Quality rules that failed on the source data during the rehearsal. These are data issues for the Data "
+                 "Steward, not code defects: the rules worked as designed.\n\n" + md_table(
+                     ["Rule", "Severity", "Failing rows", "Rows checked", "Owner"],
+                     [[d["id"], sev.get(d["id"], ""), d.get("failures"), d.get("rows"), "Data Steward"] for d in findings])
+                 if findings else "None.") + "\n")
     checklist = [["All quality rules executed", "yes", rpath], ["Each rule fails on a seeded defect",
                   "yes" if all(m_.get("detected") for m_ in mutations) else "NO", rpath],
                  ["Metrics reconcile across paths", "yes" if all(t["status"] == "pass" for t in tcs if t["kind"] == "metric-reconciliation") else "NO", rpath],
                  ["Loads idempotent", "yes" if all(t["status"] == "pass" for t in tcs if t["kind"] == "idempotency") else "NO", rpath],
                  ["Restricted data masked", "yes" if all(t["status"] == "pass" for t in tcs if t["kind"] == "access-masking") else "NO", rpath],
                  ["Every requirement has a passing test", "yes" if not untested else f"NO ({', '.join(untested)})", "05-test/test-plan.md"],
-                 ["Tested commit recorded", merge[:12], rpath]]
+                 ["Tested commit recorded", merge[:12], rpath],
+                 ["Three pipelines rehearsed end to end on real data",
+                  ("yes" if rehearsal and not rehearsal["pipelines"]["curate"]["errors"] else "NO") if rehearsal else f"not executed ({rehearsal_note})",
+                  "05-test/rehearsal/lakehouse-report.md" if rehearsal else "-"],
+                 ["Source data findings for the Data Steward", str(len(findings)), "05-test/defects.md"]]
     ctx.write("05-test/evidence-pack.md", f"# Evidence pack - release readiness\n\nTested commit: `{merge}`\n\n"
               + md_table(["Exit criterion", "Met", "Evidence"], checklist) + f"\n\n**Result:** {results['summary']['pass']}/"
               f"{results['summary']['total']} test cases pass.\n\nReproduce: every test case records the exact SQL it executed in "
               "the results file; re-run it against the sandbox or the bound engine.\n")
     return StageOutput(
-        artifacts=["05-test/evidence-pack.md", rpath, "05-test/test-plan.md", "05-test/defects.md", "05-test/test-data/README.md"],
+        artifacts=["05-test/evidence-pack.md", rpath, "05-test/test-plan.md", "05-test/defects.md", "05-test/test-data/README.md"]
+        + (["05-test/rehearsal/lakehouse-report.md", "05-test/rehearsal/lakehouse-report.json"] if rehearsal else []),
         summary=f"{len(tcs)} test cases on merge commit {merge[:10]}: {len(tcs) - len(failed)} pass, {len(failed)} fail; "
                 f"{len(untested)} requirements untested. Requesting G5.",
         requirement_ids=[r["id"] for r in reqs["requirements"]],
-        gate_meta={"risk": f"{len(failed)} failing tests; untested: {', '.join(untested) or 'none'}.",
+        gate_meta={"risk": f"{len(failed)} failing tests; untested: {', '.join(untested) or 'none'}; "
+                           f"{len(findings)} source data findings for the Data Steward.",
                    "cost": "Sandbox only.", "rollback": "Reject to return defects to Build.",
                    "options": ["Approve release readiness", "Reject and return defects to Build"]},
         evidence=[rpath, "05-test/evidence-pack.md"], inputs_used=["04-build/merge-record.yaml", "03-design/logical/logical-model.json"],
@@ -272,7 +360,8 @@ def release(ctx: StageCtx) -> StageOutput:
     sb.build()
     rb = [sb.rollback_rehearsal(e) for e in model["entities"]]
     objects = ws.read_yaml("04-build/build-manifest.yaml")["objects"]
-    ctx.write("06-release/REL-001-plan.md", f"# REL-001 release plan\n\n{SIM_NOTE}\n\n- Scope: {', '.join(objects)}\n"
+    note = LOCAL_NOTE if stacks.is_local(ws.stack) else SIM_NOTE
+    ctx.write("06-release/REL-001-plan.md", f"# REL-001 release plan\n\n{note}\n\n- Scope: {', '.join(objects)}\n"
               f"- Commit: `{deploy}` (equals tested commit: {hash_ok})\n- Steps: G6a deploy to `test` via pipeline -> verify -> "
               "rehearse rollback -> G6b deploy to `prod` -> verify -> hand to Operations\n- Window: next standard change window\n"
               "- Impact: new objects only; no existing consumer affected\n- Communication: consumers notified after G8 only\n")
@@ -309,11 +398,22 @@ def _verify(ws, env: str) -> str:
                        [[f"{r['id']} smoke", r["status"]] for r in res]) + "\n")
 
 
+def _deploy(ws, env: str, log) -> str:
+    """Local stacks really run the pipelines into the environment; cloud stacks record a simulated promotion."""
+    if stacks.is_local(ws.stack):
+        rep = run_lakehouse(ws, env, log)
+        ws.write("adef-release-deploy", f"06-release/lakehouse-{env}.json", json.dumps(rep, indent=2, default=str))
+        md = lakehouse_md(rep, f"REL-001 verification - {env} (real execution)")
+        log(f"deployed REL-001 to {env}: pipelines executed, status {rep['status']}")
+        return md.replace("\n\nStatus:", f"\n\n{LOCAL_NOTE}\n\nDeployed commit `{Repo(ws.root / 'repo').head('main')[:12]}`.\n\nStatus:", 1)
+    log(f"deployed REL-001 to {env} (simulated) and verified")
+    return _verify(ws, env)
+
+
 def after_g6a(ws, log) -> list[str]:
     guard = ActionGuard(ws)
-    guard.execute("adef-release-deploy", "deploy_shared", "test", lambda: "pipeline-deploy:test")
-    ws.write("adef-release-deploy", "06-release/REL-001-verification-test.md", _verify(ws, "test"))
-    log("deployed REL-001 to test (simulated) and verified")
+    md = guard.execute("adef-release-deploy", "deploy_shared", "test", lambda: _deploy(ws, "test", log))
+    ws.write("adef-release-deploy", "06-release/REL-001-verification-test.md", md)
     return ["06-release/REL-001-plan.md", "06-release/REL-001-rollback.md", "06-release/REL-001-prechecks.md",
             "06-release/REL-001-verification-test.md"]
 
@@ -321,10 +421,9 @@ def after_g6a(ws, log) -> list[str]:
 def after_g6b(ws, log, approval_ids: list[str]) -> None:
     guard = ActionGuard(ws)
     Repo(ws.root / "repo").tag("REL-001", "main")
-    guard.execute("adef-release-deploy", "deploy_production", "prod", lambda: "pipeline-deploy:prod",
-                  per_action_approval_id=",".join(approval_ids))
-    ws.write("adef-release-deploy", "06-release/REL-001-verification-prod.md", _verify(ws, "prod"))
-    log("deployed REL-001 to production (simulated) and verified")
+    md = guard.execute("adef-release-deploy", "deploy_production", "prod", lambda: _deploy(ws, "prod", log),
+                       per_action_approval_id=",".join(approval_ids))
+    ws.write("adef-release-deploy", "06-release/REL-001-verification-prod.md", md)
 
 
 # =========================================================================== 7 OPERATIONS

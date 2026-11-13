@@ -1,27 +1,27 @@
 key_table,key_column,title,description,classification,business_rule
-ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT,,Customer Account,Billing account of a customer,,
-ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT,CUSTOMER_ACCOUNT_ID,Customer Account Id,Business key of the account,Internal,
-ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT,ACCOUNT_STATUS,Account Status,"A=active, I=inactive, C=closed",Internal,
-ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT,RATE_CLASS,Rate Class,Tariff rate class,Internal,
-ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT,CUSTOMER_NAME,Customer Name,Account holder name (masked for consumers),Restricted,
-ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT,OPEN_DATE,Open Date,Account open date,Internal,
-ACME_CUSTOMER_CURATED.DIM_PREMISE,,Premise,Service location,,
-ACME_CUSTOMER_CURATED.DIM_PREMISE,PREMISE_ID,Premise Id,Business key of the premise,Internal,
-ACME_CUSTOMER_CURATED.DIM_PREMISE,CUSTOMER_ACCOUNT_ID,Customer Account Id,Owning account,Internal,
-ACME_CUSTOMER_CURATED.DIM_PREMISE,PREMISE_TYPE,Premise Type,"Residential, commercial, industrial",Internal,
-ACME_CUSTOMER_CURATED.DIM_PREMISE,REGION_CODE,Region Code,Operating region,Internal,
-ACME_CUSTOMER_CURATED.DIM_METER,,Meter,Installed meter,,
-ACME_CUSTOMER_CURATED.DIM_METER,METER_ID,Meter Id,Business key of the meter,Internal,
-ACME_CUSTOMER_CURATED.DIM_METER,PREMISE_ID,Premise Id,Premise where installed,Internal,
-ACME_CUSTOMER_CURATED.DIM_METER,METER_TYPE,Meter Type,AMI or legacy,Internal,
-ACME_CUSTOMER_CURATED.DIM_METER,INSTALL_DATE,Install Date,Installation date,Internal,
-ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,,Billed Consumption,Billed versus metered consumption per bill,,
-ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,BILL_ID,Bill Id,Business key of the bill,Internal,
-ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,CUSTOMER_ACCOUNT_ID,Customer Account Id,Billed account,Internal,
-ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,BILL_PERIOD_START,Bill Period Start,First day of bill period,Internal,
-ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,BILL_PERIOD_END,Bill Period End,Last day of bill period,Internal,
-ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,BILLED_KWH,Billed Kwh,kWh on the bill,Internal,BR-003
-ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,METERED_KWH,Metered Kwh,Metered kWh in the bill period,Internal,BR-001
-ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,ESTIMATED_READ_SHARE,Estimated Read Share,Share of estimated reads,Internal,BR-002
-ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,VARIANCE_KWH,Variance Kwh,Billed minus metered kWh,Internal,BR-004
-ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION,AMOUNT_DUE,Amount Due,Amount billed,Internal,
+ACME_CUSTOMER_GOLD.DIM_CUSTOMER_ACCOUNT,,Customer Account,Billing account of a customer,,
+ACME_CUSTOMER_GOLD.DIM_CUSTOMER_ACCOUNT,CUSTOMER_ACCOUNT_ID,Customer Account Id,Business key of the account,Internal,
+ACME_CUSTOMER_GOLD.DIM_CUSTOMER_ACCOUNT,ACCOUNT_STATUS,Account Status,"A=active, I=inactive, C=closed",Internal,
+ACME_CUSTOMER_GOLD.DIM_CUSTOMER_ACCOUNT,RATE_CLASS,Rate Class,Tariff rate class,Internal,
+ACME_CUSTOMER_GOLD.DIM_CUSTOMER_ACCOUNT,CUSTOMER_NAME,Customer Name,Account holder name (masked for consumers),Restricted,
+ACME_CUSTOMER_GOLD.DIM_CUSTOMER_ACCOUNT,OPEN_DATE,Open Date,Account open date,Internal,
+ACME_CUSTOMER_GOLD.DIM_PREMISE,,Premise,Service location,,
+ACME_CUSTOMER_GOLD.DIM_PREMISE,PREMISE_ID,Premise Id,Business key of the premise,Internal,
+ACME_CUSTOMER_GOLD.DIM_PREMISE,CUSTOMER_ACCOUNT_ID,Customer Account Id,Owning account,Internal,
+ACME_CUSTOMER_GOLD.DIM_PREMISE,PREMISE_TYPE,Premise Type,"Residential, commercial, industrial",Internal,
+ACME_CUSTOMER_GOLD.DIM_PREMISE,REGION_CODE,Region Code,Operating region,Internal,
+ACME_CUSTOMER_GOLD.DIM_METER,,Meter,Installed meter,,
+ACME_CUSTOMER_GOLD.DIM_METER,METER_ID,Meter Id,Business key of the meter,Internal,
+ACME_CUSTOMER_GOLD.DIM_METER,PREMISE_ID,Premise Id,Premise where installed,Internal,
+ACME_CUSTOMER_GOLD.DIM_METER,METER_TYPE,Meter Type,AMI or legacy,Internal,
+ACME_CUSTOMER_GOLD.DIM_METER,INSTALL_DATE,Install Date,Installation date,Internal,
+ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION,,Billed Consumption,Billed versus metered consumption per bill,,
+ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION,BILL_ID,Bill Id,Business key of the bill,Internal,
+ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION,CUSTOMER_ACCOUNT_ID,Customer Account Id,Billed account,Internal,
+ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION,BILL_PERIOD_START,Bill Period Start,First day of bill period,Internal,
+ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION,BILL_PERIOD_END,Bill Period End,Last day of bill period,Internal,
+ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION,BILLED_KWH,Billed Kwh,kWh on the bill,Internal,BR-003
+ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION,METERED_KWH,Metered Kwh,Metered kWh in the bill period,Internal,BR-001
+ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION,ESTIMATED_READ_SHARE,Estimated Read Share,Share of estimated reads,Internal,BR-002
+ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION,VARIANCE_KWH,Variance Kwh,Billed minus metered kWh,Internal,BR-004
+ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION,AMOUNT_DUE,Amount Due,Amount billed,Internal,

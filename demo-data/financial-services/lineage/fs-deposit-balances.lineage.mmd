@@ -5,11 +5,11 @@ flowchart LR
     n2["cbs.daily_balance"]
     n3["cbs.product"]
   end
-  subgraph Data_product["ACME_CUSTOMER_CURATED"]
-    n4["DIM_ACCOUNT"]
-    n5["DIM_CUSTOMER"]
-    n6["DIM_PRODUCT"]
-    n7["FCT_DAILY_BALANCE"]
+  subgraph Data_product["acme_customer_gold"]
+    n4["dim_account"]
+    n5["dim_customer"]
+    n6["dim_product"]
+    n7["fct_daily_balance"]
   end
   n0 --> n4
   n1 --> n5
