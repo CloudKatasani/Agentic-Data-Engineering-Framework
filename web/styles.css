@@ -257,3 +257,8 @@ td.mono { white-space: nowrap; }
 .integ { border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
 .lane-cell .stt.ctxn { color: var(--accent); cursor: pointer; font-weight: 600; }
 #integCards { margin-bottom: 16px; }
+
+/* model field: free text plus a dropdown of every known model */
+.model-box { display: flex; min-width: 220px; }
+.model-box input { flex: 1; min-width: 0; border-radius: 8px 0 0 8px; }
+.model-box select.model-pick { width: 34px; flex: none; padding: 7px 0; border-left: 0; border-radius: 0 8px 8px 0; cursor: pointer; background: var(--panel-2); }

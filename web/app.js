@@ -500,6 +500,39 @@ async function renderIntegrationCards(el) {
   });
 }
 
+// ------------------------------------------------------------------ model picker
+// Every model field is free text plus a dropdown of everything known for that provider: the built-in
+// suggestions and, when the provider has a key, the models its own API reports.
+const DISCOVERED = new Set();
+function modelChoices(pid) {
+  const cat = CATALOG.provider_types[providerById(pid)?.type]?.models || [];
+  const known = new Set(cat.map((m) => m.id));
+  return { suggested: cat, live: store.get(`adef_models_${pid}`, []).filter((m) => !known.has(m)) };
+}
+function modelPickOpts(pid) {
+  const { suggested, live } = modelChoices(pid);
+  return `<option value="" hidden></option>
+    <optgroup label="Suggested">${suggested.map((m) => `<option value="${esc(m.id)}">${esc(m.label)} - ${esc(m.id)}</option>`).join("")}</optgroup>
+    ${live.length ? `<optgroup label="From your account">${live.map((m) => `<option value="${esc(m)}">${esc(m)}</option>`).join("")}</optgroup>` : ""}`;
+}
+const modelPick = (pid) => `<select class="model-pick" aria-label="Choose a model" title="Choose from every model known for this provider">${modelPickOpts(pid)}</select>`;
+document.addEventListener("change", (e) => {
+  if (!e.target.matches?.("select.model-pick") || !e.target.value) return;
+  const input = e.target.parentElement.querySelector("input");
+  input.value = e.target.value; e.target.selectedIndex = 0;
+  input.dispatchEvent(new Event("change", { bubbles: true }));
+});
+// Ask each provider that has a key which models it serves (once per page load, never blocking for long).
+async function discoverModels(ready) {
+  const todo = SETTINGS.providers.filter((p) => p.id !== "demo" && ready[p.id] && !DISCOVERED.has(p.id));
+  const work = Promise.allSettled(todo.map(async (p) => {
+    DISCOVERED.add(p.id);
+    const r = await api("GET", `/providers/${p.id}/models`);
+    if (r.ok && r.models?.length) store.set(`adef_models_${p.id}`, r.models.slice(0, 300));
+  }));
+  await Promise.race([work, new Promise((res) => setTimeout(res, 4000))]);
+}
+
 // ------------------------------------------------------------------ dashboard
 route("dashboard", async () => {
   const runs = await api("GET", "/runs");
@@ -561,6 +594,7 @@ async function uploadFile(file, endpoint) { const fd = new FormData(); fd.append
 route("new", async () => {
   WZ.sources = await api("GET", "/sources");
   WZ.ready = await api("GET", "/providers/readiness");
+  await discoverModels(WZ.ready);
   WZ.data = WZ.data || wizardDefaults();
   WZ.step = 0;
   renderWizard();
@@ -658,7 +692,7 @@ function wzReview(d) {
     const stage = CATALOG.stages.filter((s) => s.agent === a.name).map((s) => s.label).join(", ");
     return `<tr data-agent="${esc(a.name)}"><td><b>${esc(agentShort(a.name))}</b>${changed ? ' <span class="chip pending">this run only</span>' : ""}<div class="small muted">${esc(stage)}</div></td>
       <td><select data-b="provider_id">${SETTINGS.providers.map((p) => `<option value="${esc(p.id)}" ${p.id === b.provider_id ? "selected" : ""}>${esc(p.label)}</option>`).join("")}</select></td>
-      <td><input data-b="model" value="${esc(b.model)}" list="wz-dl-${esc(a.name)}"><datalist id="wz-dl-${esc(a.name)}">${models.map((m) => `<option value="${esc(m)}">`).join("")}</datalist></td>
+      <td><div class="model-box"><input data-b="model" value="${esc(b.model)}" list="wz-dl-${esc(a.name)}">${modelPick(b.provider_id)}</div><datalist id="wz-dl-${esc(a.name)}">${models.map((m) => `<option value="${esc(m)}">`).join("")}</datalist></td>
       <td><select data-b="effort">${CATALOG.effort_levels.map((e) => `<option ${e === b.effort ? "selected" : ""}>${e}</option>`).join("")}</select></td>
       <td>${b.provider_id === "demo" ? badge("", "offline") : ok ? badge("pass", providerById(b.provider_id)?.api_key_ref ? "key configured" : "local endpoint, no key needed") : badge(fallback ? "awaiting-approval" : "fail", fallback ? "no key - simulated" : "no key - stage will fail")}</td></tr>`;
   }).join("");
@@ -667,7 +701,7 @@ function wzReview(d) {
     <div class="k">Stack</div><div>${esc(stack?.label || d.stack_id)}</div><div class="k">Requirements</div><div>${d.req_source !== "text" ? `${d.selected_keys.length} Jira issues` : ""} ${d.request ? "· request text" : ""}</div>
     <div class="k">Metadata</div><div>${d.source_metadata ? esc(d.source_metadata.source_file) : "none"}</div><div class="k">Cost cap</div><div>${esc(d.compute_cost_cap)}</div></div>
     <div class="spread" style="margin-top:14px"><h3 style="margin:0">Agent team and models for this run</h3>${n ? `<button class="btn small" id="wzResetTeam">Reset to team defaults (${n} changed)</button>` : ""}</div>
-    <p class="small muted">Change the provider, model or effort of any agent for this run only. The saved team on <a href="#/agents">Agents &amp; models</a> is not changed.</p>
+    <p class="small muted">Change the provider, model or effort of any agent for this run only. Use the arrow next to a model to choose from every model known for that provider, or type any model name. The saved team on <a href="#/agents">Agents &amp; models</a> is not changed.</p>
     <div class="table-wrap"><table id="wzTeam"><thead><tr><th style="width:24%">Agent</th><th>Provider</th><th>Model</th><th>Effort</th><th>Key</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 function bindWizard() {
@@ -1003,6 +1037,7 @@ async function renderLakehouse(st, el) {
 route("agents", async () => {
   await refreshSettings();
   const ready = await api("GET", "/providers/readiness");
+  await discoverModels(ready);
   const rt = SETTINGS.runtime || {};
   const keyBadge = (pid) => pid === "demo" ? badge("", "offline") : ready[pid] ? badge("pass", "key configured") : badge(rt.simulate_unavailable_providers === false ? "fail" : "awaiting-approval", rt.simulate_unavailable_providers === false ? "no key - stage will fail" : "no key - simulated");
   const provOpts = (sel) => SETTINGS.providers.map((p) => `<option value="${esc(p.id)}" ${p.id === sel ? "selected" : ""}>${esc(p.label)}</option>`).join("");
@@ -1013,21 +1048,25 @@ route("agents", async () => {
       <span class="small muted" id="presetDesc"></span><button class="btn" id="applyPreset">Apply preset</button></div>
       <label style="display:flex;gap:8px;align-items:center;color:var(--text);font-weight:400;margin-top:10px"><input type="checkbox" id="simToggle" style="width:auto" ${rt.simulate_unavailable_providers !== false ? "checked" : ""}>
       Demo fallback: if an agent's provider has no key, can't be reached or rejects the key, run that stage on the Demo Simulator and label it as simulated. Turn this off for real client work.</label></div>
-    <div class="card tight"><div class="row"><b>Apply to all agents:</b><select id="allProv" style="width:auto">${provOpts(SETTINGS.agents["adef-orchestrator"].provider_id)}</select><input id="allModel" list="dl-all" style="width:240px" placeholder="model"><datalist id="dl-all"></datalist><select id="allEffort" style="width:auto">${CATALOG.effort_levels.map((e) => `<option ${e === "medium" ? "selected" : ""}>${e}</option>`).join("")}</select><button class="btn" id="applyAll">Apply</button></div></div>
+    <div class="card tight"><div class="row"><b>Apply to all agents:</b><select id="allProv" style="width:auto">${provOpts(SETTINGS.agents["adef-orchestrator"].provider_id)}</select><div class="model-box" style="width:300px"><input id="allModel" list="dl-all" placeholder="model">${modelPick(SETTINGS.agents["adef-orchestrator"].provider_id)}</div><datalist id="dl-all"></datalist><select id="allEffort" style="width:auto">${CATALOG.effort_levels.map((e) => `<option ${e === "medium" ? "selected" : ""}>${e}</option>`).join("")}</select><button class="btn" id="applyAll">Apply</button></div></div>
     <div class="card"><div class="table-wrap"><table><thead><tr><th style="width:30%">Agent</th><th>Provider</th><th>Model</th><th>Effort</th><th>Max tokens</th><th>Key</th><th></th></tr></thead><tbody>
     ${CATALOG.agents.map((a) => { const b = SETTINGS.agents[a.name]; return `<tr data-agent="${esc(a.name)}"><td><b class="mono">${esc(a.name)}</b><div class="small muted">${esc(a.description)}</div></td>
       <td><select data-k="provider_id">${provOpts(b.provider_id)}</select></td>
-      <td><input data-k="model" list="dl-${esc(a.name)}" value="${esc(b.model)}"><datalist id="dl-${esc(a.name)}">${suggestions(b.provider_id).map((m) => `<option value="${esc(m)}">`).join("")}</datalist></td>
+      <td><div class="model-box"><input data-k="model" list="dl-${esc(a.name)}" value="${esc(b.model)}">${modelPick(b.provider_id)}</div><datalist id="dl-${esc(a.name)}">${suggestions(b.provider_id).map((m) => `<option value="${esc(m)}">`).join("")}</datalist></td>
       <td><select data-k="effort">${CATALOG.effort_levels.map((e) => `<option ${e === b.effort ? "selected" : ""}>${e}</option>`).join("")}</select></td>
       <td><input data-k="max_tokens" type="number" value="${esc(b.max_tokens)}" style="width:100px"></td>
       <td class="keyst">${keyBadge(b.provider_id)}</td>
       <td><button class="btn small" data-test="${esc(a.name)}">Test</button></td></tr>`; }).join("")}
-    </tbody></table></div><p class="small muted">Model names are free text - any model your provider serves. Effort maps to the provider's reasoning-depth control where one exists. Bindings are snapshotted into each run at creation.</p></div>`;
+    </tbody></table></div><p class="small muted">Use the arrow next to a model to choose from every model known for that provider (built-in suggestions plus, for providers with a key, the models their API reports). Model names are also free text - any model your provider serves. Effort maps to the provider's reasoning-depth control where one exists. Bindings are snapshotted into each run at creation.</p></div>`;
   const pd = () => ($("#presetDesc").textContent = CATALOG.team_presets[$("#presetSel").value].description);
   pd(); $("#presetSel").onchange = pd;
   $("#applyPreset").onclick = async () => { await guard(() => api("POST", "/settings/agents/preset", { preset: $("#presetSel").value }), "Team preset applied"); navigate(); };
   $("#simToggle").onchange = async () => { await guard(() => api("PUT", "/settings/runtime", { simulate_unavailable_providers: $("#simToggle").checked }), "Saved"); navigate(); };
-  const fillDl = (dl, pid) => (dl.innerHTML = suggestions(pid).map((m) => `<option value="${esc(m)}">`).join(""));
+  const fillDl = (dl, pid) => {
+    dl.innerHTML = suggestions(pid).map((m) => `<option value="${esc(m)}">`).join("");
+    const pick = (dl.previousElementSibling || dl.parentElement).querySelector("select.model-pick");
+    if (pick) pick.innerHTML = modelPickOpts(pid);
+  };
   fillDl($("#dl-all"), $("#allProv").value);
   $("#allProv").onchange = () => fillDl($("#dl-all"), $("#allProv").value);
   $$("tr[data-agent] select[data-k=provider_id]").forEach((s) => (s.onchange = () => {
