@@ -116,6 +116,17 @@ class Engine:
             if src.run["client_code"] != p.get("client_code"):
                 raise InputRejected("Copying artifacts from another client's run is prohibited (A4: client isolation, GT-11).")
         _ = other_clients
+        team = self.settings.load()
+        overrides = {}
+        for agent, o in (p.get("agent_bindings") or {}).items():
+            if agent not in team["agents"]:
+                raise InputRejected(f"Unknown agent `{agent}`")
+            if not any(pr["id"] == o.get("provider_id") for pr in team["providers"]):
+                raise InputRejected(f"{agent}: unknown provider `{o.get('provider_id')}`")
+            if not str(o.get("model") or "").strip():
+                raise InputRejected(f"{agent}: choose a model")
+            overrides[agent] = {"provider_id": o["provider_id"], "model": str(o["model"]).strip(),
+                                "effort": o.get("effort") or team["agents"][agent].get("effort") or "medium"}
         run_id = self.new_run_id()
         sc = for_domain(domain)
         approvers = {**self.settings.load()["approver_defaults"], **(p.get("approvers") or {})}
@@ -130,8 +141,9 @@ class Engine:
                    "source_connection": {k: v for k, v in (p.get("source_connection") or
                                                            {"type": "sqlite-local", "pack": domain}).items()
                                          if k != "password"},
-                   "agent_bindings": {a: {k: v for k, v in binding_for(a).items() if k in ("provider_id", "model", "effort")}
-                                      for a in self.settings.load()["agents"]}}
+                   "agent_bindings": {a: {k: v for k, v in binding_for(a, team, overrides.get(a)).items()
+                                          if k in ("provider_id", "model", "effort")} for a in team["agents"]},
+                   "agent_overrides": sorted(overrides)}
         ws = RunWorkspace(run_id)
         ws.create(run_def, profile, load_pack_text(domain))
         ws._raw_write("00-intake/inputs/request.md", request or sc["request"])
@@ -204,7 +216,9 @@ class Engine:
 
     def _call(self, ws, agent: str, force_fallback: str | None = None) -> AgentCall:
         settings = self.settings.load()
-        b = binding_for(agent, settings)
+        # agents rebound for this run at launch keep that choice; the rest follow the saved team bindings
+        override = (ws.run.get("agent_bindings") or {}).get(agent) if agent in (ws.run.get("agent_overrides") or []) else None
+        b = binding_for(agent, settings, override)
         log = lambda t: self.event(ws, t, "agent")  # noqa: E731
         reason = force_fallback
         prov = None
