@@ -263,6 +263,61 @@ class RunWorkspace:
                           list(req["artifacts"]), approver)
         return out
 
+    def record_artifact_reviews(self, gate: str, approver: str, role: str, reviews: list[dict]) -> tuple[str, str]:
+        """Record one approve/reject per artifact of the open request for this gate, by a named approver.
+
+        Every artifact in the request must be reviewed; a rejection needs a reason. Each review is bound to the
+        artifact's hash. Returns the derived gate decision and the combined comment for the decision record."""
+        if approver.lower().startswith("adef-") or approver.lower() in ("agent", "system", "orchestrator"):
+            raise GuardrailBlocked("agents-never-approve", "An agent can never record an approval decision")
+        if (self.run.get("approvers") or {}).get(role) != approver:
+            raise GuardrailBlocked("named-approver-only",
+                                   f"{approver} does not hold the {ROLE_LABELS.get(role, role)} role in run.yaml")
+        req = self.latest_request(gate)
+        if not req:
+            raise GuardrailBlocked("no-request", f"No open approval request for {gate}")
+        if role not in req["required_roles"]:
+            raise GuardrailBlocked("role-not-required", f"{ROLE_LABELS.get(role, role)} is not an approver for {gate}")
+        by_path = {}
+        for r in reviews:
+            if r.get("path") not in req["artifacts"]:
+                raise ValueError(f"{r.get('path')} is not an artifact of {gate}")
+            if r.get("decision") not in ("approved", "rejected"):
+                raise ValueError(f"{r.get('path')}: decision must be approved or rejected")
+            if r["decision"] == "rejected" and len((r.get("comment") or "").strip()) < 5:
+                raise ValueError(f"{r['path']}: say what is wrong with it (section and defect) to reject it")
+            by_path[r["path"]] = r
+        missing = [p for p in req["artifacts"] if p not in by_path]
+        if missing:
+            raise ValueError(f"Review every artifact of {gate}; not reviewed: {', '.join(missing)}")
+        current = self.current_hashes(list(req["artifacts"]))
+        changed = [p for p in req["artifacts"] if current[p] != req["artifacts"][p]]
+        if changed:
+            raise GuardrailBlocked("approval-drift", f"Changed after the request: {', '.join(changed)}; re-request {gate}")
+        n = sum(1 for r in self.read_log("approvals") if r.get("type") == "artifact_review")
+        for i, path in enumerate(req["artifacts"], start=1):
+            r = by_path[path]
+            self.append_log("approvals", {
+                "type": "artifact_review", "review_id": f"ARV-{n + i:04d}", "request_id": req["request_id"], "gate": gate,
+                "path": path, "artifact_sha256": req["artifacts"][path], "decision": r["decision"],
+                "comment": (r.get("comment") or "").strip(), "approver": approver, "role": ROLE_LABELS.get(role, role),
+                "role_key": role, "timestamp": now_iso()})
+        rejected = [by_path[p] for p in req["artifacts"] if by_path[p]["decision"] == "rejected"]
+        if rejected:
+            comment = (f"Rejected {len(rejected)} of {len(req['artifacts'])} artifacts:\n"
+                       + "\n".join(f"- {r['path']}: {r['comment'].strip()}" for r in rejected))
+            return "rejected", comment
+        notes = [f"- {p}: {by_path[p]['comment'].strip()}" for p in req["artifacts"] if (by_path[p].get("comment") or "").strip()]
+        return "approved", f"All {len(req['artifacts'])} artifacts approved individually." + ("\n" + "\n".join(notes) if notes else "")
+
+    def artifact_reviews(self, request_id: str) -> dict[str, list[dict]]:
+        out: dict[str, list[dict]] = {}
+        for r in self.read_log("approvals"):
+            if r.get("type") == "artifact_review" and r.get("request_id") == request_id:
+                out.setdefault(r["path"], []).append({k: r[k] for k in ("review_id", "decision", "comment", "approver",
+                                                                        "role", "role_key", "timestamp")})
+        return out
+
     def gate_status(self, gate: str) -> dict:
         req = self.latest_request(gate)
         if not req:
@@ -288,11 +343,13 @@ class RunWorkspace:
             state = "approved"
         conditions = [c for d in decisions for c in d.get("conditions", [])]
         return {"gate": gate, "state": state, "request": req, "decisions": decisions, "pending_roles": pending,
-                "changed_artifacts": changed, "conditions": conditions}
+                "changed_artifacts": changed, "conditions": conditions,
+                "artifact_reviews": self.artifact_reviews(req["request_id"])}
 
     def gate_passed(self, gate: str) -> bool:
         return self.gate_status(gate)["state"] == "approved"
 
     def rejection_count(self, gate: str) -> int:
-        return sum(1 for r in self.read_log("approvals") if r.get("type") == "decision"
-                   and r["gate"] == gate and r["decision"] == "rejected")
+        """Number of rejected requests for this gate (several roles rejecting one request count once)."""
+        return len({r["request_id"] for r in self.read_log("approvals") if r.get("type") == "decision"
+                    and r["gate"] == gate and r["decision"] == "rejected"})

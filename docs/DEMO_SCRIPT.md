@@ -75,8 +75,12 @@ files as the steps below describe (`00-README.md` in the zip has the same map). 
 - **Show drift protection:** after approving G1, open `01-requirements/requirements.md`, click
   **Edit as human**, change one line, and save. The G1 approval turns *stale* and the gate must be
   re-requested.
-- **Show rejection:** reject a gate with a reason, then **Send back for rework**. The agent redoes
-  only that stage.
+- **Per-artifact review:** every gate lists its artifacts with **Approve** / **Reject** on each one
+  (or **Approve all**). Each verdict is bound to that artifact's hash. One **Submit review** button
+  covers every role the named person holds.
+- **Show rejection:** reject one artifact with a reason (for example `00-intake/backlog.md`). Any
+  rejected artifact rejects the gate; the reasons pre-fill the rework instructions, then **Send back
+  for rework**. The agent redoes only that stage.
 
 ## 5b. Show the data moving (3 min) - Lakehouse tab
 
