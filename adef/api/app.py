@@ -85,7 +85,10 @@ def _agent_defs() -> list[dict]:
 
 @app.get("/api/health")
 def health():
-    return {"ok": True, "version": __version__}
+    # the display name is configurable so the console can carry a client-facing or programme name
+    return {"ok": True, "version": __version__,
+            "brand": {"name": config_env("BRAND_NAME") or "DataCrew AI",
+                      "tagline": config_env("BRAND_TAGLINE") or "Agentic Data Engineering"}}
 
 
 @app.get("/api/catalog")
