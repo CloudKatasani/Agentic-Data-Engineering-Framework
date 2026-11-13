@@ -1,4 +1,4 @@
-/* ADEF console - dependency-free single-page app. */
+/* DataCrew AI console - dependency-free single-page app. */
 "use strict";
 
 const $ = (s, el = document) => el.querySelector(s);
@@ -265,7 +265,7 @@ function operatingModel() {
     const roles = [...new Set(s.gates.flatMap((g) => CATALOG.gate_roles[g] || []))];
     const b = SETTINGS.agents[s.agent] || {};
     return `<tr><td><b>${i}. ${esc(s.label)}</b></td>
-      <td><span class="who ai">AI</span> ${esc(agentShort(s.agent))}<div class="small muted mono">${esc(b.model || "")}</div></td>
+      <td><span class="who ai">AI</span> ${esc(CATALOG.agents.find((a) => a.name === s.agent)?.title || agentShort(s.agent))}<div class="small muted mono">${esc(b.model || "")}</div></td>
       <td class="small">${esc(STAGE_OUTPUT[s.key] || "")}</td>
       <td>${s.gates.map((g) => `<span class="chip">${esc(g)}</span>`).join(" ") || '<span class="muted small">-</span>'}</td>
       <td>${roles.length ? `<span class="who hu">Human</span> ${roles.map((r) => esc(CATALOG.role_labels[r])).join(", ")}` : '<span class="muted small">Handed to the team</span>'}</td></tr>`;
@@ -500,6 +500,18 @@ async function renderIntegrationCards(el) {
   });
 }
 
+// What each agent is for: what it is given, what it produces, what it does and what it never does.
+function agentProfile(a) {
+  const list = (items) => `<ul>${(items || []).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`;
+  const stages = CATALOG.stages.filter((s) => s.agent === a.name).map((s) => s.label).join(", ");
+  return `<b>${esc(a.title)}</b><div class="small muted mono">${esc(a.name)}${stages ? ` · ${esc(stages)}` : ""}</div>
+    <div class="small" style="margin-top:4px">${esc(a.description)}</div>
+    <details class="agent-prof"><summary class="small">What it does and what it does not do</summary>
+      <div class="prof-grid">
+        <div><div class="ph">Expects</div>${list(a.expects)}</div><div><div class="ph">Produces</div>${list(a.produces)}</div>
+        <div><div class="ph ok">Does</div>${list(a.does)}</div><div><div class="ph bad">Does not</div>${list(a.does_not)}</div>
+      </div></details>`;
+}
 // ------------------------------------------------------------------ model picker
 // Every model field is free text plus a dropdown of everything known for that provider: the built-in
 // suggestions and, when the provider has a key, the models its own API reports.
@@ -666,7 +678,7 @@ function wzStack(d) {
 }
 function wzMeta(d) {
   const m = d.source_metadata;
-  return `<p class="muted">Optional: import a data catalog or data-modelling export (CSV dictionary, ADEF/JSON model, DBML, or CREATE TABLE DDL from erwin, ER/Studio, SqlDBM, PowerDesigner, Collibra, Purview, Alation…). The Mapping agent reconciles every source against it.</p>
+  return `<p class="muted">Optional: import a data catalog or data-modelling export (CSV dictionary, DataCrew JSON model, DBML, or CREATE TABLE DDL from erwin, ER/Studio, SqlDBM, PowerDesigner, Collibra, Purview, Alation…). The Mapping agent reconciles every source against it.</p>
     <div class="row"><input type="file" id="metaFile" accept=".csv,.json,.dbml,.sql,.ddl,.txt" style="max-width:420px"><button class="btn" id="metaSample">Use sample source catalog (${esc(d.domain_pack)})</button></div>
     <div id="metaPreview" style="margin-top:12px">${m ? metaSummary(m) : '<div class="muted small">No metadata attached.</div>'}</div>`;
 }
@@ -1039,7 +1051,7 @@ route("agents", async () => {
   const ready = await api("GET", "/providers/readiness");
   await discoverModels(ready);
   const rt = SETTINGS.runtime || {};
-  const keyBadge = (pid) => pid === "demo" ? badge("", "offline") : ready[pid] ? badge("pass", "key configured") : badge(rt.simulate_unavailable_providers === false ? "fail" : "awaiting-approval", rt.simulate_unavailable_providers === false ? "no key - stage will fail" : "no key - simulated");
+  const keyBadge = (pid) => pid === "demo" ? badge("", "offline") : ready[pid] ? badge("pass", providerById(pid)?.api_key_ref ? "key configured" : "local endpoint, no key needed") : badge(rt.simulate_unavailable_providers === false ? "fail" : "awaiting-approval", rt.simulate_unavailable_providers === false ? "no key - stage will fail" : "no key - simulated");
   const provOpts = (sel) => SETTINGS.providers.map((p) => `<option value="${esc(p.id)}" ${p.id === sel ? "selected" : ""}>${esc(p.label)}</option>`).join("");
   const suggestions = (pid) => { const p = providerById(pid); return (CATALOG.provider_types[p?.type]?.models || []).map((m) => m.id).concat(store.get(`adef_models_${pid}`, [])); };
   main().innerHTML = `<div class="spread"><div><h1>Agents &amp; models</h1><div class="sub">Bind each of the nine agents to a provider and model. Mix providers freely - for example a top-tier model for Design and a fast model for Operations.</div></div>
@@ -1049,8 +1061,8 @@ route("agents", async () => {
       <label style="display:flex;gap:8px;align-items:center;color:var(--text);font-weight:400;margin-top:10px"><input type="checkbox" id="simToggle" style="width:auto" ${rt.simulate_unavailable_providers !== false ? "checked" : ""}>
       Demo fallback: if an agent's provider has no key, can't be reached or rejects the key, run that stage on the Demo Simulator and label it as simulated. Turn this off for real client work.</label></div>
     <div class="card tight"><div class="row"><b>Apply to all agents:</b><select id="allProv" style="width:auto">${provOpts(SETTINGS.agents["adef-orchestrator"].provider_id)}</select><div class="model-box" style="width:300px"><input id="allModel" list="dl-all" placeholder="model">${modelPick(SETTINGS.agents["adef-orchestrator"].provider_id)}</div><datalist id="dl-all"></datalist><select id="allEffort" style="width:auto">${CATALOG.effort_levels.map((e) => `<option ${e === "medium" ? "selected" : ""}>${e}</option>`).join("")}</select><button class="btn" id="applyAll">Apply</button></div></div>
-    <div class="card"><div class="table-wrap"><table><thead><tr><th style="width:30%">Agent</th><th>Provider</th><th>Model</th><th>Effort</th><th>Max tokens</th><th>Key</th><th></th></tr></thead><tbody>
-    ${CATALOG.agents.map((a) => { const b = SETTINGS.agents[a.name]; return `<tr data-agent="${esc(a.name)}"><td><b class="mono">${esc(a.name)}</b><div class="small muted">${esc(a.description)}</div></td>
+    <div class="card"><div class="table-wrap"><table><thead><tr><th style="width:38%">Agent</th><th>Provider</th><th>Model</th><th>Effort</th><th>Max tokens</th><th>Key</th><th></th></tr></thead><tbody>
+    ${CATALOG.agents.map((a) => { const b = SETTINGS.agents[a.name]; return `<tr data-agent="${esc(a.name)}"><td>${agentProfile(a)}</td>
       <td><select data-k="provider_id">${provOpts(b.provider_id)}</select></td>
       <td><div class="model-box"><input data-k="model" list="dl-${esc(a.name)}" value="${esc(b.model)}">${modelPick(b.provider_id)}</div><datalist id="dl-${esc(a.name)}">${suggestions(b.provider_id).map((m) => `<option value="${esc(m)}">`).join("")}</datalist></td>
       <td><select data-k="effort">${CATALOG.effort_levels.map((e) => `<option ${e === b.effort ? "selected" : ""}>${e}</option>`).join("")}</select></td>
@@ -1238,7 +1250,7 @@ route("integrations", async () => {
         <div id="jOut" style="margin-top:10px"></div>
       </div>
       <div class="card"><h2>Import source metadata</h2>
-        <p class="muted small">Accepted: CSV data dictionary / catalog export (table, column, type, nullable, pk, description, classification - common column names are recognised), ADEF or generic JSON model, DBML, and CREATE TABLE DDL from modelling tools. Contents are treated as untrusted data.</p>
+        <p class="muted small">Accepted: CSV data dictionary / catalog export (table, column, type, nullable, pk, description, classification - common column names are recognised), DataCrew or generic JSON model, DBML, and CREATE TABLE DDL from modelling tools. Contents are treated as untrusted data.</p>
         <input type="file" id="mFile" accept=".csv,.json,.dbml,.sql,.ddl,.txt">
         <div id="mOut" style="margin-top:12px"></div>
       </div>

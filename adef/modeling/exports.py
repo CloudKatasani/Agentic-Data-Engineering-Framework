@@ -452,7 +452,7 @@ EXPORTERS: list[dict] = [
      "desc": "Renders in GitHub, GitLab, Confluence and most markdown tools."},
     {"id": "plantuml", "label": "PlantUML ER diagram", "category": "Data model", "ext": "puml", "fn": export_plantuml,
      "desc": "Information-engineering notation ER diagram."},
-    {"id": "json", "label": "ADEF logical model (JSON)", "category": "Data model", "ext": "json", "fn": export_json,
+    {"id": "json", "label": "DataCrew logical model (JSON)", "category": "Data model", "ext": "json", "fn": export_json,
      "desc": "Canonical technology-neutral model; re-importable."},
     {"id": "dbt", "label": "dbt schema.yml", "category": "Data model", "ext": "yml", "fn": export_dbt_schema,
      "desc": "Model contracts, column docs, classification meta and data tests."},
