@@ -16,7 +16,7 @@ docker compose --profile oracle up -d
 SOURCE_DB_PASSWORD=$ORACLE_PASSWORD .venv/bin/python -m adef source-db seed --type oracle --dsn localhost:1521/FREEPDB1 --user system --domain telco
 ```
 
-Then add it on **Jira & metadata → Source databases** (DSN `localhost:1521/FREEPDB1`, user `system`).
+Then add it on **Integrations → Source databases** (DSN `localhost:1521/FREEPDB1`, user `system`).
 
 ## 1. Frame it (1 min) - Dashboard
 
@@ -55,7 +55,7 @@ people, and the number of human decisions.
 
 ## 4. Their requirements (2 min) - New run
 
-For a Telco audience, use the **client demo kit**: on *Jira & metadata → Demo data packs*, choose
+For a Telco audience, use the **client demo kit**: on *Integrations → Demo data packs*, choose
 *telco (client demo kit)* and click **Download all (.zip)** before the demo. Then upload the numbered
 files as the steps below describe (`00-README.md` in the zip has the same map). Use client code
 `NIMBUS-MOBILE`.
@@ -70,6 +70,21 @@ files as the steps below describe (`00-README.md` in the zip has the same map). 
   catalog or modelling export (CSV, DDL or DBML). The Mapping agent marks every source it finds there
   as high confidence.
 - Launch.
+
+## 4b. Give the agents the right context (2 min) - Context tab
+
+"Agents hallucinate when they are missing facts. Here each agent tells you what it needs, and your
+people attach it from where it already lives."
+
+- Open the run's **Context** tab. Each stage lists what its agent needs, why, and whether it is covered.
+- On *Requirements*, click **Add** next to *Business glossary and KPI definitions*, pick the Confluence
+  page, **Attach**. Add a **note** with a decision the agent could not know. Show the ServiceNow change
+  freeze for *Release* and the GitHub style guide for *Build*.
+- At the gate, point to **Agent context → see what it knew**: the context pack lists exactly what the
+  agent was given and what recommended context was missing.
+- To show a correction loop: attach something after a stage ran, then **Re-run with the new context**.
+- Run with autopilot off if you want to add context before each stage starts; the banner offers
+  **Add context first**.
 
 ## 5. The gated lifecycle (5 min) - Run view
 
@@ -109,7 +124,7 @@ Use the **Local lakehouse** stack with the Oracle source for this part (any stac
 
 - **Data model & exports**: download DDL for their engine, plus Collibra / Purview / DataHub /
   Alation payloads, the dbt `schema.yml`, the ODCS contract and OpenLineage.
-- **Jira & metadata → Demo data packs**: the ready-made Jira exports, source data, model exports,
+- **Integrations → Demo data packs**: the ready-made Jira exports, source data, model exports,
   catalog payloads and lineage (OpenLineage, column lineage CSV, Mermaid diagram) for each industry.
 - **Download run bundle**: the full audit-ready workspace.
 - **Verify audit logs**: hash-chained logs show intact.

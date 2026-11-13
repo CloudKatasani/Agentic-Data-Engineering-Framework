@@ -9,7 +9,7 @@ import secrets as pysecrets
 import zipfile
 from pathlib import Path
 
-from fastapi import Body, FastAPI, File, HTTPException, Request, UploadFile
+from fastapi import Body, FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -19,6 +19,8 @@ from ..catalog.domains import list_packs, load_pack
 from ..catalog.providers import EFFORT_LEVELS, PROVIDER_TYPES, SEED_PROVIDERS, TEAM_PRESETS, provider_ready
 from ..config import AGENTS_DIR, DEMO_DATA_DIR, WEB_DIR
 from ..config import env as config_env
+from .. import context_hub
+from ..connectors import context_sources as cs
 from ..connectors import jira_export
 from ..connectors.jira import JiraClient, JiraError
 from ..engine.orchestrator import InputRejected, get_engine
@@ -461,6 +463,123 @@ def stage_rework(rid: str, key: str, body: dict = Body(default={})):
 @app.post("/api/runs/{rid}/stages/{key}/start")
 def stage_start(rid: str, key: str):
     engine().start_stage(rid, key)
+    return {"ok": True}
+
+
+# ----------------------------------------------------------------------------- context for agents
+def _source_status() -> dict:
+    st = settings.load()
+    out = {}
+    for sid, spec in cs.SOURCES.items():
+        cfg = st["jira"] if sid == "jira" else {**cs.DEFAULT_SETTINGS[sid], **(st.get("integrations", {}).get(sid) or {})}
+        out[sid] = {**spec, "id": sid, "mode": cfg.get("mode", "demo"), "config": {k: cfg.get(k, "") for k in spec["fields"]}}
+    return out
+
+
+@app.get("/api/context/sources")
+def context_sources():
+    """Every optional context source, how it is configured, and what each stage's agent needs."""
+    return {"sources": _source_status(), "manual": context_hub.MANUAL_SOURCES,
+            "stages": {k: {"job": v["job"], "needs": [{x: n[x] for x in ("id", "need", "why", "sources")} for n in v["needs"]]}
+                       for k, v in context_hub.STAGE_CONTEXT.items()}}
+
+
+@app.put("/api/settings/integrations/{sid}")
+def put_integration(sid: str, cfg: dict = Body(...)):
+    if sid not in cs.DEFAULT_SETTINGS:
+        raise HTTPException(404, "Unknown integration")
+    ref = cfg.get("token_ref") or ""
+    if ref and not ref.startswith(("secret:", "env:")):
+        raise HTTPException(400, "token_ref must be secret:<vault name> or env:<VAR>")
+    if cfg.get("mode") not in ("demo", "live"):
+        raise HTTPException(400, "mode must be demo or live")
+    integ = settings.load().get("integrations", {})
+    integ[sid] = {k: str(cfg.get(k, cs.DEFAULT_SETTINGS[sid].get(k, ""))).strip() for k in cs.DEFAULT_SETTINGS[sid]}
+    return settings.update("integrations", integ)["integrations"][sid]
+
+
+@app.post("/api/integrations/{sid}/test")
+def integration_test(sid: str):
+    try:
+        return cs.source_for(sid, settings.load(), vault).test()
+    except cs.ContextSourceError as e:
+        return {"ok": False, "error": str(e)}
+
+
+@app.post("/api/integrations/{sid}/search")
+def integration_search(sid: str, body: dict = Body(...)):
+    domain = body.get("domain") or "utilities"
+    try:
+        src = cs.source_for(sid, settings.load(), vault)
+        return {"mode": src.mode, "results": src.search(body.get("query", ""), domain, int(body.get("limit", 15))),
+                "suggested": cs.demo_suggestions(sid, domain, body.get("stage", "")) if src.mode == "demo" else []}
+    except cs.ContextSourceError as e:
+        raise HTTPException(502, str(e)) from e
+
+
+@app.get("/api/runs/{rid}/context")
+def run_context(rid: str):
+    e = engine()
+    ws = e.ws(rid)
+    return {"stages": context_hub.overview(ws, {k: v["status"] for k, v in e._state(ws)["stages"].items()}),
+            "sources": _source_status(), "manual": context_hub.MANUAL_SOURCES}
+
+
+@app.get("/api/runs/{rid}/context/{cid}")
+def run_context_item(rid: str, cid: str):
+    ws = engine().ws(rid)
+    item = next((i for i in context_hub.items(ws) if i["id"] == cid), None)
+    if not item:
+        raise HTTPException(404, "No such context item")
+    return {**item, "content": context_hub.text_of(ws, item)}
+
+
+@app.post("/api/runs/{rid}/context")
+def run_context_add(rid: str, body: dict = Body(...)):
+    """Attach context to a stage: an item fetched from an integration (source + ref) or a note (title + content)."""
+    e = engine()
+    ws = e.ws(rid)
+    source, stage = body.get("source", "note"), body.get("stage", "")
+    try:
+        if source in cs.SOURCES:
+            got = cs.source_for(source, settings.load(), vault).fetch(str(body.get("ref", "")), ws.run["domain_pack"])
+            item = context_hub.add(ws, stage, source, got["title"], got["content"], added_by=body.get("added_by", ""),
+                                   ref=str(body.get("ref", "")), url=got.get("url", ""), need=body.get("need", ""),
+                                   version=got.get("version", ""))
+        else:
+            item = context_hub.add(ws, stage, "note", body.get("title", "Note"), body.get("content", ""),
+                                   added_by=body.get("added_by", ""), need=body.get("need", ""))
+    except cs.ContextSourceError as err:
+        raise HTTPException(502, str(err)) from err
+    except context_hub.ContextError as err:
+        raise HTTPException(400, str(err)) from err
+    e.event(ws, f"{item['added_by']} attached context {item['id']} ({item['title']}) for {stage}", "info")
+    return item
+
+
+@app.post("/api/runs/{rid}/context/upload")
+async def run_context_upload(rid: str, stage: str = Form(...), added_by: str = Form(...), need: str = Form(""),
+                             file: UploadFile = File(...)):
+    e = engine()
+    ws = e.ws(rid)
+    raw = await file.read()
+    if len(raw) > 5_000_000:
+        raise HTTPException(413, "File is larger than 5 MB")
+    try:
+        item = context_hub.add(ws, stage, "upload", file.filename or "upload", context_hub.extract_text(file.filename or "", raw),
+                               added_by=added_by, ref=file.filename or "", need=need)
+    except context_hub.ContextError as err:
+        raise HTTPException(400, str(err)) from err
+    e.event(ws, f"{item['added_by']} uploaded context {item['id']} ({item['title']}) for {stage}", "info")
+    return item
+
+
+@app.delete("/api/runs/{rid}/context/{cid}")
+def run_context_remove(rid: str, cid: str, by: str = ""):
+    try:
+        context_hub.remove(engine().ws(rid), cid, by)
+    except KeyError as err:
+        raise HTTPException(404, "No such context item") from err
     return {"ok": True}
 
 

@@ -287,7 +287,8 @@ function teamLanes(st) {
   const aiCells = st.stage_defs.map((s) => {
     const ss = st.stages[s.key]; const [label, cls] = AI_STATE[ss.status] || [ss.status, ""];
     return `<div class="lane-cell ai ${cls}" title="${esc(ss.error || ss.summary || s.agent)}"><div class="nm">${esc(agentShort(s.agent))}</div>
-      <div class="stt">${cls === "live" ? '<span class="pulse"></span>' : ""}${esc(label)}</div></div>`;
+      <div class="stt">${cls === "live" ? '<span class="pulse"></span>' : ""}${esc(label)}</div>
+      ${st.context_counts?.[s.key] ? `<div class="stt ctxn" data-now="context:${esc(s.key)}" role="button" tabindex="0" title="Context attached by the team">+${st.context_counts[s.key]} context</div>` : ""}</div>`;
   }).join("");
   const huCells = st.stage_defs.map((s, i) => {
     const r = rows[i]; const states = s.gates.map((g) => st.gates_detail[g]?.state || "not-requested");
@@ -312,13 +313,13 @@ function nowBar(st) {
   switch (n.kind) {
     case "running": return `<div class="now ai"><span class="pulse"></span><div><b>AI team working · ${esc(n.label)}</b><div class="small">${esc(agentShort(n.agent))} on ${esc(n.model || "its model")} · ${since(n.since)} so far. No action needed; the gate opens when the agent hands over.</div></div></div>`;
     case "review": return `<div class="now hu"><div><b>Your turn · ${esc(n.gate)} ${esc(n.gate_label)}</b><div class="small">Waiting on ${people(n.waiting_on)} to review ${n.artifacts} artifacts${n.since ? ` · waiting ${since(n.since)}` : ""}. The agents are paused until then.</div></div>${btn("approvals", `Review ${esc(n.gate)}`)}</div>`;
-    case "rejected": return `<div class="now bad"><div><b>${esc(n.label)} was rejected</b><div class="small">Send it back to ${esc(agentShort(n.agent))} with rework instructions.</div></div>${btn("approvals", "Open rework")}</div>`;
+    case "rejected": return `<div class="now bad"><div><b>${esc(n.label)} was rejected</b><div class="small">Send it back to ${esc(agentShort(n.agent))} with rework instructions, and attach any context it was missing.</div></div>${btn(`context:${esc(n.stage)}`, "Add context", false)}${btn("approvals", "Open rework")}</div>`;
     case "failed": return `<div class="now bad"><div><b>${esc(n.label)} stopped</b><div class="small">${esc(String(n.error || "").slice(0, 220))}</div></div>${btn("retry", "Retry stage")}${btn("approvals", "Details", false)}</div>`;
     case "blocked": return `<div class="now bad"><div><b>${esc(n.label)} is blocked and escalated to the human owner</b><div class="small">${esc(String(n.error || "").slice(0, 220))}</div></div>${btn("approvals", "Open")}</div>`;
     case "stale": return `<div class="now warn"><div><b>${esc(n.gate)} approval is out of date</b><div class="small">An approved artifact changed, so the approval no longer covers it. Re-request the gate.</div></div>${btn("approvals", "Open")}</div>`;
     case "finishing": return `<div class="now ai"><span class="pulse"></span><div><b>Carrying out the approved ${esc(n.gate)} action</b><div class="small">${esc(n.gate_label)}. The next stage starts when this finishes.</div></div></div>`;
     case "resume": return `<div class="now warn"><div><b>${esc(n.gate)} is approved but its follow-up work was interrupted</b><div class="small">Nothing is running. Resume to continue from ${esc(n.label)}.</div></div>${btn("resume", "Resume run")}</div>`;
-    case "next": return `<div class="now warn"><div><b>Ready for ${esc(n.label)}</b><div class="small">Autopilot is off for this run, so ${esc(agentShort(n.agent))} waits for you to start it.</div></div>${btn("resume", `Start ${esc(n.label)}`)}</div>`;
+    case "next": return `<div class="now warn"><div><b>Ready for ${esc(n.label)}</b><div class="small">Autopilot is off for this run, so ${esc(agentShort(n.agent))} waits for you to start it.</div></div>${btn(`context:${esc(n.stage)}`, "Add context first", false)}${btn("resume", `Start ${esc(n.label)}`)}</div>`;
     case "complete": return `<div class="now ok"><div><b>Run complete</b><div class="small">${st.team.totals.artifacts} artifacts delivered by the agents in ${dur(st.team.totals.agent_seconds)} of working time, with ${st.team.totals.decisions} human decisions.</div></div>${btn("pack", "Open delivery pack")}</div>`;
     default: return "";
   }
@@ -326,6 +327,10 @@ function nowBar(st) {
 function bindNowBar(st) {
   $$("#nowBar [data-now], #stepper [data-now]").forEach((b) => (b.onclick = async () => {
     const act = b.dataset.now;
+    if (act.startsWith("context:")) {
+      RUN.tab = "context"; CTX.open = act.slice(8); store.set("adef_run_tab", RUN.tab); renderRunHead(st); await renderRunBody();
+      $("#runBody").scrollIntoView({ behavior: "smooth", block: "start" }); return;
+    }
     if (act === "approvals" || act === "pack") {
       RUN.tab = act === "pack" ? "artifacts" : "approvals";
       if (act === "pack") RUN.file = "final/delivery-pack.md";
@@ -351,6 +356,148 @@ function teamCard(st) {
       <td>${r.humans.length ? `<span class="who hu">Human</span> ${people(r.humans)}` : '<span class="muted small">-</span>'}</td>
       <td>${r.human_wait_seconds ? dur(r.human_wait_seconds) : "-"}</td><td>${badge(r.status)}</td></tr>`).join("")}
     </tbody></table></div><p class="small muted">Times are measured on this run: agent time is from stage start to handover; review wait is from the approval request to the last decision.</p></div>`;
+}
+
+// ------------------------------------------------------------------ context for agents
+const CTX = { data: null, open: null };
+const srcLabel = (d, id) => d.sources[id]?.label || d.manual[id] || id;
+const stageLabel = (k) => (k === "all" ? "Every stage" : CATALOG.stages.find((s) => s.key === k)?.label || k);
+function ctxItemUse(i, stageStatus) {
+  if (i.pending_rework) return badge("awaiting-approval", "not used yet · rework the stage to apply");
+  if (!i.last_used) return badge("", stageStatus === "running" ? "in use" : "ready for the agent");
+  return i.cited ? badge("pass", "used and cited") : badge("", "given to the agent");
+}
+async function renderContext(st, el) {
+  const d = (CTX.data = await api("GET", `/runs/${RUN.id}/context`));
+  const cur = st.now?.stage || st.stage_defs.find((s) => ["pending", "running", "rejected", "failed"].includes(st.stages[s.key].status))?.key;
+  if (CTX.open === null) CTX.open = cur || "intake";
+  const total = d.stages.reduce((n, s) => n + s.items.length, 0);
+  el.innerHTML = `<div class="card"><div class="spread"><div><h2>Context for the agents</h2>
+      <div class="small muted">Each agent works from the approved upstream artifacts plus whatever the team attaches here. Attach from an integration, upload a file or write a note, at any stage. Everything is optional, treated as reference data (never as instructions), and listed for the approver at the gate.</div></div>
+      <button class="btn primary" data-ctx-add="${esc(CTX.open)}">Add context</button></div>
+      <div class="small muted" style="margin-top:8px">${total} item${total === 1 ? "" : "s"} attached to this run.</div></div>
+    ${d.stages.map((s) => {
+      const def = st.stage_defs.find((x) => x.key === s.stage); const status = def ? st.stages[s.stage].status : "";
+      const met = s.needs.filter((n) => n.met_by).length;
+      return `<details class="card ctx-stage" data-stage="${esc(s.stage)}" ${CTX.open === s.stage ? "open" : ""}>
+        <summary><span><b>${esc(stageLabel(s.stage))}</b>${def ? ` <span class="who ai">AI</span><span class="small">${esc(agentShort(def.agent))}</span>` : ""}
+          <span class="small muted"> · ${esc(s.job)}</span></span>
+          <span class="row">${s.needs.length ? `<span class="chip ${met === s.needs.length ? "approved" : ""}">${met}/${s.needs.length} covered</span>` : ""}
+          <span class="chip">${s.items.length} attached</span>${status ? badge(status) : ""}</span></summary>
+        ${s.needs.length ? `<div class="table-wrap" style="margin-top:10px"><table class="small"><thead><tr><th>What this agent needs</th><th>Why it matters</th><th>Status</th><th></th></tr></thead><tbody>
+          ${s.needs.map((n) => `<tr><td><b>${esc(n.need)}</b><div class="muted">Usually in: ${n.sources.map((x) => esc(srcLabel(d, x))).join(", ")}</div></td><td>${esc(n.why)}</td>
+            <td>${n.met_by ? badge("pass", "covered") : badge("", "not provided")}<div class="muted">${esc(n.met_by || "The agent will flag gaps as open questions.")}</div></td>
+            <td><button class="btn small" data-ctx-add="${esc(s.stage)}" data-need="${esc(n.id)}" data-src="${esc(n.sources[0])}">Add</button></td></tr>`).join("")}
+          </tbody></table></div>` : ""}
+        ${s.items.length ? `<div class="table-wrap" style="margin-top:10px"><table class="small"><thead><tr><th>ID</th><th>Attached item</th><th>Source</th><th>By</th><th>Use</th><th></th></tr></thead><tbody>
+          ${s.items.map((i) => `<tr><td class="mono">${esc(i.id)}</td><td><a href="#" data-ctx-view="${esc(i.id)}">${esc(i.title)}</a><div class="muted">${i.chars.toLocaleString()} chars${i.truncated ? " · truncated" : ""}${i.secrets_redacted ? ` · ${i.secrets_redacted} secret(s) redacted` : ""}${i.injection_findings.length ? ' · <span style="color:var(--bad)">instruction-like text flagged; passed as data only</span>' : ""}</div></td>
+            <td>${esc(srcLabel(d, i.source))}</td><td>${esc(i.added_by)}<div class="muted">${fmtTime(i.added_at)}</div></td><td>${ctxItemUse(i, status)}</td>
+            <td><button class="btn small" data-ctx-del="${esc(i.id)}">Remove</button></td></tr>`).join("")}</tbody></table></div>` : `<div class="small muted" style="margin-top:10px">Nothing attached${s.stage === "all" ? " for every stage" : " for this stage"} yet.</div>`}
+        <div class="row" style="margin-top:10px"><button class="btn small" data-ctx-add="${esc(s.stage)}">Add context for ${esc(stageLabel(s.stage))}</button>
+          ${s.items.some((i) => i.pending_rework) && ["awaiting-approval", "rejected", "failed"].includes(status) ? `<button class="btn small primary" data-ctx-rework="${esc(s.stage)}">Re-run ${esc(stageLabel(s.stage))} with the new context</button>` : ""}</div>
+      </details>`;
+    }).join("")}`;
+  $$(".ctx-stage", el).forEach((x) => x.addEventListener("toggle", () => { if (x.open) CTX.open = x.dataset.stage; }));
+  $$("[data-ctx-add]", el).forEach((b) => (b.onclick = (e) => { e.preventDefault(); addContextDialog(st, b.dataset.ctxAdd, b.dataset.need || "", b.dataset.src || ""); }));
+  $$("[data-ctx-del]", el).forEach((b) => (b.onclick = async () => { await guard(() => api("DELETE", `/runs/${RUN.id}/context/${b.dataset.ctxDel}?by=${encodeURIComponent(ctxPerson(st))}`), "Removed"); renderContext(st, el); }));
+  $$("[data-ctx-view]", el).forEach((a) => (a.onclick = async (e) => {
+    e.preventDefault();
+    const i = await api("GET", `/runs/${RUN.id}/context/${a.dataset.ctxView}`);
+    modal(`<h2>${esc(i.id)} · ${esc(i.title)}</h2><div class="small muted">${esc(srcLabel(d, i.source))}${i.ref ? ` · ${esc(i.ref)}` : ""} · attached by ${esc(i.added_by)} · sha256 ${esc(short(i.sha256, 16))}</div>
+      <pre class="code" style="margin-top:10px;max-height:55vh;overflow:auto;white-space:pre-wrap">${esc(i.content)}</pre><div style="margin-top:12px"><button class="btn" onclick="closeModal()">Close</button></div>`);
+  }));
+  $$("[data-ctx-rework]", el).forEach((b) => (b.onclick = async () => {
+    const ids = d.stages.find((s) => s.stage === b.dataset.ctxRework).items.filter((i) => i.pending_rework).map((i) => i.id).join(", ");
+    await guard(() => api("POST", `/runs/${RUN.id}/stages/${b.dataset.ctxRework}/rework`, { feedback: `Redo this stage using the context attached since the last run (${ids}). Cite the items you rely on.` }), "Re-running with the new context");
+    refreshRun(true);
+  }));
+}
+const ctxPerson = (st) => store.get("adef_ctx_person", "") || st.run.approvers.product_owner || "";
+function addContextDialog(st, stage, need, src) {
+  const d = CTX.data; const kinds = [...Object.keys(d.sources), "upload", "note"];
+  let kind = kinds.includes(src) ? src : "confluence";
+  const stageOpts = [...st.stage_defs.filter((s) => s.key !== "assembly").map((s) => [s.key, s.label]), ["all", "Every stage"]];
+  modal(`<h2>Add context for an agent</h2>
+    <div class="field-row"><div><label>For which stage</label><select id="cxStage">${stageOpts.map(([k, l]) => `<option value="${k}" ${k === stage ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></div>
+      <div><label>Attached by (named person)</label><input id="cxBy" value="${esc(ctxPerson(st))}"></div></div>
+    <div class="tabs" id="cxTabs" style="margin-top:12px">${kinds.map((k) => `<div class="tab" data-k="${k}">${esc(srcLabel(d, k).replace("Uploaded file", "Upload a file").replace("Note from a person", "Write a note"))}</div>`).join("")}</div>
+    <div id="cxBody"></div><div style="margin-top:14px"><button class="btn" onclick="closeModal()">Close</button></div>`);
+  const body = $("#cxBody");
+  const base = () => { store.set("adef_ctx_person", $("#cxBy").value.trim()); return { stage: $("#cxStage").value, added_by: $("#cxBy").value.trim(), need: $("#cxStage").value === stage ? need : "" }; };
+  const done = async (item) => { need = ""; toast(`${item.id} attached for ${stageLabel(item.stage)}`, "ok"); CTX.open = item.stage; if (RUN.tab === "context") await renderContext(st, $("#runBody")); };
+  const draw = () => {
+    $$("#cxTabs .tab").forEach((t) => t.classList.toggle("active", t.dataset.k === kind));
+    if (kind === "upload") {
+      body.innerHTML = `<p class="small muted">Text, Markdown, CSV, JSON, YAML, SQL, HTML or Word (.docx), up to 5 MB. The first 20,000 characters are given to the agent. Secrets are redacted.</p><input type="file" id="cxFile" accept=".txt,.md,.csv,.tsv,.json,.yaml,.yml,.sql,.xml,.html,.htm,.docx,.dbml,.rst,.log">`;
+      $("#cxFile").onchange = async (e) => {
+        const f = e.target.files[0]; if (!f) return;
+        const fd = new FormData(); const b = base(); fd.append("file", f); fd.append("stage", b.stage); fd.append("added_by", b.added_by); fd.append("need", b.need);
+        const item = await guard(() => api("POST", `/runs/${RUN.id}/context/upload`, fd)); await done(item); e.target.value = "";
+      };
+    } else if (kind === "note") {
+      body.innerHTML = `<p class="small muted">Tell the agent something it could not know: a decision, a constraint, a correction.</p><label>Title</label><input id="cxTitle" placeholder="Decision from the steering meeting">
+        <label>Note</label><textarea id="cxText" style="min-height:120px"></textarea><div class="row" style="margin-top:10px"><button class="btn primary" id="cxSave">Attach note</button></div>`;
+      $("#cxSave").onclick = async () => { const item = await guard(() => api("POST", `/runs/${RUN.id}/context`, { ...base(), source: "note", title: $("#cxTitle").value || "Note", content: $("#cxText").value })); $("#cxText").value = ""; await done(item); };
+    } else {
+      const s = d.sources[kind];
+      body.innerHTML = `<p class="small muted">${esc(s.label)} holds: ${esc(s.holds)}. ${s.mode === "demo" ? `<b>Demo mode</b>: sample content for this run's industry. Connect your own under <a href="#/integrations" onclick="closeModal()">Integrations</a>.` : "<b>Live</b>, read-only."}</p>
+        <div class="row"><input id="cxQ" placeholder="${esc(s.query_hint)}" style="flex:1"><button class="btn" id="cxGo">Search</button></div><div id="cxRes" style="margin-top:10px"></div>`;
+      const search = async () => {
+        $("#cxRes").innerHTML = '<div class="muted small">Searching…</div>';
+        let r;
+        try { r = await api("POST", `/integrations/${kind}/search`, { query: $("#cxQ").value, domain: st.run.domain_pack, stage: $("#cxStage").value }); }
+        catch (e) { $("#cxRes").innerHTML = `<div class="notice bad">${esc(e.message)}</div>`; return; }
+        const sug = new Set((r.suggested || []).map((x) => x.ref));
+        const rows = [...r.results].sort((a, b) => sug.has(b.ref) - sug.has(a.ref));
+        $("#cxRes").innerHTML = rows.length ? `<div class="table-wrap"><table class="small"><tbody>${rows.map((x) => `<tr><td><b>${esc(x.title)}</b> ${sug.has(x.ref) ? badge("pass", "fits this stage") : ""}<div class="muted">${esc(x.excerpt)}</div></td>
+          <td style="white-space:nowrap"><button class="btn small primary" data-ref="${esc(x.ref)}">Attach</button></td></tr>`).join("")}</tbody></table></div>` : '<div class="muted small">Nothing found.</div>';
+        $$("#cxRes [data-ref]").forEach((b) => (b.onclick = async () => { const item = await guard(() => api("POST", `/runs/${RUN.id}/context`, { ...base(), source: kind, ref: b.dataset.ref })); b.disabled = true; b.textContent = "Attached"; await done(item); }));
+      };
+      $("#cxGo").onclick = search; $("#cxQ").onkeydown = (e) => { if (e.key === "Enter") search(); };
+      $("#cxStage").onchange = search; search();
+    }
+  };
+  $$("#cxTabs .tab").forEach((t) => (t.onclick = () => { kind = t.dataset.k; draw(); }));
+  draw();
+}
+// Settings cards for the optional context integrations (Confluence, GitHub, ServiceNow).
+const INTEG_FIELDS = {
+  base_url: ["Base URL", { confluence: "https://your-company.atlassian.net", github: "https://api.github.com", servicenow: "https://your-instance.service-now.com" }],
+  email: ["Account email (Cloud)", {}], space: ["Space key (optional)", { confluence: "DATA" }], repo: ["Repository (owner/name)", { github: "acme/data-platform" }],
+  branch: ["Branch", { github: "main" }], user: ["User name (leave empty for a bearer token)", {}],
+};
+async function renderIntegrationCards(el) {
+  const [d, secrets] = await Promise.all([api("GET", "/context/sources"), api("GET", "/secrets")]);
+  const ids = Object.keys(d.sources).filter((k) => d.sources[k].fields.length);
+  el.innerHTML = `<div class="spread"><div><h2>Context integrations for the agents</h2><div class="small muted">Optional and read-only. Connect the systems where your project knowledge lives, so people can attach the right page, file or record to any stage of a run. Each one works in demo mode until you connect it.</div></div></div>
+    <div class="grid g3" style="margin-top:12px">${ids.map((id) => {
+      const s = d.sources[id]; const c = s.config;
+      return `<div class="integ" data-integ="${id}"><div class="spread"><b>${esc(s.label)}</b>${badge(s.mode === "live" ? "pass" : "", s.mode)}</div><div class="small muted">${esc(s.holds)}</div>
+        <label>Mode</label><select data-k="mode"><option value="demo" ${c.mode !== "live" ? "selected" : ""}>Demo content</option><option value="live" ${c.mode === "live" ? "selected" : ""}>Live (read-only)</option></select>
+        ${s.fields.includes("deployment") ? `<label>Deployment</label><select data-k="deployment"><option value="cloud" ${c.deployment !== "server" ? "selected" : ""}>Cloud (email + API token)</option><option value="server" ${c.deployment === "server" ? "selected" : ""}>Data Center (personal access token)</option></select>` : ""}
+        ${s.fields.filter((f) => INTEG_FIELDS[f]).map((f) => `<label>${INTEG_FIELDS[f][0]}</label><input data-k="${f}" value="${esc(c[f] || "")}" placeholder="${esc(INTEG_FIELDS[f][1][id] || "")}">`).join("")}
+        <label>Token</label><select data-k="token_ref"><option value="${esc(c.token_ref || "")}">${c.token_ref ? `Keep ${esc(c.token_ref)}` : "Not set"}</option>${secrets.filter((x) => `secret:${x.name}` !== c.token_ref).map((x) => `<option value="secret:${esc(x.name)}">secret:${esc(x.name)}</option>`).join("")}</select>
+        <input data-new-token type="password" placeholder="…or paste a new token (stored encrypted)" autocomplete="off" style="margin-top:6px">
+        <div class="row" style="margin-top:10px"><button class="btn primary small" data-save>Save</button><button class="btn small" data-test>Test</button></div><div class="small" data-out style="margin-top:8px"></div></div>`;
+    }).join("")}</div>
+    <details style="margin-top:14px"><summary class="small"><b>What each agent needs, and where it usually lives</b></summary><div class="table-wrap" style="margin-top:8px"><table class="small"><thead><tr><th>Stage</th><th>Context the agent needs</th><th>Usual sources</th></tr></thead><tbody>
+      ${Object.entries(d.stages).filter(([, v]) => v.needs.length).map(([k, v]) => v.needs.map((n, i) => `<tr>${i === 0 ? `<td rowspan="${v.needs.length}"><b>${esc(stageLabel(k))}</b><div class="muted">${esc(v.job)}</div></td>` : ""}<td>${esc(n.need)}<div class="muted">${esc(n.why)}</div></td><td>${n.sources.map((x) => esc(d.sources[x]?.label || d.manual[x] || x)).join(", ")}</td></tr>`).join("")).join("")}
+    </tbody></table></div></details>`;
+  $$(".integ", el).forEach((card) => {
+    const id = card.dataset.integ; const out = $("[data-out]", card);
+    const save = async () => {
+      const cfg = Object.fromEntries($$("[data-k]", card).map((x) => [x.dataset.k, x.value]));
+      const tok = $("[data-new-token]", card).value;
+      if (tok) { await api("POST", "/secrets", { name: `${id}-token`, value: tok, description: `${d.sources[id].label} token` }); cfg.token_ref = `secret:${id}-token`; }
+      await api("PUT", `/settings/integrations/${id}`, cfg);
+    };
+    $("[data-save]", card).onclick = async () => { await guard(save, `${d.sources[id].label} saved`); renderIntegrationCards(el); };
+    $("[data-test]", card).onclick = async () => {
+      out.textContent = "Testing…";
+      try { await save(); const r = await api("POST", `/integrations/${id}/test`); out.innerHTML = r.ok ? `${badge("pass", "connected")} ${esc(r.detail || "")}` : `${badge("fail", "failed")} ${esc(r.error)}`; }
+      catch (e) { out.innerHTML = `${badge("fail", "failed")} ${esc(e.message)}`; }
+    };
+  });
 }
 
 // ------------------------------------------------------------------ dashboard
@@ -478,7 +625,7 @@ function wzStack(d) {
   return `<div class="option-cards">${stacksList.map((s) => `<div class="option ${s.profile_id === d.stack_id ? "sel" : ""}" data-stack="${esc(s.profile_id)}"><div class="t">${esc(s.label || s.profile_id)}</div><div class="small muted">${esc(s.description || "")}</div>${CATALOG.preset_pipelines[s.profile_id]?.local ? '<div style="margin-top:6px"><span class="badge b-ok">runs locally</span></div>' : ""}</div>`).join("")}</div>
     <h3>The three pipelines</h3>${pipelineFlow(cur)}
     <label>Source database for Pipeline 1</label><select data-f="source_id">${srcs.map((x) => `<option value="${esc(x.id)}" ${x.id === d.source_id ? "selected" : ""}>${esc(x.label || x.id)}</option>`).join("")}</select>
-    <p class="small muted">The Test stage rehearses all three pipelines against this database for real. With the Local lakehouse stack, the G6a/G6b releases also run them. Add Oracle or Db2 connections on <a href="#/integrations">Jira &amp; metadata</a>.</p>
+    <p class="small muted">The Test stage rehearses all three pipelines against this database for real. With the Local lakehouse stack, the G6a/G6b releases also run them. Add Oracle or Db2 connections on <a href="#/integrations">Integrations</a>.</p>
     <h3>Bound tools - ${esc(cur.label || cur.profile_id)}</h3><div class="slot-grid">${CATALOG.slots.map((sl) => `<div class="slot"><div class="name">${esc(sl.slot)}</div><div>${esc(cur.slots[sl.slot]?.tool || "-")}</div></div>`).join("")}</div>
     <p class="small muted">Build your own on <a href="#/stacks">Technology stacks</a>. The logical design never names a product; technology is bound in Design step B, so switching stack means switching profile.</p>`;
 }
@@ -585,13 +732,14 @@ function renderRunHead(st) {
   };
   $("#stepper").innerHTML = teamLanes(st);
   $("#nowBar").innerHTML = nowBar(st); bindNowBar(st);
-  const tabs = [["approvals", "Approvals"], ["lakehouse", "Lakehouse"], ["artifacts", "Artifacts"], ["model", "Data model & exports"], ["code", "Code"], ["handoffs", "Handoffs"], ["audit", "Audit logs"], ["metrics", "Team & cost"]];
+  const tabs = [["approvals", "Approvals"], ["context", "Context"], ["lakehouse", "Lakehouse"], ["artifacts", "Artifacts"], ["model", "Data model & exports"], ["code", "Code"], ["handoffs", "Handoffs"], ["audit", "Audit logs"], ["metrics", "Team & cost"]];
   $("#runTabs").innerHTML = tabs.map(([k, l]) => `<div class="tab ${RUN.tab === k ? "active" : ""}" data-tab="${k}">${l}</div>`).join("");
   $$("#runTabs .tab").forEach((t) => (t.onclick = () => { RUN.tab = t.dataset.tab; store.set("adef_run_tab", RUN.tab); renderRunHead(st); renderRunBody(); }));
 }
 async function renderRunBody() {
   const st = RUN.status; const el = $("#runBody");
   if (RUN.tab === "approvals") return renderApprovals(st, el);
+  if (RUN.tab === "context") return renderContext(st, el);
   if (RUN.tab === "artifacts") return renderArtifacts(el);
   if (RUN.tab === "model") return renderRunModel(el);
   if (RUN.tab === "code") return renderCode(el);
@@ -644,6 +792,7 @@ function renderApprovals(st, el) {
       nRej ? `${gate} rejected (${nRej} artifact${nRej > 1 ? "s" : ""})` : `${gate} artifacts approved`);
     refreshRun(true);
   }));
+  $$("[data-gate-ctx]").forEach((a) => (a.onclick = (e) => { e.preventDefault(); RUN.tab = "context"; CTX.open = a.dataset.gateCtx; store.set("adef_run_tab", RUN.tab); renderRunHead(st); renderRunBody(); }));
   $$("[data-rereq]").forEach((b) => (b.onclick = () => guard(() => api("POST", `/runs/${RUN.id}/gates/${b.dataset.rereq}/rerequest`), "Gate re-opened").then(() => refreshRun(true))));
   $$("[data-open]").forEach((a) => (a.onclick = (e) => { e.preventDefault(); RUN.tab = "artifacts"; RUN.file = a.dataset.open; renderRunHead(st); renderRunBody(); }));
   if ($("#openPack")) $("#openPack").onclick = (e) => { e.preventDefault(); RUN.tab = "artifacts"; RUN.file = "final/delivery-pack.md"; renderRunHead(st); renderRunBody(); };
@@ -659,6 +808,13 @@ function setVerdict(tr, v) {
   inp.placeholder = v === "rejected" ? "Required: section and defect" : "Optional note";
   inp.classList.toggle("need", v === "rejected");
   if (v === "rejected") inp.focus();
+}
+function gateContext(st, g, arts) {
+  const stage = st.stage_defs.find((s) => s.gates.includes(g));
+  const pack = arts.map(([p]) => p).find((p) => p.endsWith("/context-pack.md"));
+  const n = st.context_counts?.[stage.key] || 0;
+  return `${pack ? `The agent was given ${n} item${n === 1 ? "" : "s"} attached by the team: <a href="#" data-open="${esc(pack)}">see what it knew</a>.` : "Upstream artifacts only; nothing extra was attached."}
+    <a href="#" data-gate-ctx="${esc(stage.key)}">Missing something? Add context and re-run</a>`;
 }
 function gateCard(st, g, gd) {
   const req = gd.request || {};
@@ -694,7 +850,8 @@ function gateCard(st, g, gd) {
     <div class="kv"><div class="k">Risk</div><div>${esc(req.risk)}</div><div class="k">Cost</div><div>${esc(req.cost)}</div><div class="k">Rollback</div><div>${esc(req.rollback)}</div>
     <div class="k">Options</div><div>${(req.options || []).map(esc).join(" · ")}</div>
     <div class="k">Evidence</div><div>${(req.evidence || []).map((p) => `<a href="#" data-open="${esc(p)}">${esc(p)}</a>`).join("<br>") || "-"}</div>
-    <div class="k">Bundle hash</div><div class="hash">${esc(req.artifact_sha256)}</div></div>
+    <div class="k">Bundle hash</div><div class="hash">${esc(req.artifact_sha256)}</div>
+    <div class="k">Agent context</div><div>${gateContext(st, g, arts)}</div></div>
     <div class="spread" style="margin-top:12px"><h3 style="margin:0">Artifacts for review (${arts.length})</h3>${pending ? `<button class="btn small" data-allok="${g}">Approve all</button>` : ""}</div>
     ${pending ? '<div class="small muted">Approve or reject each artifact. Any rejected artifact rejects the gate, and its reason goes back to the agent as rework instructions. Each verdict is bound to the artifact\'s hash.</div>' : ""}
     <div class="table-wrap"><table class="small review-table" id="rv-${g}"><thead><tr><th>Artifact</th><th>Reviews</th>${pending ? "<th>Your verdict</th><th>Reason / note</th>" : ""}</tr></thead><tbody>${artRows}</tbody></table></div>
@@ -994,7 +1151,8 @@ route("integrations", async () => {
   await refreshSettings();
   const secrets = await api("GET", "/secrets");
   const j = SETTINGS.jira;
-  main().innerHTML = `<h1>Jira &amp; metadata</h1><div class="sub">Read requirements from Jira (read-only, action class A0) and bring in catalog or data-modelling exports as source metadata.</div>
+  main().innerHTML = `<h1>Integrations</h1><div class="sub">Connect the systems where your project knowledge lives: Jira, Confluence, GitHub, ServiceNow, catalogs and source databases. All read-only (action class A0) and all optional.</div>
+    <div class="card" id="integCards"></div>
     <div class="grid g2">
       <div class="card"><h2>Jira connection</h2>
         <div class="field-row"><div><label>Mode</label><select id="jMode"><option value="demo" ${j.mode === "demo" ? "selected" : ""}>Demo Jira (built-in projects UTIL, TEL, FIN, RET)</option><option value="live" ${j.mode === "live" ? "selected" : ""}>Live Jira</option></select></div>
@@ -1019,6 +1177,7 @@ route("integrations", async () => {
     <div class="card"><div class="spread"><div><h2>Demo data packs</h2><div class="small muted">Synthetic, deterministic files per industry: Jira exports, source catalog and DDL, source data, data model exports, catalog payloads and lineage. Regenerate with <code>python -m adef demo-data</code>.</div></div>
       <select id="ddDomain" style="width:auto">${CATALOG.domain_packs.map((p) => `<option value="${esc(p.pack_id)}">${esc(p.pack_id)}</option>`).join("")}</select></div>
       <div id="ddOut" style="margin-top:12px"></div></div>`;
+  renderIntegrationCards($("#integCards"));
   const demo = await api("GET", "/demo-files");
   const kitDomains = new Set(demo.filter((f) => f.folder === "client-demo-kit").map((f) => f.domain));
   $$("#ddDomain option").forEach((o) => { if (kitDomains.has(o.value)) o.textContent = `${o.value} (client demo kit)`; });
