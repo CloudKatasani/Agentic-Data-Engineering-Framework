@@ -381,6 +381,32 @@ class Engine:
         else:
             self._update(ws, lambda x: x.update(current=nxt))
 
+    def review_gate(self, run_id: str, gate: str, approver: str, roles: list[str], reviews: list[dict],
+                    conditions: list[str] | None = None) -> dict:
+        """Per-artifact review: each role held by the approver reviews every artifact, then the gate decision is
+        derived (any rejected artifact rejects the gate, with the reasons as rework feedback)."""
+        ws = self.ws(run_id)
+        if not roles:
+            raise ValueError("choose at least one role to review as")
+        gs = ws.gate_status(gate)
+        if gs["state"] != "pending":
+            raise ValueError(f"{gate} is {gs['state']}, not awaiting review")
+        done = [r for r in roles if r not in gs["pending_roles"]]
+        if done:
+            raise ValueError(f"Already decided for {gate}: {', '.join(ROLE_LABELS.get(r, r) for r in done)}")
+        out = []
+        for role in roles:
+            decision, comment = ws.record_artifact_reviews(gate, approver, role, reviews)
+            if decision == "approved" and conditions:
+                decision = "approved-with-conditions"
+            self.event(ws, f"{gate}: {ROLE_LABELS.get(role, role)} reviewed {len(reviews)} artifacts "
+                           f"({sum(1 for r in reviews if r['decision'] == 'rejected')} rejected)", "gate")
+            res = self.decide(run_id, gate, approver, role, decision, comment, conditions)
+            out.append({"role": role, **res})
+            if decision == "rejected":
+                break  # the gate is rejected; further roles need not review this version
+        return {"results": out, "gate_state": out[-1]["gate_state"]}
+
     def rework(self, run_id: str, key: str, feedback: str) -> None:
         ws = self.ws(run_id)
         if scan_injection(feedback):
@@ -432,6 +458,7 @@ class Engine:
             for g in s["gates"]:
                 gs = ws.gate_status(g)
                 gates[g] = {k: gs.get(k) for k in ("state", "pending_roles", "changed_artifacts", "conditions")}
+                gates[g]["artifact_reviews"] = gs.get("artifact_reviews") or {}
                 if gs.get("request"):
                     req = gs["request"]
                     gates[g]["request"] = {k: req.get(k) for k in ("request_id", "summary", "risk", "cost", "rollback", "options",

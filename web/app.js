@@ -498,8 +498,8 @@ function renderApprovals(st, el) {
     const ss = st.stages[s.key];
     if (["failed", "blocked", "rejected"].includes(ss.status)) {
       blocks.push(`<div class="card gate-card rejected"><div class="spread"><h2>${esc(s.label)} · ${badge(ss.status)}</h2></div>
-        <div class="notice bad">${esc(ss.error || "")}</div>
-        <label>Rework instructions for ${esc(s.agent)}</label><textarea id="fb-${s.key}" placeholder="What exactly must change (artifact, section, defect)"></textarea>
+        <div class="notice bad" style="white-space:pre-line">${esc(ss.error || "")}</div>
+        <label>Rework instructions for ${esc(s.agent)}</label><textarea id="fb-${s.key}" placeholder="What exactly must change (artifact, section, defect)">${esc(reworkPrefill(ss.error))}</textarea>
         <div class="row" style="margin-top:8px"><button class="btn primary" data-rework="${s.key}">Send back for rework</button><button class="btn" data-retry="${s.key}">Retry as-is</button></div></div>`);
     }
   });
@@ -521,22 +521,65 @@ function renderApprovals(st, el) {
     await guard(() => api("POST", `/runs/${RUN.id}/gates/${gate}/decision`, { approver: $(`#a-${gate}-${role}`).value, role, decision: cond.length && decision === "approved" ? "approved-with-conditions" : decision, comment, conditions: cond }), `${gate} ${decision}`);
     refreshRun(true);
   }));
+  $$("[data-av]").forEach((b) => (b.onclick = () => setVerdict(b.closest("tr"), b.dataset.av)));
+  $$("[data-allok]").forEach((b) => (b.onclick = () => $$(`#rv-${b.dataset.allok} tr[data-path]`).forEach((tr) => setVerdict(tr, "approved"))));
+  $$("[data-review]").forEach((b) => (b.onclick = async () => {
+    const gate = b.dataset.review; const roles = b.dataset.roles.split(",");
+    const rows = $$(`#rv-${gate} tr[data-path]`);
+    const reviews = rows.map((tr) => ({ path: tr.dataset.path, decision: tr.dataset.verdict || "", comment: tr.querySelector("input").value.trim() }));
+    const todo = reviews.filter((r) => !r.decision);
+    if (todo.length) { toast(`Approve or reject every artifact first (${todo.length} not reviewed).`, "err"); return; }
+    const noReason = reviews.filter((r) => r.decision === "rejected" && r.comment.length < 5);
+    if (noReason.length) { toast(`Give a reason for each rejected artifact: ${noReason.map((r) => r.path).join(", ")}`, "err"); return; }
+    const cond = ($(`#k-${gate}`)?.value || "").split("\n").map((x) => x.trim()).filter(Boolean);
+    const nRej = reviews.filter((r) => r.decision === "rejected").length;
+    await guard(() => api("POST", `/runs/${RUN.id}/gates/${gate}/review`, { approver: b.dataset.approver, roles, reviews, conditions: cond }),
+      nRej ? `${gate} rejected (${nRej} artifact${nRej > 1 ? "s" : ""})` : `${gate} artifacts approved`);
+    refreshRun(true);
+  }));
   $$("[data-rereq]").forEach((b) => (b.onclick = () => guard(() => api("POST", `/runs/${RUN.id}/gates/${b.dataset.rereq}/rerequest`), "Gate re-opened").then(() => refreshRun(true))));
   $$("[data-open]").forEach((a) => (a.onclick = (e) => { e.preventDefault(); RUN.tab = "artifacts"; RUN.file = a.dataset.open; renderRunHead(st); renderRunBody(); }));
   if ($("#openPack")) $("#openPack").onclick = (e) => { e.preventDefault(); RUN.tab = "artifacts"; RUN.file = "final/delivery-pack.md"; renderRunHead(st); renderRunBody(); };
 }
+function reworkPrefill(err) {
+  const lines = String(err || "").split("\n").filter((l) => l.startsWith("- "));
+  return lines.length ? `Fix these rejected artifacts:\n${lines.join("\n")}` : "";
+}
+function setVerdict(tr, v) {
+  tr.dataset.verdict = v;
+  tr.querySelectorAll("[data-av]").forEach((x) => x.classList.toggle("on", x.dataset.av === v));
+  const inp = tr.querySelector("input");
+  inp.placeholder = v === "rejected" ? "Required: section and defect" : "Optional note";
+  inp.classList.toggle("need", v === "rejected");
+  if (v === "rejected") inp.focus();
+}
 function gateCard(st, g, gd) {
   const req = gd.request || {};
   const roles = req.required_roles || [];
+  const pending = gd.state === "pending";
   const decided = Object.fromEntries((gd.decisions || []).map((d) => [d.role_key, d]));
+  const reviews = gd.artifact_reviews || {};
   const roleRows = roles.map((r) => {
     const d = decided[r];
     return `<div class="role-row"><div><b>${esc(st.role_labels[r])}</b><div class="small muted">named approver</div></div>
-      <input id="a-${g}-${r}" value="${esc(st.run.approvers[r] || "")}" ${d || gd.state !== "pending" ? "disabled" : ""}>
-      <div class="row">${d ? badge(d.decision.startsWith("approved") ? "approved" : "rejected", `${d.decision} · ${short(d.approval_id, 8)}`) : gd.state === "pending"
-        ? `<button class="btn ok small" data-decide="${g}|${r}|approved">Approve</button><button class="btn bad small" data-decide="${g}|${r}|rejected">Reject</button>` : ""}</div></div>`;
+      <div>${esc(st.run.approvers[r] || "-")}</div>
+      <div class="row">${d ? badge(d.decision.startsWith("approved") ? "approved" : "rejected", `${d.decision} · ${short(d.approval_id, 8)}`) : pending ? badge("awaiting-approval", "awaiting review") : ""}</div></div>`;
   }).join("");
+  // One submit per named person, covering every pending role that person holds.
+  const byPerson = {};
+  roles.filter((r) => !decided[r]).forEach((r) => { const who = st.run.approvers[r] || ""; (byPerson[who] = byPerson[who] || []).push(r); });
+  const submit = pending ? Object.entries(byPerson).map(([who, rs]) =>
+    `<button class="btn primary small" data-review="${g}" data-approver="${esc(who)}" data-roles="${rs.join(",")}">Submit review as ${esc(who || "?")} (${rs.map((r) => esc(st.role_labels[r])).join(", ")})</button>`).join("") : "";
   const arts = Object.entries(req.artifacts || {});
+  const prior = (p) => (reviews[p] || []).map((v) => `<span class="badge ${v.decision === "approved" ? "b-ok" : "b-bad"}" title="${esc(v.approver)} · ${esc(v.timestamp)}${v.comment ? ` · ${esc(v.comment)}` : ""}">${v.decision === "approved" ? "✓" : "✗"} ${esc(v.role)}</span>`).join(" ");
+  const artRows = arts.map(([p, h]) => {
+    const rej = (reviews[p] || []).filter((v) => v.decision === "rejected" && v.comment);
+    return `<tr data-path="${esc(p)}"><td><a href="#" data-open="${esc(p)}">${esc(p)}</a><div class="hash">${short(h, 16)}</div>
+      ${rej.map((v) => `<div class="small" style="color:var(--bad)">${esc(v.role)}: ${esc(v.comment)}</div>`).join("")}</td>
+      <td style="white-space:nowrap">${prior(p) || (pending ? "" : '<span class="muted small">gate-level decision</span>')}</td>
+      ${pending ? `<td style="white-space:nowrap"><span class="seg"><button class="btn small" data-av="approved">Approve</button><button class="btn small" data-av="rejected">Reject</button></span></td>
+      <td style="min-width:200px"><input placeholder="Optional note"></td>` : ""}</tr>`;
+  }).join("");
   return `<div class="card gate-card ${esc(gd.state)}">
     <div class="spread"><div><h2>${esc(g)} · ${esc(st.gate_labels[g])}</h2><div class="small muted">${esc(req.request_id)} · ${esc(req.action_class)} · expires ${esc(req.expires)}</div></div>${badge(gd.state === "pending" ? "awaiting-approval" : gd.state, gd.state)}</div>
     ${gd.state === "stale" ? `<div class="notice warn" style="margin:10px 0">Approval drift: ${esc(gd.changed_artifacts.join(", "))} changed after the request. The approval no longer covers these hashes. <button class="btn small" data-rereq="${g}">Re-request ${g}</button></div>` : ""}
@@ -545,10 +588,12 @@ function gateCard(st, g, gd) {
     <div class="k">Options</div><div>${(req.options || []).map(esc).join(" · ")}</div>
     <div class="k">Evidence</div><div>${(req.evidence || []).map((p) => `<a href="#" data-open="${esc(p)}">${esc(p)}</a>`).join("<br>") || "-"}</div>
     <div class="k">Bundle hash</div><div class="hash">${esc(req.artifact_sha256)}</div></div>
-    <details style="margin-top:8px"><summary class="small muted">${arts.length} artifacts bound to this approval</summary>
-      <table class="small">${arts.map(([p, h]) => `<tr><td><a href="#" data-open="${esc(p)}">${esc(p)}</a></td><td class="hash">${short(h, 16)}</td></tr>`).join("")}</table></details>
+    <div class="spread" style="margin-top:12px"><h3 style="margin:0">Artifacts for review (${arts.length})</h3>${pending ? `<button class="btn small" data-allok="${g}">Approve all</button>` : ""}</div>
+    ${pending ? '<div class="small muted">Approve or reject each artifact. Any rejected artifact rejects the gate, and its reason goes back to the agent as rework instructions. Each verdict is bound to the artifact\'s hash.</div>' : ""}
+    <div class="table-wrap"><table class="small review-table" id="rv-${g}"><thead><tr><th>Artifact</th><th>Reviews</th>${pending ? "<th>Your verdict</th><th>Reason / note</th>" : ""}</tr></thead><tbody>${artRows}</tbody></table></div>
     ${gd.conditions?.length ? `<div class="notice" style="margin-top:8px">Binding conditions: ${gd.conditions.map(esc).join("; ")}</div>` : ""}
-    ${gd.state === "pending" ? `<label>Comment (required to reject: exact artifact, section and defect)</label><input id="c-${g}"><label>Conditions (optional, one per line - become binding constraints downstream)</label><textarea id="k-${g}" style="min-height:44px"></textarea>` : `<input id="c-${g}" type="hidden">`}
+    ${pending ? `<label>Conditions (optional, one per line - become binding constraints downstream if approved)</label><textarea id="k-${g}" style="min-height:44px"></textarea>
+      <div class="row" style="margin-top:8px;flex-wrap:wrap">${submit}</div>` : ""}
     <div style="margin-top:8px">${roleRows}</div></div>`;
 }
 async function renderArtifacts(el) {

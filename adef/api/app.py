@@ -433,6 +433,17 @@ def gate_decision(rid: str, gate: str, body: dict = Body(...)):
                            [c for c in body.get("conditions", []) if c])
 
 
+@app.post("/api/runs/{rid}/gates/{gate}/review")
+def gate_review(rid: str, gate: str, body: dict = Body(...)):
+    """Approve or reject every artifact of a gate individually; the gate decision follows from the reviews."""
+    roles = body.get("roles") or ([body["role"]] if body.get("role") else [])
+    try:
+        return engine().review_gate(rid, gate, body["approver"], roles, body.get("reviews") or [],
+                                    [c for c in body.get("conditions", []) if c])
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+
+
 @app.post("/api/runs/{rid}/gates/{gate}/rerequest")
 def gate_rerequest(rid: str, gate: str):
     return engine().rerequest(rid, gate)
