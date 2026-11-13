@@ -243,13 +243,123 @@ const refreshSettings = async () => (SETTINGS = await api("GET", "/settings"));
 const providerById = (id) => SETTINGS.providers.find((p) => p.id === id);
 const allStacks = () => [...CATALOG.presets, ...(SETTINGS.stack_profiles || [])];
 
+// ------------------------------------------------------------------ AI team + human team
+const STAGE_OUTPUT = {
+  intake: "Scope brief, backlog, stack validation", requirements: "Requirements, acceptance criteria, NFRs",
+  mapping: "Source-to-target mapping, gaps, quality rules", design: "Logical and physical model, cost estimate, ADRs",
+  build: "Pipeline code on a feature branch, pull request", test: "Executed tests, quality evidence, reconciliation",
+  release: "Release plan, rollback rehearsal, deployment", operations: "Runbooks, monitors, SLOs",
+  consumption: "Semantic layer, access, data product docs", assembly: "Audit-ready delivery pack",
+};
+const agentShort = (a) => String(a || "").replace(/^adef-/, "");
+const dur = (s) => (s < 1 ? "under 1s" : s < 60 ? `${Math.round(s)}s` : s < 3600 ? `${Math.floor(s / 60)}m ${Math.round(s % 60)}s` : `${Math.floor(s / 3600)}h ${Math.round((s % 3600) / 60)}m`);
+const since = (iso) => (iso ? dur(Math.max(0, (Date.now() - new Date(iso)) / 1000)) : "");
+const people = (list) => {
+  const by = {};
+  (list || []).forEach((w) => (by[w.name] = by[w.name] || []).push(w.role));
+  return Object.entries(by).map(([n, rs]) => `<b>${esc(n)}</b> (${rs.map(esc).join(", ")})`).join(" and ");
+};
+// The operating model: which agent does the work at each stage, and which named human role decides.
+function operatingModel() {
+  const rows = CATALOG.stages.map((s, i) => {
+    const roles = [...new Set(s.gates.flatMap((g) => CATALOG.gate_roles[g] || []))];
+    const b = SETTINGS.agents[s.agent] || {};
+    return `<tr><td><b>${i}. ${esc(s.label)}</b></td>
+      <td><span class="who ai">AI</span> ${esc(agentShort(s.agent))}<div class="small muted mono">${esc(b.model || "")}</div></td>
+      <td class="small">${esc(STAGE_OUTPUT[s.key] || "")}</td>
+      <td>${s.gates.map((g) => `<span class="chip">${esc(g)}</span>`).join(" ") || '<span class="muted small">-</span>'}</td>
+      <td>${roles.length ? `<span class="who hu">Human</span> ${roles.map((r) => esc(CATALOG.role_labels[r])).join(", ")}` : '<span class="muted small">Handed to the team</span>'}</td></tr>`;
+  }).join("");
+  return `<h2>How the AI team works with your team</h2>
+    <div class="om-points">
+      <div><b>Agents do the work.</b> One specialist agent per lifecycle stage drafts, builds, tests and documents.</div>
+      <div><b>People make the decisions.</b> ${Object.keys(CATALOG.gate_labels).length} approval gates, each owned by a named role. Agents can never approve.</div>
+      <div><b>Every decision is evidence.</b> Each approval is tied to the exact artifact version and kept in a tamper-evident log.</div>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>Stage</th><th>Who does the work</th><th>What it produces</th><th>Gate</th><th>Who decides</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+// Two swimlanes across the lifecycle: the AI team on top, the human team underneath, so the hand-offs are visible.
+function teamLanes(st) {
+  const rows = st.team.stages;
+  const stageCells = st.stage_defs.map((s, i) => `<div class="lane-stage"><span class="muted">${i}</span> ${esc(s.label)}</div>`).join("");
+  const AI_STATE = { pending: ["queued", ""], running: ["working", "live"], failed: ["stopped", "bad"], blocked: ["blocked", "bad"], rejected: ["rework needed", "bad"],
+    "awaiting-approval": ["handed over", "done"], approved: ["done", "done"], done: ["done", "done"] };
+  const aiCells = st.stage_defs.map((s) => {
+    const ss = st.stages[s.key]; const [label, cls] = AI_STATE[ss.status] || [ss.status, ""];
+    return `<div class="lane-cell ai ${cls}" title="${esc(ss.error || ss.summary || s.agent)}"><div class="nm">${esc(agentShort(s.agent))}</div>
+      <div class="stt">${cls === "live" ? '<span class="pulse"></span>' : ""}${esc(label)}</div></div>`;
+  }).join("");
+  const huCells = st.stage_defs.map((s, i) => {
+    const r = rows[i]; const states = s.gates.map((g) => st.gates_detail[g]?.state || "not-requested");
+    if (!s.gates.length) return `<div class="lane-cell hu none"><div class="nm">Receives the pack</div><div class="stt">${st.status === "completed" ? "delivered" : "at the end"}</div></div>`;
+    const [label, cls] = states.includes("pending") ? ["your turn", "live"] : states.includes("rejected") ? ["rejected", "bad"] : states.includes("stale") ? ["re-approve", "bad"]
+      : states.every((x) => x === "approved") ? ["approved", "done"] : states.includes("approved") ? ["next gate soon", ""] : ["waits for the agent", ""];
+    const roles = [...new Set(r.humans.map((h) => h.role))];
+    return `<div class="lane-cell hu ${cls}" ${cls === "live" ? 'data-now="approvals" role="button" tabindex="0"' : ""} title="${esc(r.humans.map((h) => `${h.name} (${h.role})`).join(", "))}">
+      <div class="nm">${roles.map(esc).join(", ")}</div>
+      <div class="stt">${s.gates.map((g) => `<span class="chip ${esc(st.gates_detail[g]?.state || "")}">${esc(g)}</span>`).join("")} ${esc(label)}</div></div>`;
+  }).join("");
+  return `<div class="lanes-wrap"><div class="lanes">
+    <div class="lane-label"></div>${stageCells}
+    <div class="lane-label"><span class="who ai">AI</span>team<div class="small muted">does the work</div></div>${aiCells}
+    <div class="lane-label"><span class="who hu">Human</span>team<div class="small muted">decides</div></div>${huCells}
+  </div></div>`;
+}
+// One line that says what the run is doing right now and who it is waiting on. Shown on every tab.
+function nowBar(st) {
+  const n = st.now || {};
+  const btn = (act, label, primary = true) => `<button class="btn ${primary ? "primary" : ""} small" data-now="${act}">${label}</button>`;
+  switch (n.kind) {
+    case "running": return `<div class="now ai"><span class="pulse"></span><div><b>AI team working · ${esc(n.label)}</b><div class="small">${esc(agentShort(n.agent))} on ${esc(n.model || "its model")} · ${since(n.since)} so far. No action needed; the gate opens when the agent hands over.</div></div></div>`;
+    case "review": return `<div class="now hu"><div><b>Your turn · ${esc(n.gate)} ${esc(n.gate_label)}</b><div class="small">Waiting on ${people(n.waiting_on)} to review ${n.artifacts} artifacts${n.since ? ` · waiting ${since(n.since)}` : ""}. The agents are paused until then.</div></div>${btn("approvals", `Review ${esc(n.gate)}`)}</div>`;
+    case "rejected": return `<div class="now bad"><div><b>${esc(n.label)} was rejected</b><div class="small">Send it back to ${esc(agentShort(n.agent))} with rework instructions.</div></div>${btn("approvals", "Open rework")}</div>`;
+    case "failed": return `<div class="now bad"><div><b>${esc(n.label)} stopped</b><div class="small">${esc(String(n.error || "").slice(0, 220))}</div></div>${btn("retry", "Retry stage")}${btn("approvals", "Details", false)}</div>`;
+    case "blocked": return `<div class="now bad"><div><b>${esc(n.label)} is blocked and escalated to the human owner</b><div class="small">${esc(String(n.error || "").slice(0, 220))}</div></div>${btn("approvals", "Open")}</div>`;
+    case "stale": return `<div class="now warn"><div><b>${esc(n.gate)} approval is out of date</b><div class="small">An approved artifact changed, so the approval no longer covers it. Re-request the gate.</div></div>${btn("approvals", "Open")}</div>`;
+    case "finishing": return `<div class="now ai"><span class="pulse"></span><div><b>Carrying out the approved ${esc(n.gate)} action</b><div class="small">${esc(n.gate_label)}. The next stage starts when this finishes.</div></div></div>`;
+    case "resume": return `<div class="now warn"><div><b>${esc(n.gate)} is approved but its follow-up work was interrupted</b><div class="small">Nothing is running. Resume to continue from ${esc(n.label)}.</div></div>${btn("resume", "Resume run")}</div>`;
+    case "next": return `<div class="now warn"><div><b>Ready for ${esc(n.label)}</b><div class="small">Autopilot is off for this run, so ${esc(agentShort(n.agent))} waits for you to start it.</div></div>${btn("resume", `Start ${esc(n.label)}`)}</div>`;
+    case "complete": return `<div class="now ok"><div><b>Run complete</b><div class="small">${st.team.totals.artifacts} artifacts delivered by the agents in ${dur(st.team.totals.agent_seconds)} of working time, with ${st.team.totals.decisions} human decisions.</div></div>${btn("pack", "Open delivery pack")}</div>`;
+    default: return "";
+  }
+}
+function bindNowBar(st) {
+  $$("#nowBar [data-now], #stepper [data-now]").forEach((b) => (b.onclick = async () => {
+    const act = b.dataset.now;
+    if (act === "approvals" || act === "pack") {
+      RUN.tab = act === "pack" ? "artifacts" : "approvals";
+      if (act === "pack") RUN.file = "final/delivery-pack.md";
+      store.set("adef_run_tab", RUN.tab); renderRunHead(st); await renderRunBody();
+      $("#runBody").scrollIntoView({ behavior: "smooth", block: "start" });
+    } else if (act === "retry") { await guard(() => api("POST", `/runs/${RUN.id}/stages/${st.now.stage}/start`), "Retrying"); refreshRun(true); }
+    else if (act === "resume") { await guard(() => api("POST", `/runs/${RUN.id}/resume`), "Resumed"); refreshRun(true); }
+  }));
+}
+function teamCard(st) {
+  const t = st.team; const tot = t.totals;
+  const share = tot.agent_seconds + tot.human_wait_seconds > 0 ? Math.round((100 * tot.human_wait_seconds) / (tot.agent_seconds + tot.human_wait_seconds)) : 0;
+  return `<div class="grid g4">
+      <div class="card kpi"><div class="l">Agent working time</div><div class="v">${dur(tot.agent_seconds)}</div><div class="small muted">${tot.artifacts} artifacts produced</div></div>
+      <div class="card kpi"><div class="l">Waiting on people</div><div class="v">${dur(tot.human_wait_seconds)}</div><div class="small muted">${share}% of elapsed time so far</div></div>
+      <div class="card kpi"><div class="l">Human decisions</div><div class="v">${tot.decisions}</div><div class="small muted">${tot.reviews} artifact verdicts recorded</div></div>
+      <div class="card kpi"><div class="l">Agents that can approve</div><div class="v">0</div><div class="small muted">only named people decide</div></div>
+    </div>
+    <div class="card"><h2>AI team and human team on this run</h2><div class="table-wrap"><table><thead><tr><th>Stage</th><th>AI agent</th><th>Agent time</th><th>Human approvers</th><th>Review wait</th><th>Status</th></tr></thead><tbody>
+    ${t.stages.map((r) => `<tr><td><b>${esc(r.label)}</b> ${r.gates.map((g) => `<span class="chip ${esc(st.gates_detail[g]?.state || "")}">${esc(g)}</span>`).join(" ")}</td>
+      <td><span class="who ai">AI</span> ${esc(agentShort(r.agent))}<div class="small muted mono">${esc(r.model || "")}</div></td>
+      <td>${r.status === "pending" || r.status === "running" ? "-" : dur(r.agent_seconds)}</td>
+      <td>${r.humans.length ? `<span class="who hu">Human</span> ${people(r.humans)}` : '<span class="muted small">-</span>'}</td>
+      <td>${r.human_wait_seconds ? dur(r.human_wait_seconds) : "-"}</td><td>${badge(r.status)}</td></tr>`).join("")}
+    </tbody></table></div><p class="small muted">Times are measured on this run: agent time is from stage start to handover; review wait is from the approval request to the last decision.</p></div>`;
+}
+
 // ------------------------------------------------------------------ dashboard
 route("dashboard", async () => {
   const runs = await api("GET", "/runs");
   const pending = runs.reduce((n, r) => n + r.pending_gates.length, 0);
   const llm = new Set(Object.values(SETTINGS.agents).map((a) => providerById(a.provider_id)?.type || "?"));
   main().innerHTML = `
-    <div class="spread"><div><h1>Delivery dashboard</h1><div class="sub">Approval-gated agent team: business intent → requirements → mapping → design → build → test → release → operations → consumption.</div></div>
+    <div class="spread"><div><h1>Delivery dashboard</h1><div class="sub">An AI delivery team working alongside your people: agents build, test and deploy; named humans approve every gate.</div></div>
       <div class="row"><a class="btn primary" href="#/new">New run</a></div></div>
     <div class="grid g4">
       <div class="card kpi"><div class="l">Runs</div><div class="v">${runs.length}</div></div>
@@ -259,10 +369,11 @@ route("dashboard", async () => {
     </div>
     <div class="card" style="margin-top:16px">
       <h2>Runs</h2>
-      ${runs.length ? `<div class="table-wrap"><table><thead><tr><th>Run</th><th>Client</th><th>Use case</th><th>Domain</th><th>Stack</th><th>Status</th><th>Current</th><th>Waiting on</th><th>Updated</th></tr></thead><tbody>
+      ${runs.length ? `<div class="table-wrap"><table><thead><tr><th>Run</th><th>Client</th><th>Use case</th><th>Domain</th><th>Stack</th><th>Status</th><th>Current</th><th>Needs you</th><th>Updated</th></tr></thead><tbody>
       ${runs.map((r) => `<tr class="click" data-run="${esc(r.run_id)}"><td class="mono">${esc(r.run_id)}</td><td>${esc(r.client_code)}</td><td>${esc(r.use_case)}</td><td>${esc(r.domain_pack)}</td><td>${esc(r.stack)}</td><td>${badge(r.status)}</td><td>${esc(r.current || "-")}</td><td>${r.pending_gates.map((g) => `<span class="chip pending">${esc(g)}</span>`).join(" ")}</td><td class="small muted">${fmtTime(r.updated)}</td></tr>`).join("")}
       </tbody></table></div>` : `<div class="empty">No runs yet. <a href="#/new">Start one</a> - the offline Demo Simulator needs no API key.</div>`}
     </div>
+    <div class="card" style="margin-top:16px">${operatingModel()}</div>
     <div class="card" style="margin-top:16px" id="gettingStarted"></div>`;
   const stt = await api("GET", "/status");
   const live = stt.agents_with_live_model;
@@ -442,7 +553,7 @@ const RUN = { id: null, tab: "approvals", eventsNext: 0, file: null, status: nul
 route("run", async (rid) => {
   RUN.id = rid; RUN.eventsNext = 0; RUN.file = null;
   RUN.tab = store.get("adef_run_tab", "approvals");
-  main().innerHTML = `<div id="runHead"></div><div id="stepper" class="stepper"></div>
+  main().innerHTML = `<div id="runHead"></div><div id="stepper"></div><div id="nowBar"></div>
     <div class="run-layout"><div><div class="tabs" id="runTabs"></div><div id="runBody"></div></div>
     <div class="card"><div class="spread"><h2>Agent activity</h2><span class="badge b-info" id="liveBadge">live</span></div><div class="feed" id="feed"></div></div></div>`;
   await refreshRun(true);
@@ -472,12 +583,9 @@ function renderRunHead(st) {
     const r2 = await guard(() => api("GET", `/runs/${RUN.id}/integrity`));
     modal(`<h2>Append-only log integrity</h2><p class="muted">Each entry carries the hash of the previous one; editing any past entry breaks the chain.</p><table>${r2.logs.map((l) => `<tr><td class="mono">${esc(l.log)}.jsonl</td><td>${l.ok ? badge("pass", `intact · ${l.entries} entries`) : badge("fail", `broken at entry ${l.broken_at}`)}</td></tr>`).join("")}</table><div style="margin-top:14px"><button class="btn" onclick="closeModal()">Close</button></div>`);
   };
-  $("#stepper").innerHTML = st.stage_defs.map((s, i) => {
-    const ss = st.stages[s.key]; const disp = ss.display || ss.status;
-    return `<div class="step s-${esc(disp)}" title="${esc(ss.error || ss.summary || disp)}"><div class="n">${i} · ${esc(disp)}</div><div class="t">${esc(s.label)}</div>
-      <div class="gates">${s.gates.map((g) => `<span class="chip ${esc(st.gates_detail[g]?.state || "")}">${esc(g)}</span>`).join("")}</div></div>`;
-  }).join("");
-  const tabs = [["approvals", "Approvals"], ["lakehouse", "Lakehouse"], ["artifacts", "Artifacts"], ["model", "Data model & exports"], ["code", "Code"], ["handoffs", "Handoffs"], ["audit", "Audit logs"], ["metrics", "Agents & cost"]];
+  $("#stepper").innerHTML = teamLanes(st);
+  $("#nowBar").innerHTML = nowBar(st); bindNowBar(st);
+  const tabs = [["approvals", "Approvals"], ["lakehouse", "Lakehouse"], ["artifacts", "Artifacts"], ["model", "Data model & exports"], ["code", "Code"], ["handoffs", "Handoffs"], ["audit", "Audit logs"], ["metrics", "Team & cost"]];
   $("#runTabs").innerHTML = tabs.map(([k, l]) => `<div class="tab ${RUN.tab === k ? "active" : ""}" data-tab="${k}">${l}</div>`).join("");
   $$("#runTabs .tab").forEach((t) => (t.onclick = () => { RUN.tab = t.dataset.tab; store.set("adef_run_tab", RUN.tab); renderRunHead(st); renderRunBody(); }));
 }
@@ -508,8 +616,7 @@ function renderApprovals(st, el) {
   gates.sort((a, b) => (order[a[1].state] ?? 9) - (order[b[1].state] ?? 9) || b[0].localeCompare(a[0]));
   gates.forEach(([g, gd]) => blocks.push(gateCard(st, g, gd)));
   const running = st.stage_defs.filter((s) => st.stages[s.key].status === "running");
-  if (running.length) blocks.unshift(`<div class="card"><div class="notice">${running.map((s) => `<b>${esc(s.label)}</b> in progress - ${esc(s.agent)} is working…`).join("<br>")}</div></div>`);
-  if (st.status === "completed") blocks.unshift(`<div class="card"><div class="notice">Run complete. <a href="#" id="openPack">Open the delivery pack</a> · exports are under <b>Data model &amp; exports</b>.</div></div>`);
+  if (running.length && !blocks.length) blocks.push(`<div class="empty">${running.map((s) => `${esc(s.label)} is in progress. Its approval gate appears here when ${esc(agentShort(s.agent))} hands over.`).join("<br>")}</div>`);
   el.innerHTML = blocks.join("") || '<div class="empty">No gates requested yet.</div>';
   $$("[data-rework]").forEach((b) => (b.onclick = () => guard(() => api("POST", `/runs/${RUN.id}/stages/${b.dataset.rework}/rework`, { feedback: $(`#fb-${b.dataset.rework}`).value }), "Sent back for rework")));
   $$("[data-retry]").forEach((b) => (b.onclick = () => guard(() => api("POST", `/runs/${RUN.id}/stages/${b.dataset.retry}/start`), "Retrying")));
@@ -669,8 +776,8 @@ async function renderAudit(el) {
 function renderMetrics(st, el) {
   const rows = CATALOG.agents.map((a) => { const u = st.usage[a.name]; const b = st.run.agent_bindings?.[a.name] || {}; return [a.name, `${b.provider_id || "?"} / ${b.model || "?"}`, (u?.models || ["-"]).join(", ") + (u?.fallback ? ` - ${u.fallback}` : ""), u?.calls ?? 0, u?.tokens ?? 0, u ? `$${u.llm_cost_usd.toFixed(4)}` : "-"]; });
   const tot = Object.values(st.usage).reduce((a, u) => ({ t: a.t + u.tokens, c: a.c + u.llm_cost_usd }), { t: 0, c: 0 });
-  el.innerHTML = `<div class="grid g3"><div class="card kpi"><div class="l">LLM tokens</div><div class="v">${tot.t.toLocaleString()}</div></div><div class="card kpi"><div class="l">LLM cost (list price)</div><div class="v">$${tot.c.toFixed(3)}</div></div><div class="card kpi"><div class="l">Guardrail blocks</div><div class="v">${st.metrics.guardrail_blocks || 0}</div></div></div>
-    <div class="card"><h2>Agent team for this run</h2><div class="table-wrap"><table><thead><tr><th>Agent</th><th>Bound to</th><th>Served by</th><th>Calls</th><th>Tokens</th><th>Cost</th></tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td class="${i < 3 ? "mono small" : ""}">${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+  el.innerHTML = `${teamCard(st)}<div class="grid g3" style="margin-top:16px"><div class="card kpi"><div class="l">LLM tokens</div><div class="v">${tot.t.toLocaleString()}</div></div><div class="card kpi"><div class="l">LLM cost (list price)</div><div class="v">$${tot.c.toFixed(3)}</div></div><div class="card kpi"><div class="l">Guardrail blocks</div><div class="v">${st.metrics.guardrail_blocks || 0}</div></div></div>
+    <div class="card"><h2>Models and cost for this run</h2><div class="table-wrap"><table><thead><tr><th>Agent</th><th>Bound to</th><th>Served by</th><th>Calls</th><th>Tokens</th><th>Cost</th></tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td class="${i < 3 ? "mono small" : ""}">${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
     <p class="small muted">"Served by" shows what actually ran. A simulated stage means the bound provider had no key or could not be reached and the demo fallback was on. Bindings are captured when the run is created.</p></div>`;
 }
 

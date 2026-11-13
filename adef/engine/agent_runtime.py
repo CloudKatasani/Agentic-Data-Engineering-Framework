@@ -3,11 +3,12 @@ from __future__ import annotations
 
 import json
 import re
+import threading
 import time
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
-from ..config import AGENTS_DIR, SKILLS_DIR
+from ..config import AGENTS_DIR, SKILLS_DIR, env
 from ..guardrails.scanners import redact_secrets
 from ..llm.base import LLMError, Provider
 from ..llm.router import estimate_cost
@@ -62,6 +63,17 @@ class Usage:
                 "seconds": round(self.seconds, 1), "models": sorted(self.models)}
 
 
+HEARTBEAT_SECONDS = 15
+
+
+def model_timeout() -> int:
+    """Wall-clock limit for one model call (ADEF_MODEL_TIMEOUT_SECONDS, default 600)."""
+    try:
+        return max(30, int(env("MODEL_TIMEOUT_SECONDS") or 600))
+    except ValueError:
+        return 600
+
+
 class AgentCall:
     """Bound (agent, provider, model) with usage tracking."""
 
@@ -75,11 +87,38 @@ class AgentCall:
         return self.provider.type == "simulator"
 
     def _complete(self, prompt: str, max_tokens: int | None = None) -> str:
+        """One model call. Live calls report a heartbeat to the activity feed and have a wall-clock limit, so a
+        slow or unreachable model can never leave a stage silently "running"."""
         t0 = time.time()
-        res = self.provider.complete(system=system_prompt(self.agent), prompt=prompt,
-                                     model=self.binding["model"],
-                                     max_tokens=int(max_tokens or self.binding.get("max_tokens") or 16000),
-                                     effort=self.binding.get("effort") or "medium")
+        kw = dict(system=system_prompt(self.agent), prompt=prompt, model=self.binding["model"],
+                  max_tokens=int(max_tokens or self.binding.get("max_tokens") or 16000),
+                  effort=self.binding.get("effort") or "medium")
+        if self.simulated:
+            res = self.provider.complete(**kw)
+        else:
+            box: dict = {}
+
+            def work():
+                try:
+                    box["res"] = self.provider.complete(**kw)
+                except BaseException as e:  # noqa: BLE001 - re-raised on the stage thread below
+                    box["err"] = e
+
+            th = threading.Thread(target=work, daemon=True, name=f"llm-{self.agent}")
+            th.start()
+            limit = model_timeout()
+            while True:
+                th.join(HEARTBEAT_SECONDS)
+                if not th.is_alive():
+                    break
+                waited = int(time.time() - t0)
+                if waited >= limit:
+                    raise LLMError(f"no answer from {self.binding['provider']['label']} / {self.binding['model']} "
+                                   f"within {limit}s")
+                self.log(f"{self.agent} is still working with {self.binding['model']} ({waited}s so far)")
+            if "err" in box:
+                raise box["err"]
+            res = box["res"]
         self.usage.seconds += time.time() - t0
         self.usage.add(res, self.provider.type)
         return res.text

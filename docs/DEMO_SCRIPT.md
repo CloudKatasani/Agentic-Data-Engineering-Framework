@@ -24,6 +24,16 @@ Then add it on **Jira & metadata → Source databases** (DSN `localhost:1521/FRE
 Named humans approve at ten gates. Nothing risky happens without an approval tied to the exact
 artifact."
 
+Use the **How the AI team works with your team** table on the dashboard: for each stage it shows the
+agent that does the work, what it produces, the gate, and the human role that decides.
+
+The run page shows two lanes across the lifecycle: the **AI team** lane (which agent is working, done
+or queued) above the **Human team** lane (which role decides at each gate, and when it is their turn).
+The banner under the lanes always says whose turn it is: *AI team working*
+(with the agent, model and elapsed time) or *Your turn* (with the named approver and a **Review**
+button). At the end, **Team & cost** shows measured agent working time against time spent waiting on
+people, and the number of human decisions.
+
 ## 2. Their models, their keys (2 min) - Agents & models, Providers & API keys
 
 - Show the per-agent table. The default **Multi-vendor enterprise team** gives each agent a different
@@ -104,6 +114,16 @@ Use the **Local lakehouse** stack with the Oracle source for this part (any stac
 - **Download run bundle**: the full audit-ready workspace.
 - **Verify audit logs**: hash-chained logs show intact.
 - **Guardrails** page: **Run suite** executes all 14 guardrail scenarios live.
+
+## If something looks stuck
+
+- The banner says what the run is waiting on. *Your turn* means a named person still has to review a
+  gate; a gate with two roles (for example G0) needs both.
+- A live model call logs "still working" to the activity feed every 15 seconds. After
+  `ADEF_MODEL_TIMEOUT_SECONDS` (default 600) the stage falls back to the Demo Simulator and says so.
+  For a live demo on a slow network, start with `ADEF_MODEL_TIMEOUT_SECONDS=120`.
+- If the server was restarted mid-stage, the stage shows as stopped with **Retry stage**; if it was
+  restarted right after an approval, the banner offers **Resume run**.
 
 ## Likely questions
 
