@@ -85,14 +85,15 @@ def _csv(header, rows) -> str:
 
 # ----------------------------------------------------------------------------- synthetic source data
 class SourceData:
-    def __init__(self, pack: str, seed: int = SEED, sources: list[dict] | None = None):
+    def __init__(self, pack: str, seed: int = SEED, sources: list[dict] | None = None, sizes: dict | None = None):
+        self.sizes = sizes or SIZES     # rows per table; the synthetic data kit passes scaled sizes
         self.sc = SCENARIOS[pack]
         self.pack = pack
         self.rng = random.Random(f"{seed}-{pack}")
         self.tables = {s["table"]: s for s in (sources or self.sc["sources"])}
         self.pk_owner = {}
         # base tables (fixed size) own their key; child tables that share the key name do not
-        for t, s in sorted(self.tables.items(), key=lambda kv: not isinstance(SIZES.get(kv[0], 20), int)):
+        for t, s in sorted(self.tables.items(), key=lambda kv: not isinstance(self.sizes.get(kv[0], 20), int)):
             pks = [c["name"] for c in s["columns"] if c.get("pk")]
             if len(pks) == 1:
                 self.pk_owner.setdefault(pks[0], t)
@@ -105,7 +106,7 @@ class SourceData:
 
     def order(self) -> list[str]:
         deps = {t: {self.parent_of(t, c["name"]) for c in s["columns"]} - {None} for t, s in self.tables.items()}
-        for t, sz in SIZES.items():
+        for t, sz in self.sizes.items():
             if t in deps and isinstance(sz, tuple):
                 deps[t].add(sz[0])
         out: list[str] = []
@@ -172,7 +173,7 @@ class SourceData:
         for t in self.order():
             cols = self.tables[t]["columns"]
             pks = [c["name"] for c in cols if c.get("pk")]
-            size = SIZES.get(t, 20)
+            size = self.sizes.get(t, 20)
             plan: list[dict] = []
             if isinstance(size, int):
                 plan = [{} for _ in range(size)]

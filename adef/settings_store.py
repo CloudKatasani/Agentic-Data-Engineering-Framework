@@ -28,6 +28,8 @@ DEFAULTS: dict[str, Any] = {
     "jira": {"mode": "demo", "base_url": "", "deployment": "cloud", "email": "",
              "token_ref": "", "default_jql": "project = DATA AND issuetype in (Story, Epic) ORDER BY key"},
     "integrations": copy.deepcopy(CONTEXT_DEFAULTS),   # optional context sources: Confluence, GitHub, ServiceNow
+    # enterprise policy, copied into each run when it is created (a run can tighten it, never loosen it)
+    "policy": {"separation_of_duties": False, "approved_providers": []},
     "stack_profiles": [],
     "approver_defaults": {
         "product_owner": "Demo Presenter", "data_architect": "Demo Presenter",

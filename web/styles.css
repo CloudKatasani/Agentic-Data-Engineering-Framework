@@ -272,3 +272,6 @@ td.mono { white-space: nowrap; }
 .prof-grid .ph { font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
 .prof-grid .ph.ok { color: var(--ok); } .prof-grid .ph.bad { color: var(--bad); }
 tr[data-agent] > td { vertical-align: top; }
+
+.chk { display: flex; gap: 8px; align-items: flex-start; color: var(--text); font-weight: 400; margin-top: 10px; }
+.chk input { width: auto; margin-top: 3px; flex: none; }

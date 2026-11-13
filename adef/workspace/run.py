@@ -248,6 +248,7 @@ class RunWorkspace:
             raise GuardrailBlocked("no-request", f"No open approval request for {gate}")
         if role not in req["required_roles"]:
             raise GuardrailBlocked("role-not-required", f"{ROLE_LABELS.get(role, role)} is not an approver for {gate}")
+        self.check_segregation(gate, approver, role, req)
         now_hashes = self.current_hashes(list(req["artifacts"]))
         if bundle_hash(now_hashes) != req["artifact_sha256"]:
             raise GuardrailBlocked("approval-drift",
@@ -262,6 +263,24 @@ class RunWorkspace:
         self.log_decision(f"{gate} {decision} by {ROLE_LABELS.get(role, role)}", req["options"],
                           list(req["artifacts"]), approver)
         return out
+
+    def check_segregation(self, gate: str, approver: str, role: str, req: dict) -> None:
+        """Segregation of duties (shared guardrails 10.3), when the run's policy requires it: one person does not
+        hold two approving roles at a gate, and whoever approved the merge does not approve the release."""
+        if not (self.run.get("policy") or {}).get("separation_of_duties"):
+            return
+        decisions = [r for r in self.read_log("approvals") if r.get("type") == "decision"]
+        same_gate = [d for d in decisions if d["request_id"] == req["request_id"] and d["approver"] == approver
+                     and d["role_key"] != role]
+        if same_gate:
+            raise GuardrailBlocked("separation-of-duties",
+                                   f"{approver} already decided {gate} as {same_gate[0]['role']}; a second named person "
+                                   f"must decide as {ROLE_LABELS.get(role, role)}")
+        if gate in ("G6a", "G6b") and role == "release_manager":
+            merged_by = {d["approver"] for d in decisions if d["gate"] == "G4" and d["decision"].startswith("approved")}
+            if approver in merged_by:
+                raise GuardrailBlocked("separation-of-duties",
+                                       f"{approver} approved the merge (G4) and cannot also approve the release ({gate})")
 
     def record_artifact_reviews(self, gate: str, approver: str, role: str, reviews: list[dict]) -> tuple[str, str]:
         """Record one approve/reject per artifact of the open request for this gate, by a named approver.
@@ -278,6 +297,7 @@ class RunWorkspace:
             raise GuardrailBlocked("no-request", f"No open approval request for {gate}")
         if role not in req["required_roles"]:
             raise GuardrailBlocked("role-not-required", f"{ROLE_LABELS.get(role, role)} is not an approver for {gate}")
+        self.check_segregation(gate, approver, role, req)
         by_path = {}
         for r in reviews:
             if r.get("path") not in req["artifacts"]:

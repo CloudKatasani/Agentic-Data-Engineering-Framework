@@ -52,7 +52,7 @@ $("#modal").addEventListener("click", (e) => { if (e.target.id === "modal") clos
 
 const STATUS_BADGE = {
   pending: "", running: "b-info", "awaiting-approval": "b-warn", approved: "b-ok", done: "b-ok", completed: "b-ok",
-  active: "b-info", failed: "b-bad", blocked: "b-bad", rejected: "b-bad", stale: "b-violet", "stale-upstream": "b-violet",
+  active: "b-info", failed: "b-bad", blocked: "b-bad", rejected: "b-bad", stopped: "b-bad", stale: "b-violet", "stale-upstream": "b-violet",
   pass: "b-ok", fail: "b-bad", high: "b-ok", medium: "b-warn", low: "b-bad",
 };
 const badge = (s, label) => `<span class="badge ${STATUS_BADGE[s] || ""}">${esc(label || s)}</span>`;
@@ -311,6 +311,7 @@ function nowBar(st) {
   const n = st.now || {};
   const btn = (act, label, primary = true) => `<button class="btn ${primary ? "primary" : ""} small" data-now="${act}">${label}</button>`;
   switch (n.kind) {
+    case "stopped": return `<div class="now bad"><div><b>Run stopped by ${esc(n.by)}</b><div class="small">${esc(n.reason)} · ${fmtTime(n.at)}. Agents are halted and nothing can be approved or started. ${people((n.can_resume || []).map((x) => ({ name: x, role: "can resume" })))}.</div></div>${btn("unstop", "Resume run")}</div>`;
     case "running": return `<div class="now ai"><span class="pulse"></span><div><b>AI team working · ${esc(n.label)}</b><div class="small">${esc(agentShort(n.agent))} on ${esc(n.model || "its model")} · ${since(n.since)} so far. No action needed; the gate opens when the agent hands over.</div></div></div>`;
     case "review": return `<div class="now hu"><div><b>Your turn · ${esc(n.gate)} ${esc(n.gate_label)}</b><div class="small">Waiting on ${people(n.waiting_on)} to review ${n.artifacts} artifacts${n.since ? ` · waiting ${since(n.since)}` : ""}. The agents are paused until then.</div></div>${btn("approvals", `Review ${esc(n.gate)}`)}</div>`;
     case "rejected": return `<div class="now bad"><div><b>${esc(n.label)} was rejected</b><div class="small">Send it back to ${esc(agentShort(n.agent))} with rework instructions, and attach any context it was missing.</div></div>${btn(`context:${esc(n.stage)}`, "Add context", false)}${btn("approvals", "Open rework")}</div>`;
@@ -338,6 +339,7 @@ function bindNowBar(st) {
       $("#runBody").scrollIntoView({ behavior: "smooth", block: "start" });
     } else if (act === "retry") { await guard(() => api("POST", `/runs/${RUN.id}/stages/${st.now.stage}/start`), "Retrying"); refreshRun(true); }
     else if (act === "resume") { await guard(() => api("POST", `/runs/${RUN.id}/resume`), "Resumed"); refreshRun(true); }
+    else if (act === "unstop") stopDialog(st, true);
   }));
 }
 function teamCard(st) {
@@ -500,6 +502,56 @@ async function renderIntegrationCards(el) {
   });
 }
 
+// Production-grade synthetic data kit, generated on demand at the chosen scale.
+async function renderKitCard(el) {
+  const o = await api("GET", "/synthetic-kit/options");
+  const draw = () => { const d = $("#kitDomain").value, s = $("#kitScale").value; $("#kitInfo").textContent = `${o.scales[s].rows[d].toLocaleString()} source rows · ${o.scales[s].note}`; };
+  el.innerHTML = `<div class="spread"><div><h2>Production-grade synthetic data kit</h2><div class="small muted">Everything needed to run the application end to end, as one zip: full-load and incremental source data with referential integrity, planted data quality defects with an answer key, control totals, Oracle and Db2 DDL and bulk-load scripts, a Jira export, context documents for every stage, a source catalog, and seven named approvers. All synthetic and reproducible.</div></div></div>
+    <div class="row" style="margin-top:10px;flex-wrap:wrap"><select id="kitDomain" style="width:auto">${Object.entries(o.domains).map(([k, v]) => `<option value="${esc(k)}">${esc(k)} - ${esc(v)}</option>`).join("")}</select>
+      <select id="kitScale" style="width:auto">${Object.keys(o.scales).map((k) => `<option value="${k}" ${k === "medium" ? "selected" : ""}>${k}</option>`).join("")}</select>
+      <button class="btn primary" id="kitGo">Generate and download (.zip)</button><span class="small muted" id="kitInfo"></span></div>`;
+  $("#kitDomain").onchange = draw; $("#kitScale").onchange = draw; draw();
+  $("#kitGo").onclick = async () => {
+    const b = $("#kitGo"); b.disabled = true; b.textContent = "Generating…";
+    try { await download(`/synthetic-kit?domain=${$("#kitDomain").value}&scale=${$("#kitScale").value}`, `datacrew-synthetic-kit-${$("#kitDomain").value}-${$("#kitScale").value}.zip`); }
+    finally { b.disabled = false; b.textContent = "Generate and download (.zip)"; }
+  };
+}
+// Enterprise policy for new runs: enforced by the runtime, copied into each run at creation.
+async function renderPolicyCard(el) {
+  await refreshSettings();
+  const pol = SETTINGS.policy || {}; const rt = SETTINGS.runtime || {};
+  const ready = await api("GET", "/providers/readiness");
+  const approved = new Set(pol.approved_providers || []);
+  el.innerHTML = `<div class="spread"><div><h2>Enterprise policy for new runs</h2><div class="small muted">Enforced by the runtime, not by prompts. Each run takes a copy when it is created; a run can tighten the policy but never loosen it.</div></div>
+      <div class="row"><button class="btn" id="polDefaults">Use enterprise defaults</button><button class="btn primary" id="polSave">Save policy</button></div></div>
+    <label class="chk"><input type="checkbox" id="polSod" ${pol.separation_of_duties ? "checked" : ""}> <span><b>Segregation of duties.</b> A different named person for each approving role at a gate, and the person who approves the merge (G4) cannot approve the release (G6a, G6b).</span></label>
+    <label class="chk"><input type="checkbox" id="polNoSim" ${rt.simulate_unavailable_providers === false ? "checked" : ""}> <span><b>No simulated stages.</b> If an agent's model cannot be reached, the stage stops instead of falling back to the Demo Simulator.</span></label>
+    <div style="margin-top:10px"><b>Approved model providers</b><div class="small muted">Leave all unticked to allow any configured provider. Otherwise an agent bound to a provider outside this list is blocked.</div>
+      <div class="row" style="flex-wrap:wrap;margin-top:6px">${SETTINGS.providers.map((p) => `<label class="chk" style="margin:0"><input type="checkbox" data-prov="${esc(p.id)}" ${approved.has(p.id) ? "checked" : ""}> <span>${esc(p.label)} ${p.id === "demo" ? "" : ready[p.id] ? badge("pass", "ready") : badge("", "no key")}</span></label>`).join("")}</div></div>
+    <div class="small muted" style="margin-top:10px">Always on: personal identifiers (email, phone, payment card, bank account, national ID) and credentials are redacted before any model call; any named approver can stop a run; approvals are tied to exact artifact versions; logs are tamper-evident.</div>`;
+  $("#polDefaults").onclick = () => { $("#polSod").checked = true; $("#polNoSim").checked = true; $$("[data-prov]", el).forEach((x) => (x.checked = x.dataset.prov !== "demo" && !!ready[x.dataset.prov] && !!providerById(x.dataset.prov)?.api_key_ref)); toast("Defaults set. Review, then Save policy.", "ok"); };
+  $("#polSave").onclick = async () => {
+    await guard(async () => {
+      await api("PUT", "/settings/policy", { separation_of_duties: $("#polSod").checked, approved_providers: $$("[data-prov]", el).filter((x) => x.checked).map((x) => x.dataset.prov) });
+      await api("PUT", "/settings/runtime", { simulate_unavailable_providers: !$("#polNoSim").checked });
+    }, "Policy saved. It applies to runs created from now on.");
+    renderPolicyCard(el);
+  };
+}
+// Emergency stop (any named approver) and resume (Product Owner or Platform Owner).
+function stopDialog(st, resume) {
+  const names = resume ? st.now.can_resume : [...new Set(Object.values(st.run.approvers))];
+  modal(`<h2>${resume ? "Resume the stopped run" : "Stop this run"}</h2>
+    <p class="muted small">${resume ? "Only the Product Owner or Platform Owner can resume. The decision is recorded in the audit log." : "Agents halt at once: no stage starts, no gate can be approved and no model is called until the Product Owner or Platform Owner resumes the run. All evidence is kept."}</p>
+    <label>Who is ${resume ? "resuming" : "stopping"} it</label><select id="stWho">${names.map((n) => `<option>${esc(n)}</option>`).join("")}</select>
+    ${resume ? "" : '<label>Reason (recorded)</label><input id="stWhy" placeholder="For example: wrong client scope, suspected data exposure">'}
+    <div class="row" style="margin-top:14px"><button class="btn ${resume ? "primary" : "bad"}" id="stGo">${resume ? "Resume run" : "Stop run"}</button><button class="btn" onclick="closeModal()">Cancel</button></div>`);
+  $("#stGo").onclick = async () => {
+    await guard(() => api("POST", `/runs/${RUN.id}/${resume ? "unstop" : "stop"}`, { by: $("#stWho").value, reason: $("#stWhy")?.value }), resume ? "Run resumed" : "Run stopped");
+    closeModal(); refreshRun(true);
+  };
+}
 // What each agent is for: what it is given, what it produces, what it does and what it never does.
 function agentProfile(a) {
   const list = (items) => `<ul>${(items || []).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`;
@@ -800,7 +852,9 @@ function renderRunHead(st) {
   const r = st.run;
   $("#runHead").innerHTML = `<div class="spread"><div><h1>${esc(r.run_id)} · ${esc(r.use_case)}</h1>
     <div class="sub">${esc(r.client_code)} · domain <b>${esc(r.domain_pack)}</b> · stack <b>${esc(st.stack.label || st.stack.profile_id)}</b> · ${badge(st.status)}</div></div>
-    <div class="row"><button class="btn" id="bundleBtn">Download run bundle</button><button class="btn" id="integrityBtn">Verify audit logs</button></div></div>`;
+    <div class="row">${st.status === "active" ? '<button class="btn bad" id="stopBtn" title="Any named approver can halt the run">Stop run</button>' : ""}<button class="btn" id="bundleBtn">Download run bundle</button><button class="btn" id="integrityBtn">Verify audit logs</button></div></div>
+    ${r.policy?.separation_of_duties || r.policy?.approved_providers?.length ? `<div class="small muted" style="margin-top:4px">Enterprise policy: ${[r.policy.separation_of_duties ? "segregation of duties" : "", r.policy.approved_providers?.length ? `approved model providers: ${esc(r.policy.approved_providers.join(", "))}` : ""].filter(Boolean).join(" · ")}</div>` : ""}`;
+  if ($("#stopBtn")) $("#stopBtn").onclick = () => stopDialog(st, false);
   $("#bundleBtn").onclick = () => download(`/runs/${RUN.id}/bundle.zip`, `${RUN.id}.zip`);
   $("#integrityBtn").onclick = async () => {
     const r2 = await guard(() => api("GET", `/runs/${RUN.id}/integrity`));
@@ -1255,10 +1309,12 @@ route("integrations", async () => {
         <div id="mOut" style="margin-top:12px"></div>
       </div>
     </div>
+    <div class="card" id="kitCard"></div>
     <div class="card"><div class="spread"><div><h2>Demo data packs</h2><div class="small muted">Synthetic, deterministic files per industry: Jira exports, source catalog and DDL, source data, data model exports, catalog payloads and lineage. Regenerate with <code>python -m adef demo-data</code>.</div></div>
       <select id="ddDomain" style="width:auto">${CATALOG.domain_packs.map((p) => `<option value="${esc(p.pack_id)}">${esc(p.pack_id)}</option>`).join("")}</select></div>
       <div id="ddOut" style="margin-top:12px"></div></div>`;
   renderIntegrationCards($("#integCards"));
+  renderKitCard($("#kitCard"));
   const demo = await api("GET", "/demo-files");
   const kitDomains = new Set(demo.filter((f) => f.folder === "client-demo-kit").map((f) => f.domain));
   $$("#ddDomain option").forEach((o) => { if (kitDomains.has(o.value)) o.textContent = `${o.value} (client demo kit)`; });
@@ -1389,12 +1445,14 @@ route("studio", async () => {
 route("guardrails", async () => {
   const cls = (c) => ({ A0: "", A1: "b-info", A2: "b-warn", A3: "b-violet", A4: "b-bad" }[c]);
   main().innerHTML = `<h1>Guardrails</h1><div class="sub">Rules are enforced outside the prompts: every action is classified A0-A4 by a pre-tool-call hook, approvals are bound to artifact hashes, logs are hash-chained, and every write is scanned.</div>
-    <div class="card"><div class="spread"><h2>Guardrail scenario suite (GT-01 … GT-14)</h2><button class="btn primary" id="runSuite">Run suite</button></div>
+    <div class="card" id="policyCard"></div>
+    <div class="card"><div class="spread"><h2>Guardrail scenario suite (GT-01 … GT-18)</h2><button class="btn primary" id="runSuite">Run suite</button></div>
     <p class="muted small">Executes each scenario from the build specification against the real enforcement code in a temporary workspace, then cleans up.</p><div id="suiteOut"></div></div>
     <div class="card"><h2>Action classes</h2><div class="table-wrap"><table><thead><tr><th>Action</th><th>Class</th><th>Requires gate</th><th>Per-action approval</th></tr></thead><tbody>${CATALOG.action_table.map((a) => `<tr><td class="mono">${esc(a.action)}</td><td><span class="badge ${cls(a.class)}">${esc(a.class)}</span></td><td>${esc(a.gate || "-")}</td><td>${a.per_action ? "yes" : "-"}</td></tr>`).join("")}</tbody></table></div><p class="small muted">Unlisted actions default to A3. A4 actions are refused even if someone approves them in chat.</p></div>
     <div class="card"><h2>Gate approvers</h2><table>${Object.entries(CATALOG.gate_roles).map(([g, roles]) => `<tr><td><b>${esc(g)}</b></td><td>${esc(CATALOG.gate_labels[g])}</td><td>${roles.map((r) => esc(CATALOG.role_labels[r])).join(" + ")}</td></tr>`).join("")}</table></div>`;
+  renderPolicyCard($("#policyCard"));
   $("#runSuite").onclick = async () => {
-    $("#suiteOut").innerHTML = '<div class="loading">Running 14 scenarios…</div>';
+    $("#suiteOut").innerHTML = '<div class="loading">Running 18 scenarios…</div>';
     const res = await guard(() => api("POST", "/guardrails/suite"));
     const passed = res.filter((r) => r.result === "pass").length;
     $("#suiteOut").innerHTML = `<div class="notice ${passed === res.length ? "" : "bad"}">${passed}/${res.length} scenarios pass</div><div class="table-wrap" style="margin-top:10px"><table><thead><tr><th>ID</th><th>Scenario</th><th>Expected</th><th>Result</th><th>Evidence</th></tr></thead><tbody>${res.map((r) => `<tr><td class="mono">${esc(r.id)}</td><td>${esc(r.scenario)}</td><td class="small">${esc(r.expected)}</td><td>${badge(r.result)}</td><td class="small">${esc(r.evidence)}</td></tr>`).join("")}</tbody></table></div>`;

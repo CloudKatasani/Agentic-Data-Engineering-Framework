@@ -91,7 +91,7 @@ def test_envelope_schema_rejects_with_message():
 def test_guardrail_suite_all_pass(engine):
     from adef.guardrails.gt_suite import run_suite
     res = run_suite(engine)
-    assert len(res) == 14
+    assert len(res) == 18
     assert [r["id"] for r in res if r["result"] != "pass"] == []
 
 

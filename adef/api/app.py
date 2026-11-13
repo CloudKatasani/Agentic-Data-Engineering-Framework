@@ -329,6 +329,32 @@ def demo_folder_zip(folder: str):
                              headers={"Content-Disposition": f'attachment; filename="{name}.zip"'})
 
 
+# ----------------------------------------------------------------------------- synthetic data kit
+@app.get("/api/synthetic-kit/options")
+def synthetic_kit_options():
+    from .. import synthetic_kit
+    return synthetic_kit.options()
+
+
+@app.get("/api/synthetic-kit")
+def synthetic_kit_download(domain: str = "telco", scale: str = "medium"):
+    """Generate and download a production-grade synthetic data kit for one domain at the chosen scale."""
+    import tempfile
+
+    from starlette.background import BackgroundTask
+
+    from .. import synthetic_kit
+    tmp = tempfile.NamedTemporaryFile(prefix="kit-", suffix=".zip", delete=False)
+    tmp.close()
+    try:
+        manifest = synthetic_kit.build(domain, scale, tmp.name)
+    except ValueError as e:
+        os.unlink(tmp.name)
+        raise HTTPException(400, str(e)) from e
+    return FileResponse(tmp.name, media_type="application/zip", filename=f"{manifest['kit']}.zip",
+                        background=BackgroundTask(os.unlink, tmp.name))
+
+
 # ----------------------------------------------------------------------------- stacks
 @app.post("/api/stacks/validate")
 def validate_stack(profile: dict = Body(...)):
@@ -582,6 +608,34 @@ def run_context_remove(rid: str, cid: str, by: str = ""):
     except KeyError as err:
         raise HTTPException(404, "No such context item") from err
     return {"ok": True}
+
+
+@app.post("/api/runs/{rid}/stop")
+def run_stop(rid: str, body: dict = Body(...)):
+    """Emergency stop by a named approver."""
+    try:
+        return engine().stop_run(rid, body.get("by", ""), body.get("reason", ""))
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+
+
+@app.post("/api/runs/{rid}/unstop")
+def run_unstop(rid: str, body: dict = Body(...)):
+    try:
+        return engine().resume_stopped_run(rid, body.get("by", ""))
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+
+
+@app.put("/api/settings/policy")
+def put_policy(body: dict = Body(...)):
+    """Enterprise policy applied to new runs: segregation of duties and the approved model providers."""
+    known = {p["id"] for p in settings.load()["providers"]}
+    approved = [x for x in (body.get("approved_providers") or [])]
+    if set(approved) - known:
+        raise HTTPException(400, f"Unknown provider: {', '.join(sorted(set(approved) - known))}")
+    return settings.update("policy", {"separation_of_duties": bool(body.get("separation_of_duties")),
+                                      "approved_providers": approved})["policy"]
 
 
 @app.post("/api/runs/{rid}/resume")

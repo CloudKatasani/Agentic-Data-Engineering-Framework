@@ -17,7 +17,7 @@ import re
 import zipfile
 
 from .connectors.context_sources import MAX_ITEM_CHARS, SOURCES, html_to_text
-from .guardrails.scanners import redact_secrets, scan_injection, scan_secrets
+from .guardrails.scanners import redact_personal, redact_secrets, scan_injection, scan_secrets
 from .util import now_iso, sha256_text
 
 MAX_STAGE_CHARS = 60000
@@ -103,7 +103,7 @@ def add(ws, stage: str, source: str, title: str, content: str, *, added_by: str,
     if not (added_by or "").strip() or added_by.lower().startswith("adef-"):
         raise ContextError("Context is attached by a named person")
     secrets = scan_secrets(content)
-    clean = redact_secrets(content)
+    clean, personal = redact_personal(redact_secrets(content))
     truncated = len(clean) > MAX_ITEM_CHARS
     clean = clean[:MAX_ITEM_CHARS]
     with ws.lock:
@@ -114,6 +114,7 @@ def add(ws, stage: str, source: str, title: str, content: str, *, added_by: str,
         item = {"id": cid, "stage": stage, "source": source, "title": (title or ref or "Untitled").strip()[:160], "ref": ref,
                 "url": url, "need": need, "version": version, "file": f"control/context/{cid}.txt", "chars": len(clean),
                 "sha256": sha256_text(clean), "truncated": truncated, "secrets_redacted": len(secrets),
+                "personal_data_redacted": sum(personal.values()),
                 "injection_findings": [f["excerpt"] for f in scan_injection(clean)][:5],
                 "added_by": added_by.strip(), "added_at": now_iso(), "last_used": None, "cited": None}
         ws._raw_write(item["file"], clean)
@@ -177,7 +178,7 @@ def pack_md(ws, stage: str, label: str, agent: str, used: list[dict], inputs_use
         f"| {i['id']} | {SOURCES.get(i['source'], {}).get('label') or MANUAL_SOURCES.get(i['source'], i['source'])} | {i['title']} | "
         f"{i['added_by']} | {i['chars']:,} | `{i['sha256'][:12]}` | "
         f"{'not read (simulated)' if simulated else 'cited' if i['cited'] else 'given, not cited'} | "
-        f"{'instruction-like text flagged' if i['injection_findings'] else ''}{' secrets redacted' if i['secrets_redacted'] else ''} |"
+        f"{'instruction-like text flagged' if i['injection_findings'] else ''}{' secrets redacted' if i['secrets_redacted'] else ''}{' personal data redacted' if i.get('personal_data_redacted') else ''} |"
         for i in used)
     md = [f"# Context given to {agent} - {label}", "",
           "This is everything the agent was given beyond its own instructions. Approve the stage knowing what it knew.", "",

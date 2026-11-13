@@ -127,6 +127,24 @@ class Engine:
                 raise InputRejected(f"{agent}: choose a model")
             overrides[agent] = {"provider_id": o["provider_id"], "model": str(o["model"]).strip(),
                                 "effort": o.get("effort") or team["agents"][agent].get("effort") or "medium"}
+        base_pol = team.get("policy") or {}
+        ask = p.get("policy") or {}     # a run may tighten the saved policy, never loosen it
+        allowed = [x for x in (base_pol.get("approved_providers") or [])
+                   if not ask.get("approved_providers") or x in ask["approved_providers"]] \
+            or (ask.get("approved_providers") if not base_pol.get("approved_providers") else [])
+        policy = {"separation_of_duties": bool(base_pol.get("separation_of_duties") or ask.get("separation_of_duties")),
+                  "approved_providers": list(allowed or [])}
+        if base_pol.get("approved_providers") and ask.get("approved_providers") and not allowed:
+            raise InputRejected("None of the requested model providers is on the approved list.")
+        approvers_now = {**team["approver_defaults"], **(p.get("approvers") or {})}
+        if policy["separation_of_duties"]:
+            clashes = [f"{g} ({' and '.join(ROLE_LABELS[r] for r in roles)})" for g, roles in GATE_ROLES.items()
+                       if len({approvers_now.get(r) for r in roles}) < len(roles)]
+            if approvers_now.get("tech_lead") == approvers_now.get("release_manager"):
+                clashes.append("Tech Lead and Release Manager (merge and release)")
+            if clashes:
+                raise InputRejected("Segregation of duties is on: name a different person for each approving role at "
+                                    + "; ".join(clashes) + ".")
         run_id = self.new_run_id()
         sc = for_domain(domain)
         approvers = {**self.settings.load()["approver_defaults"], **(p.get("approvers") or {})}
@@ -143,7 +161,7 @@ class Engine:
                                          if k != "password"},
                    "agent_bindings": {a: {k: v for k, v in binding_for(a, team, overrides.get(a)).items()
                                           if k in ("provider_id", "model", "effort")} for a in team["agents"]},
-                   "agent_overrides": sorted(overrides)}
+                   "agent_overrides": sorted(overrides), "policy": policy}
         ws = RunWorkspace(run_id)
         ws.create(run_def, profile, load_pack_text(domain))
         ws._raw_write("00-intake/inputs/request.md", request or sc["request"])
@@ -178,6 +196,7 @@ class Engine:
         st = self._state(ws)
         if st["stages"][key]["status"] == "running" and (run_id, key) in self._live:
             return
+        self._refuse_if_stopped(st)
         self._live.add((run_id, key))
         self._update(ws, lambda s: (s["stages"][key].update(status="running", started=now_iso(), error=None, finished=None),
                                     s.update(current=key)))
@@ -219,6 +238,11 @@ class Engine:
         # agents rebound for this run at launch keep that choice; the rest follow the saved team bindings
         override = (ws.run.get("agent_bindings") or {}).get(agent) if agent in (ws.run.get("agent_overrides") or []) else None
         b = binding_for(agent, settings, override)
+        approved = (ws.run.get("policy") or {}).get("approved_providers") or []
+        if approved and b["provider_id"] not in approved:
+            raise GuardrailBlocked("model-not-approved",
+                                   f"{agent} is bound to {b['provider']['label']}, which is not on this run's approved "
+                                   f"model provider list ({', '.join(approved)}). Rebind the agent or change the policy.")
         log = lambda t: self.event(ws, t, "agent")  # noqa: E731
         reason = force_fallback
         prov = None
@@ -233,6 +257,9 @@ class Engine:
         if reason:
             if not (settings.get("runtime") or {}).get("simulate_unavailable_providers", True):
                 raise LLMError(f"{agent}: {reason}. Configure the key or rebind the agent.")
+            if approved and "demo" not in approved:
+                raise GuardrailBlocked("model-not-approved",
+                                       f"{agent}: {reason}, and the Demo Simulator is not on this run's approved list.")
             call = AgentCall(agent, SimulatorProvider({"id": "demo", "type": "simulator"}, None), b, log)
             call.fallback_reason = reason
             self.event(ws, f"{agent} is bound to {b['provider']['label']} / {b['model']} but {reason}; "
@@ -270,6 +297,7 @@ class Engine:
                 raise GuardrailBlocked("three-returns", f"Handoff returned {returns} times; escalated to the human owner (GT-14)")
             raise GuardrailBlocked("receiver-check", "; ".join(problems))
         call = self._call(ws, s["agent"])
+        call.stopped = lambda: self._state(ws).get("status") == "stopped"
         call.context, ctx_ids = context_hub.prompt_block(ws, key)
         if ctx_ids:
             self.event(ws, f"{s['agent']} was given {len(ctx_ids)} context item(s) attached by the team: {', '.join(ctx_ids)}", "agent")
@@ -284,8 +312,10 @@ class Engine:
             if call.simulated or not (self.settings.load().get("runtime") or {}).get("simulate_unavailable_providers", True):
                 raise
             call = self._call(ws, s["agent"], force_fallback=f"the call failed ({e})")
+            call.stopped = lambda: self._state(ws).get("status") == "stopped"
             ctx.call = call
             out = runner(ctx)
+        self._refuse_if_stopped(self._state(ws))     # stopped while the agent worked: nothing is handed over
         if ctx_ids:
             # the record of what the agent was given goes to the gate with the stage's own artifacts
             used = context_hub.mark_used(ws, key, ctx_ids, out.artifacts)
@@ -361,6 +391,7 @@ class Engine:
     def decide(self, run_id: str, gate: str, approver: str, role: str, decision: str, comment: str = "",
                conditions: list[str] | None = None) -> dict:
         ws = self.ws(run_id)
+        self._refuse_if_stopped(self._state(ws))
         rec = ws.decide(gate, approver, role, decision, comment, conditions)
         self.event(ws, f"{gate} {decision} by {approver} as {ROLE_LABELS.get(role, role)}" + (f": {comment}" if comment else ""), "gate")
         key = next(s["key"] for s in STAGES if gate in s["gates"])
@@ -383,6 +414,8 @@ class Engine:
     def _after_gate_safe(self, run_id, key, gate):
         ws = self.ws(run_id)
         try:
+            if self._state(ws).get("status") == "stopped":
+                return      # resumed later through "Resume run"
             self._after_gate(ws, key, gate)
         except GuardrailBlocked as e:
             self._block(ws, key, f"Guardrail `{e.rule}`: {e.message}")
@@ -426,6 +459,9 @@ class Engine:
         gs = ws.gate_status(gate)
         if gs["state"] != "pending":
             raise ValueError(f"{gate} is {gs['state']}, not awaiting review")
+        if (ws.run.get("policy") or {}).get("separation_of_duties") and len(roles) > 1:
+            raise GuardrailBlocked("separation-of-duties",
+                                   f"{approver} cannot review {gate} in more than one role; each role needs its own named person")
         done = [r for r in roles if r not in gs["pending_roles"]]
         if done:
             raise ValueError(f"Already decided for {gate}: {', '.join(ROLE_LABELS.get(r, r) for r in done)}")
@@ -485,6 +521,42 @@ class Engine:
         return sorted({r["gate"] for r in ws.read_log("approvals") if r.get("type") == "request" and rel in r["artifacts"]})
 
     # ------------------------------------------------------------------ status + metrics
+    # ------------------------------------------------------------------ emergency stop
+    @staticmethod
+    def _refuse_if_stopped(st: dict) -> None:
+        if st.get("status") == "stopped":
+            who = (st.get("stopped") or {}).get("by", "an approver")
+            raise GuardrailBlocked("run-stopped", f"This run was stopped by {who}. The Product Owner or Platform Owner "
+                                                  "must resume it before anything else happens.")
+
+    def stop_run(self, run_id: str, by: str, reason: str) -> dict:
+        """Any named approver can stop a run. Nothing starts, no gate is decided and no model is called until resumed."""
+        ws = self.ws(run_id)
+        if by not in set((ws.run.get("approvers") or {}).values()):
+            raise GuardrailBlocked("named-approver-only", f"{by} is not a named approver of this run")
+        if len((reason or "").strip()) < 5:
+            raise ValueError("Give the reason for stopping the run")
+        st = self._state(ws)
+        if st["status"] == "completed":
+            raise ValueError("The run is already complete")
+        info = {"by": by, "reason": reason.strip(), "at": now_iso(), "previous_status": st["status"]}
+        self._update(ws, lambda s: s.update(status="stopped", stopped=info))
+        ws.log_decision(f"Run stopped: {info['reason']}", ["stop", "continue"], [], by)
+        self.event(ws, f"RUN STOPPED by {by}: {info['reason']}. Agents halt; evidence is preserved.", "blocked")
+        return info
+
+    def resume_stopped_run(self, run_id: str, by: str) -> dict:
+        ws = self.ws(run_id)
+        holders = ws.run.get("approvers") or {}
+        if by not in (holders.get("product_owner"), holders.get("platform_owner")):
+            raise GuardrailBlocked("named-approver-only", "Only the Product Owner or Platform Owner can resume a stopped run")
+        if self._state(ws)["status"] != "stopped":
+            raise ValueError("The run is not stopped")
+        self._update(ws, lambda s: s.update(status="active", stopped=None))
+        ws.log_decision("Run resumed after stop", ["resume", "keep stopped"], [], by)
+        self.event(ws, f"Run resumed by {by}", "info")
+        return {"ok": True}
+
     def _recover(self, ws, st: dict) -> dict:
         """A stage marked running that no worker in this process owns was cut off (server restart): make it retryable."""
         orphans = [k for k, ss in st["stages"].items() if ss["status"] == "running" and (ws.run_id, k) not in self._live]
@@ -506,6 +578,9 @@ class Engine:
         """What the run is doing right now and who it is waiting on: one answer, shown on every tab."""
         if st["status"] == "completed":
             return {"kind": "complete"}
+        if st["status"] == "stopped":
+            return {"kind": "stopped", **{k: (st.get("stopped") or {}).get(k) for k in ("by", "reason", "at")},
+                    "can_resume": sorted({ws.run["approvers"].get("product_owner"), ws.run["approvers"].get("platform_owner")} - {None})}
         bind = ws.run.get("agent_bindings") or {}
         for s in STAGES:
             ss = st["stages"][s["key"]]

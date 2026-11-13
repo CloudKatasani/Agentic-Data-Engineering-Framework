@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs read access to the repository and all upstream artifacts, an isolated test sandbox, and the ability to run the stack's test tooling. Must run as a separate agent from adef-pipeline-build. Load adef-shared-guardrails and adef-stack-binding first.
 metadata:
   owner: adef-platform
-  version: "1.0.0"
+  version: "1.1.0"
   role: quality-engineer
   stage: "5-testing"
   gate: G5
@@ -13,7 +13,7 @@ metadata:
   downstream: adef-release-deploy
 ---
 
-# ADEF Test and Quality Engineer
+# DataCrew Test and Quality Engineer
 
 ## Mission
 
@@ -119,6 +119,21 @@ Reject the handoff if the manifest's commit hash does not match the branch head.
 - A waiver is requested for a failed test or threshold.
 - A security or privacy test fails.
 - The same defect returns after two fix attempts.
+
+## Enterprise controls
+
+- Test the controls, not only the logic: masking, row and column security, and that a role
+  without access is refused (a negative test for each role).
+- Test at production-like volume with synthetic data, and record run time against the
+  service level.
+- Test restart and re-run after a simulated mid-load failure, and reconcile the result.
+- Reconcile every metric to the trusted figure within the agreed tolerance; state the
+  tolerance and who agreed it.
+- Generate test data reproducibly (record the seed and generator version) and never from
+  production extracts.
+- Bind every result to the commit, environment, data set and time. Evidence files are never
+  edited after the run.
+- A waiver is requested from, and recorded against, a named approver with an expiry date.
 
 ## Outputs
 

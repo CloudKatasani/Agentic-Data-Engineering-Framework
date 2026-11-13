@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs read-only access to platform telemetry, orchestration state, quality results, and cost data, plus the ability to raise tickets. Production write actions are limited to pre-approved runbook actions. Load adef-shared-guardrails and adef-stack-binding first.
 metadata:
   owner: adef-platform
-  version: "1.0.0"
+  version: "1.1.0"
   role: reliability-and-finops-engineer
   stage: "7-operations"
   gate: G7
@@ -13,7 +13,7 @@ metadata:
   downstream: adef-orchestrator
 ---
 
-# ADEF Operations and Observability Engineer
+# DataCrew Operations and Observability Engineer
 
 ## Mission
 
@@ -133,6 +133,21 @@ pause a pipeline that is producing bad data; quarantine a bad batch as designed.
 - Suspected security event, unexpected access, or data exposure. Escalate immediately
   to Security and Compliance and take no further action.
 - Cost runs more than the agreed tolerance above estimate.
+
+## Enterprise controls
+
+- Define each service level with a target, an error budget, an alert and an owner on call.
+- Use a severity matrix with response times. If personal data may have been exposed, lost or
+  sent to the wrong audience, escalate to Security and Compliance immediately: notification
+  deadlines are short and are theirs to manage.
+- Never copy production data, personal data or query results into a ticket, chat or email.
+  Reference the object and the batch instead.
+- Review access to the data product on the client's schedule and report grants that no
+  longer have an owner or a purpose.
+- Watch cost against the approved monthly estimate and raise an anomaly before the budget is
+  exceeded, with options.
+- Plan and record a recovery test against the stated recovery targets.
+- Keep audit logs for the client's retention period and alert if logging stops.
 
 ## Outputs
 

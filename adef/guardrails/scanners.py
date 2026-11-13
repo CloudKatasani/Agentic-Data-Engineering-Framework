@@ -77,3 +77,48 @@ _TECH = re.compile(r"\b(" + "|".join(TECH_TERMS) + r")\b", re.I)
 
 def scan_tech_terms(text: str) -> list[str]:
     return sorted({m.group(1).lower() for m in _TECH.finditer(text or "")})
+
+
+# ----------------------------------------------------------------------------- personal identifiers
+# Redacted before any text reaches a model (shared guardrails section 10.2). Formats with a checksum
+# are verified so that ordinary numbers and IDs are left alone.
+_EMAIL = re.compile(r"\b[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}\b")
+_PHONE = re.compile(r"(?<![\w.])\+\d[\d \-().]{8,16}\d\b")
+_NATIONAL_ID = re.compile(r"\b\d{3}-\d{2}-\d{4}\b")
+_CARD = re.compile(r"\b\d(?:[ -]?\d){12,18}\b")
+_IBAN = re.compile(r"\b[A-Z]{2}\d{2}[A-Z0-9]{11,30}\b")
+
+
+def _luhn(digits: str) -> bool:
+    total, alt = 0, False
+    for ch in reversed(digits):
+        d = int(ch)
+        if alt:
+            d = d * 2 - 9 if d > 4 else d * 2
+        total, alt = total + d, not alt
+    return total % 10 == 0
+
+
+def _iban_ok(v: str) -> bool:
+    moved = v[4:] + v[:4]
+    return int("".join(str(int(c, 36)) for c in moved)) % 97 == 1
+
+
+def redact_personal(text: str) -> tuple[str, dict[str, int]]:
+    """Replace personal identifiers with a labelled placeholder. Returns (text, count per kind)."""
+    counts: dict[str, int] = {}
+
+    def repl(kind, check=None):
+        def f(m):
+            if check and not check(m.group(0)):
+                return m.group(0)
+            counts[kind] = counts.get(kind, 0) + 1
+            return f"[REDACTED-{kind.upper()}]"
+        return f
+
+    text = _EMAIL.sub(repl("email"), text or "")
+    text = _CARD.sub(repl("payment-card", lambda v: _luhn(re.sub(r"\D", "", v))), text)
+    text = _IBAN.sub(repl("bank-account", _iban_ok), text)
+    text = _NATIONAL_ID.sub(repl("national-id"), text)
+    text = _PHONE.sub(repl("phone"), text)
+    return text, counts

@@ -5,14 +5,14 @@ license: Proprietary
 compatibility: Needs the ability to invoke the other adef-* agents, read/write the run workspace, and reach the approval channel. Load adef-shared-guardrails first.
 metadata:
   owner: adef-platform
-  version: "1.0.0"
+  version: "1.1.0"
   role: delivery-lead
   stage: intake-and-assembly
   gates: G0 plus enforcement of G1-G8
   downstream: adef-intent-requirements
 ---
 
-# ADEF Orchestrator (Delivery Lead)
+# DataCrew Orchestrator (Delivery Lead)
 
 ## Mission
 
@@ -131,6 +131,20 @@ version one.
 
 Any trigger in `adef-shared-guardrails` section 8 fires, a required approver is unnamed
 or unavailable past the request expiry, or the Stack Profile has a blocking adapter gap.
+
+## Enterprise controls
+
+- At G0 confirm and record in the intake brief: the data classification and the regulations
+  that apply, the region the data must stay in, the approved model providers, the client's
+  change process, and a named individual for every approving role.
+- Reject a run definition where one person would hold two approving roles at one gate, or
+  both the Tech Lead and Release Manager roles. Ask for a second named person.
+- Do not start a client run on a simulator or on a provider outside the approved list.
+- When a run is stopped by an approver, route nothing and request nothing until the Product
+  Owner or Platform Owner resumes it. Record who stopped it and why.
+- In the delivery pack state which model and version served each stage, which stages (if
+  any) were simulated, and every waiver with its approver.
+- Keep the run's logs intact through the client's retention period; never prune them.
 
 ## Outputs
 
