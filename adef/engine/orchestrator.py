@@ -47,6 +47,7 @@ class Engine:
         self.settings = settings or SettingsStore()
         self.pool = ThreadPoolExecutor(max_workers=workers, thread_name_prefix="adef-agent")
         self._lock = threading.RLock()
+        self._live: set[tuple[str, str]] = set()   # (run_id, stage key or "gate:Gx") being worked on in this process
 
     # ------------------------------------------------------------------ state
     def ws(self, run_id: str) -> RunWorkspace:
@@ -162,15 +163,17 @@ class Engine:
     def start_stage(self, run_id: str, key: str, feedback: str | None = None) -> None:
         ws = self.ws(run_id)
         st = self._state(ws)
-        if st["stages"][key]["status"] == "running":
+        if st["stages"][key]["status"] == "running" and (run_id, key) in self._live:
             return
-        self._update(ws, lambda s: (s["stages"][key].update(status="running", started=now_iso(), error=None),
+        self._live.add((run_id, key))
+        self._update(ws, lambda s: (s["stages"][key].update(status="running", started=now_iso(), error=None, finished=None),
                                     s.update(current=key)))
         self.pool.submit(self._run_stage_safe, run_id, key, feedback)
 
     def run_stage_sync(self, run_id: str, key: str, feedback: str | None = None) -> None:
         ws = self.ws(run_id)
-        self._update(ws, lambda s: (s["stages"][key].update(status="running", started=now_iso(), error=None),
+        self._live.add((run_id, key))
+        self._update(ws, lambda s: (s["stages"][key].update(status="running", started=now_iso(), error=None, finished=None),
                                     s.update(current=key)))
         self._run_stage_safe(run_id, key, feedback)
 
@@ -185,6 +188,8 @@ class Engine:
         except Exception as e:  # noqa: BLE001 - surface any agent crash in the console
             self._fail(ws, key, f"{type(e).__name__}: {e}")
             ws.append_log("events", {"kind": "error", "text": traceback.format_exc()[-1500:]})
+        finally:
+            self._live.discard((run_id, key))
 
     def _block(self, ws, key, msg):
         self._update(ws, lambda s: (s["stages"][key].update(status="blocked", error=msg),
@@ -268,7 +273,8 @@ class Engine:
             usage["models"] = [f"simulated (bound to {call.binding['provider']['type']}:{call.binding['model']})"]
             usage["fallback"] = call.fallback_reason
         elif not usage["models"]:
-            usage["models"] = [f"{call.provider.type}:{call.binding['model']}"]
+            # be exact about what ran: a stage that needed no model call must not look like the bound model served it
+            usage["models"] = ["no model call needed (rule-based stage)"]
         self._update(ws, lambda x: (x["usage"].__setitem__(s["agent"], self._merge_usage(x["usage"].get(s["agent"]), usage)),
                                     x["stages"][key].update(attempts=x["stages"][key].get("attempts", 0) + 1, finished=now_iso(),
                                                             summary=out.summary, artifacts=out.artifacts)))
@@ -344,6 +350,7 @@ class Engine:
         if gs["state"] != "approved":
             return {"decision": rec, "gate_state": gs["state"], "pending_roles": gs["pending_roles"]}
         self._update(ws, lambda x: x["gates"].__setitem__(gate, "approved"))
+        self._live.add((run_id, f"gate:{gate}"))
         self.pool.submit(self._after_gate_safe, run_id, key, gate)
         return {"decision": rec, "gate_state": "approved"}
 
@@ -355,6 +362,8 @@ class Engine:
             self._block(ws, key, f"Guardrail `{e.rule}`: {e.message}")
         except Exception as e:  # noqa: BLE001
             self._fail(ws, key, f"post-approval action failed: {type(e).__name__}: {e}")
+        finally:
+            self._live.discard((run_id, f"gate:{gate}"))
 
     def _after_gate(self, ws, key, gate):
         log = lambda t: self.event(ws, t, "action")  # noqa: E731
@@ -450,9 +459,106 @@ class Engine:
         return sorted({r["gate"] for r in ws.read_log("approvals") if r.get("type") == "request" and rel in r["artifacts"]})
 
     # ------------------------------------------------------------------ status + metrics
+    def _recover(self, ws, st: dict) -> dict:
+        """A stage marked running that no worker in this process owns was cut off (server restart): make it retryable."""
+        orphans = [k for k, ss in st["stages"].items() if ss["status"] == "running" and (ws.run_id, k) not in self._live]
+        for k in orphans:
+            self._fail(ws, k, "Interrupted: the server restarted while this stage was running. Retry to run it again.")
+        return self._state(ws) if orphans else st
+
+    def _stalled_gate(self, ws, st: dict, gates: dict) -> tuple[str, str] | None:
+        """A fully approved gate whose follow-up work never finished (stage still awaiting approval, nobody working)."""
+        for s in STAGES:
+            if st["stages"][s["key"]]["status"] != "awaiting-approval":
+                continue
+            asked = [g for g in s["gates"] if gates[g]["state"] != "not-requested"]
+            if asked and gates[asked[-1]]["state"] == "approved" and (ws.run_id, f"gate:{asked[-1]}") not in self._live:
+                return s["key"], asked[-1]
+        return None
+
+    def _now(self, ws, st: dict, gates: dict) -> dict:
+        """What the run is doing right now and who it is waiting on: one answer, shown on every tab."""
+        if st["status"] == "completed":
+            return {"kind": "complete"}
+        bind = ws.run.get("agent_bindings") or {}
+        for s in STAGES:
+            ss = st["stages"][s["key"]]
+            if ss["status"] == "running":
+                return {"kind": "running", "stage": s["key"], "label": s["label"], "agent": s["agent"],
+                        "model": (bind.get(s["agent"]) or {}).get("model"), "since": ss.get("started")}
+        for s in STAGES:
+            ss = st["stages"][s["key"]]
+            if ss["status"] in ("failed", "blocked", "rejected"):
+                return {"kind": ss["status"], "stage": s["key"], "label": s["label"], "agent": s["agent"], "error": ss.get("error")}
+        for g, gd in gates.items():
+            if gd["state"] == "stale":
+                return {"kind": "stale", "gate": g, "gate_label": GATE_LABELS[g]}
+        for g, gd in gates.items():
+            if gd["state"] == "pending":
+                return {"kind": "review", "gate": g, "gate_label": GATE_LABELS[g], "since": gd["request"].get("ts"),
+                        "artifacts": len(gd["request"]["artifacts"]),
+                        "waiting_on": [{"role": ROLE_LABELS.get(r, r), "name": ws.run["approvers"].get(r, "?")}
+                                       for r in gd["pending_roles"]]}
+        for g in gates:
+            if (ws.run_id, f"gate:{g}") in self._live:
+                return {"kind": "finishing", "gate": g, "gate_label": GATE_LABELS[g]}
+        stalled = self._stalled_gate(ws, st, gates)
+        if stalled:
+            return {"kind": "resume", "stage": stalled[0], "gate": stalled[1], "label": stage(stalled[0])["label"]}
+        for i, s in enumerate(STAGES):
+            if st["stages"][s["key"]]["status"] == "pending" and (i == 0 or st["stages"][STAGES[i - 1]["key"]]["status"] == "approved"):
+                return {"kind": "next", "stage": s["key"], "label": s["label"], "agent": s["agent"]}
+        return {"kind": "idle"}
+
+    def resume(self, run_id: str) -> dict:
+        """Continue a run that is not waiting on anyone: finish interrupted post-approval work or start the next stage."""
+        ws = self.ws(run_id)
+        st = self.status(run_id)
+        now = st["now"]
+        if now["kind"] == "resume":
+            self._live.add((run_id, f"gate:{now['gate']}"))
+            self.pool.submit(self._after_gate_safe, run_id, now["stage"], now["gate"])
+            self.event(ws, f"Resumed the follow-up work for {now['gate']}", "info")
+        elif now["kind"] == "next":
+            self.start_stage(run_id, now["stage"])
+        else:
+            raise ValueError(f"Nothing to resume: the run is {now['kind']}")
+        return {"ok": True, "resumed": now}
+
+    def _team(self, ws, st: dict) -> dict:
+        """Who did what and how long it took: agent working time versus time spent waiting on human review."""
+        apr = ws.read_log("approvals")
+        secs = lambda a, b: max(0.0, (datetime.fromisoformat(b) - datetime.fromisoformat(a)).total_seconds())  # noqa: E731
+        bind = ws.run.get("agent_bindings") or {}
+        rows, tot = [], {"agent_seconds": 0.0, "human_wait_seconds": 0.0, "decisions": 0, "artifacts": 0, "reviews": 0}
+        for s in STAGES:
+            ss = st["stages"][s["key"]]
+            work = secs(ss["started"], ss["finished"]) if ss.get("started") and ss.get("finished") else 0.0
+            reqs = [r for r in apr if r.get("type") == "request" and r["gate"] in s["gates"]]
+            decs = [r for r in apr if r.get("type") == "decision" and r["gate"] in s["gates"]]
+            wait = 0.0
+            for r in reqs:
+                mine = [d["timestamp"] for d in decs if d["request_id"] == r["request_id"]]
+                if mine and r.get("ts"):
+                    wait += secs(r["ts"], max(mine))
+            roles = list(dict.fromkeys(role for g in s["gates"] for role in
+                                       ((ws.latest_request(g) or {}).get("required_roles") or GATE_ROLES.get(g, []))))
+            rows.append({"stage": s["key"], "label": s["label"], "agent": s["agent"],
+                         "model": (bind.get(s["agent"]) or {}).get("model"), "status": ss["status"],
+                         "agent_seconds": round(work, 1), "human_wait_seconds": round(wait, 1), "gates": s["gates"],
+                         "humans": [{"role": ROLE_LABELS.get(r, r), "name": ws.run["approvers"].get(r, "?")} for r in roles],
+                         "decisions": len(decs), "artifacts": len(ss.get("artifacts") or [])})
+            tot["agent_seconds"] += work
+            tot["human_wait_seconds"] += wait
+            tot["decisions"] += len(decs)
+            tot["artifacts"] += len(ss.get("artifacts") or [])
+        tot["reviews"] = sum(1 for r in apr if r.get("type") == "artifact_review")
+        tot["agent_seconds"], tot["human_wait_seconds"] = round(tot["agent_seconds"], 1), round(tot["human_wait_seconds"], 1)
+        return {"stages": rows, "totals": tot}
+
     def status(self, run_id: str) -> dict:
         ws = self.ws(run_id)
-        st = self._state(ws)
+        st = self._recover(ws, self._state(ws))
         gates = {}
         for s in STAGES:
             for g in s["gates"]:
@@ -463,7 +569,7 @@ class Engine:
                     req = gs["request"]
                     gates[g]["request"] = {k: req.get(k) for k in ("request_id", "summary", "risk", "cost", "rollback", "options",
                                                                    "evidence", "required_roles", "artifacts", "expires",
-                                                                   "artifact_sha256", "action_class")}
+                                                                   "artifact_sha256", "action_class", "ts")}
                     gates[g]["decisions"] = gs["decisions"]
         stale_seen = False
         for s in STAGES:
@@ -477,7 +583,7 @@ class Engine:
                 ss["display"] = ss["status"]
         run = ws.run
         return {**st, "gates_detail": gates, "run": run, "stack": ws.stack, "stage_defs": STAGES, "gate_labels": GATE_LABELS,
-                "role_labels": ROLE_LABELS}
+                "role_labels": ROLE_LABELS, "now": self._now(ws, st, gates), "team": self._team(ws, st)}
 
     def metrics(self, ws) -> dict:
         st = self._state(ws)

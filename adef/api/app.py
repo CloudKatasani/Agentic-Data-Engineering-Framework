@@ -461,6 +461,15 @@ def stage_start(rid: str, key: str):
     return {"ok": True}
 
 
+@app.post("/api/runs/{rid}/resume")
+def run_resume(rid: str):
+    """Continue a run that is not waiting on a person (after a restart, or with autopilot off)."""
+    try:
+        return engine().resume(rid)
+    except ValueError as e:
+        raise HTTPException(409, str(e)) from e
+
+
 @app.get("/api/runs/{rid}/logs/{name}")
 def run_log(rid: str, name: str):
     if name not in ("approvals", "action-log", "decision-log", "events"):
