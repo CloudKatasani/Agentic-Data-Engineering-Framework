@@ -11,7 +11,7 @@ from __future__ import annotations
 
 PROVIDER_TYPES: dict[str, dict] = {
     "simulator": {
-        "label": "ADEF Demo Simulator",
+        "label": "DataCrew Demo Simulator",
         "description": "Deterministic offline agent outputs for demos. No key, no network.",
         "needs_key": False, "needs_base_url": False,
         "models": [{"id": "adef-simulator-1", "label": "Simulator v1", "price": [0, 0]}],
@@ -103,7 +103,7 @@ def price_for(provider_type: str, model: str) -> list[float] | None:
 # Model names are suggestions current at the time of writing; confirm with "Discover models".
 # Providers seeded into new installations. Keys are added later through the vault.
 SEED_PROVIDERS: list[dict] = [
-    {"id": "demo", "type": "simulator", "label": "ADEF Demo Simulator (offline)", "base_url": "", "api_key_ref": "", "options": {}},
+    {"id": "demo", "type": "simulator", "label": "DataCrew Demo Simulator (offline)", "base_url": "", "api_key_ref": "", "options": {}},
     {"id": "anthropic", "type": "anthropic", "label": "Anthropic (Claude)", "base_url": "", "api_key_ref": "", "options": {}},
     {"id": "openai", "type": "openai", "label": "OpenAI", "base_url": "", "api_key_ref": "", "options": {}},
     {"id": "google-gemini", "type": "google_gemini", "label": "Google Gemini", "base_url": "", "api_key_ref": "", "options": {}},

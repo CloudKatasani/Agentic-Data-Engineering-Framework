@@ -65,6 +65,9 @@ class SettingsStore:
                     data[k] = v
         if not any(p["id"] == "demo" for p in data["providers"]):
             data["providers"].insert(0, copy.deepcopy(DEFAULTS["providers"][0]))
+        for prov in data["providers"]:
+            if prov["id"] == "demo":
+                prov["label"] = DEFAULTS["providers"][0]["label"]
         for name in AGENT_NAMES:
             data["agents"].setdefault(name, copy.deepcopy(DEFAULTS["agents"][name]))
         # make sure every provider referenced by an agent exists (older settings files)

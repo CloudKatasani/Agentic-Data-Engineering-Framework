@@ -262,3 +262,13 @@ td.mono { white-space: nowrap; }
 .model-box { display: flex; min-width: 220px; }
 .model-box input { flex: 1; min-width: 0; border-radius: 8px 0 0 8px; }
 .model-box select.model-pick { width: 34px; flex: none; padding: 7px 0; border-left: 0; border-radius: 0 8px 8px 0; cursor: pointer; background: var(--panel-2); }
+
+/* agent profile */
+.agent-prof { margin-top: 6px; }
+.agent-prof > summary { cursor: pointer; color: var(--accent); }
+.prof-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; margin-top: 8px; font-size: 12.5px; }
+.prof-grid ul { margin: 2px 0 0; padding-left: 16px; }
+.prof-grid li { margin: 2px 0; }
+.prof-grid .ph { font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.prof-grid .ph.ok { color: var(--ok); } .prof-grid .ph.bad { color: var(--bad); }
+tr[data-agent] > td { vertical-align: top; }

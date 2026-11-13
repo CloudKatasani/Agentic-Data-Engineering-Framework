@@ -204,7 +204,7 @@ COMPAT_RULES = [
     ("transformation", "duckdb-sql", "lakehouse_compute", {"duckdb-local"}, "DuckDB SQL runs on the local DuckDB engine"),
     ("orchestration", "snowflake-tasks", "compute_engine", {"snowflake"}, "Snowflake tasks need Snowflake"),
     ("orchestration", "platform-workflows", "lakehouse_compute", {"databricks"}, "Platform workflows are Databricks Jobs"),
-    ("orchestration", "adef-runner", "lakehouse_compute", {"duckdb-local"}, "The ADEF runner executes the local lakehouse"),
+    ("orchestration", "adef-runner", "lakehouse_compute", {"duckdb-local"}, "The DataCrew runner executes the local lakehouse"),
     ("data_quality", "pipeline-expectations", "transformation", {"spark-sql-pipelines"},
      "Pipeline expectations need Lakeflow declarative pipelines"),
     ("data_quality", "dbt-tests", "transformation", {"dbt-core", "dbt-cloud"}, "dbt tests need dbt"),

@@ -36,7 +36,7 @@ from ..settings_store import AGENT_NAMES, SettingsStore
 from ..util import load_yaml
 from ..workspace.run import GATE_ROLES, ROLE_LABELS
 
-app = FastAPI(title="ADEF - Agentic Data Engineering Framework", version=__version__)
+app = FastAPI(title="DataCrew AI - Agentic Data Engineering Framework", version=__version__)
 settings = SettingsStore()
 vault = SecretStore()
 API_TOKEN = config_env("API_TOKEN")
@@ -81,7 +81,8 @@ def _agent_defs() -> list[dict]:
     for name in AGENT_NAMES:
         text = (AGENTS_DIR / f"{name}.md").read_text()
         fm = load_yaml(text.split("---")[1])
-        out.append({"name": name, "description": fm.get("description", ""), "skills": fm.get("skills", "")})
+        out.append({"name": name, "title": fm.get("title") or name, "description": fm.get("description", ""),
+                    "skills": fm.get("skills", ""), **{k: fm.get(k) or [] for k in ("expects", "produces", "does", "does_not")}})
     return out
 
 
