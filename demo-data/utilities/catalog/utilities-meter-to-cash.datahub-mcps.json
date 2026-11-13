@@ -1,7 +1,7 @@
 [
   {
     "entityType": "dataset",
-    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,acme_customer_curated.dim_customer_account,PROD)",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,acme_customer_gold.dim_customer_account,PROD)",
     "changeType": "UPSERT",
     "aspectName": "datasetProperties",
     "aspect": {
@@ -18,12 +18,12 @@
   },
   {
     "entityType": "dataset",
-    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,acme_customer_curated.dim_customer_account,PROD)",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,acme_customer_gold.dim_customer_account,PROD)",
     "changeType": "UPSERT",
     "aspectName": "schemaMetadata",
     "aspect": {
       "json": {
-        "schemaName": "acme_customer_curated.dim_customer_account",
+        "schemaName": "acme_customer_gold.dim_customer_account",
         "platform": "urn:li:dataPlatform:snowflake",
         "version": 0,
         "hash": "",
@@ -106,7 +106,7 @@
   },
   {
     "entityType": "dataset",
-    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,acme_customer_curated.dim_premise,PROD)",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,acme_customer_gold.dim_premise,PROD)",
     "changeType": "UPSERT",
     "aspectName": "datasetProperties",
     "aspect": {
@@ -123,12 +123,12 @@
   },
   {
     "entityType": "dataset",
-    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,acme_customer_curated.dim_premise,PROD)",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,acme_customer_gold.dim_premise,PROD)",
     "changeType": "UPSERT",
     "aspectName": "schemaMetadata",
     "aspect": {
       "json": {
-        "schemaName": "acme_customer_curated.dim_premise",
+        "schemaName": "acme_customer_gold.dim_premise",
         "platform": "urn:li:dataPlatform:snowflake",
         "version": 0,
         "hash": "",
@@ -192,7 +192,7 @@
   },
   {
     "entityType": "dataset",
-    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,acme_customer_curated.dim_meter,PROD)",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,acme_customer_gold.dim_meter,PROD)",
     "changeType": "UPSERT",
     "aspectName": "datasetProperties",
     "aspect": {
@@ -209,12 +209,12 @@
   },
   {
     "entityType": "dataset",
-    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,acme_customer_curated.dim_meter,PROD)",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,acme_customer_gold.dim_meter,PROD)",
     "changeType": "UPSERT",
     "aspectName": "schemaMetadata",
     "aspect": {
       "json": {
-        "schemaName": "acme_customer_curated.dim_meter",
+        "schemaName": "acme_customer_gold.dim_meter",
         "platform": "urn:li:dataPlatform:snowflake",
         "version": 0,
         "hash": "",
@@ -278,7 +278,7 @@
   },
   {
     "entityType": "dataset",
-    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,acme_customer_curated.fct_billed_consumption,PROD)",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,acme_customer_gold.fct_billed_consumption,PROD)",
     "changeType": "UPSERT",
     "aspectName": "datasetProperties",
     "aspect": {
@@ -295,12 +295,12 @@
   },
   {
     "entityType": "dataset",
-    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,acme_customer_curated.fct_billed_consumption,PROD)",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,acme_customer_gold.fct_billed_consumption,PROD)",
     "changeType": "UPSERT",
     "aspectName": "schemaMetadata",
     "aspect": {
       "json": {
-        "schemaName": "acme_customer_curated.fct_billed_consumption",
+        "schemaName": "acme_customer_gold.fct_billed_consumption",
         "platform": "urn:li:dataPlatform:snowflake",
         "version": 0,
         "hash": "",

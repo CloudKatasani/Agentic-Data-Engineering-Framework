@@ -1,17 +1,22 @@
 # Client demo script (about 15 minutes)
 
-Before the demo:
+Before the demo, start ADEF with a model key (or none, for the offline Demo Simulator):
 
 ```bash
-make install
+ANTHROPIC_API_KEY=<your key> ./run.sh
+```
+
+To show extraction from a real Oracle database, also start and seed one (once):
+
+```bash
+docker compose --profile oracle up -d
 ```
 
 ```bash
-ADEF_API_TOKEN=<choose-one> make run
+SOURCE_DB_PASSWORD=$ORACLE_PASSWORD .venv/bin/python -m adef source-db seed --type oracle --dsn localhost:1521/FREEPDB1 --user system --domain telco
 ```
 
-Optionally add a real provider key on **Providers & API keys** and test it. The demo works fully
-offline with the Demo Simulator.
+Then add it on **Jira & metadata → Source databases** (DSN `localhost:1521/FREEPDB1`, user `system`).
 
 ## 1. Frame it (1 min) - Dashboard
 
@@ -31,13 +36,20 @@ artifact."
 
 ## 3. Their stack (2 min) - Technology stacks
 
-- Click through the five reference stacks. Change one slot, for example `catalog_governance` to
-  `purview`, then **Validate**. Show an incompatible choice, such as Spark pipelines on BigQuery, being
-  blocked.
+- Each reference stack shows its three pipelines: **Oracle or Db2 → S3, ADLS, GCS or OneLake as
+  Iceberg or Delta → curated gold → Snowflake, Databricks, BigQuery, Redshift or Fabric**.
+- Change one slot (for example the analytics engine) and watch the flow update, then **Validate**.
+  Show a blocked choice: ADLS storage on an AWS stack.
 - Key message: "The logical design never names a product. Switching stack means switching profile,
   not rewriting agents."
 
 ## 4. Their requirements (2 min) - New run
+
+For a Telco audience, use the **client demo kit**: on *Jira & metadata → Demo data packs*, choose
+*telco (client demo kit)* and click **Download all (.zip)** before the demo. Then upload the numbered
+files as the steps below describe (`00-README.md` in the zip has the same map). Use client code
+`NIMBUS-MOBILE`.
+
 
 - Pick the client's industry Domain Pack.
 - Requirements source → **Read from Jira** → *Fetch issues*, or *Use sample export* to load the
@@ -65,6 +77,19 @@ artifact."
   re-requested.
 - **Show rejection:** reject a gate with a reason, then **Send back for rework**. The agent redoes
   only that stage.
+
+## 5b. Show the data moving (3 min) - Lakehouse tab
+
+Use the **Local lakehouse** stack with the Oracle source for this part (any stack still gets a rehearsal).
+
+- The flow shows source → bronze → silver → gold → analytics with real row counts per layer.
+- *Quality on real data*: point out the rules that ran on actual rows, and any source data findings
+  routed to the Data Steward.
+- *Metrics*: churn rate and ARPU are identical in the lake (gold) and the analytics layer.
+- *Preview*: the analyst's view of `dim_subscriber` shows phone numbers masked.
+- Incremental load: change one subscriber's status in Oracle (and its `LAST_UPDATED_TS`), click
+  **Re-run rehearsal**. Exactly one row is extracted and the new status appears in the analytics layer.
+- Code tab: `pipelines/01_ingest`, `02_curate`, `03_publish` is what would run on their cloud.
 
 ## 6. What they take away (2 min)
 

@@ -2,7 +2,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT",
+      "name": "ACME_CUSTOMER_GOLD.DIM_CUSTOMER_ACCOUNT",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -10,7 +10,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT",
+    "name": "ACME_CUSTOMER_GOLD.DIM_CUSTOMER_ACCOUNT",
     "displayName": "Customer Account",
     "type": {
       "name": "Table"
@@ -31,7 +31,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT.CUSTOMER_ACCOUNT_ID",
+      "name": "ACME_CUSTOMER_GOLD.DIM_CUSTOMER_ACCOUNT.CUSTOMER_ACCOUNT_ID",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -39,7 +39,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT.CUSTOMER_ACCOUNT_ID",
+    "name": "ACME_CUSTOMER_GOLD.DIM_CUSTOMER_ACCOUNT.CUSTOMER_ACCOUNT_ID",
     "displayName": "Customer Account Id",
     "type": {
       "name": "Column"
@@ -74,7 +74,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT",
+          "name": "ACME_CUSTOMER_GOLD.DIM_CUSTOMER_ACCOUNT",
           "domain": {
             "name": "utilities-meter-to-cash - Physical Data Dictionary",
             "community": {
@@ -88,7 +88,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT.ACCOUNT_STATUS",
+      "name": "ACME_CUSTOMER_GOLD.DIM_CUSTOMER_ACCOUNT.ACCOUNT_STATUS",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -96,7 +96,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT.ACCOUNT_STATUS",
+    "name": "ACME_CUSTOMER_GOLD.DIM_CUSTOMER_ACCOUNT.ACCOUNT_STATUS",
     "displayName": "Account Status",
     "type": {
       "name": "Column"
@@ -131,7 +131,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT",
+          "name": "ACME_CUSTOMER_GOLD.DIM_CUSTOMER_ACCOUNT",
           "domain": {
             "name": "utilities-meter-to-cash - Physical Data Dictionary",
             "community": {
@@ -145,7 +145,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT.RATE_CLASS",
+      "name": "ACME_CUSTOMER_GOLD.DIM_CUSTOMER_ACCOUNT.RATE_CLASS",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -153,7 +153,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT.RATE_CLASS",
+    "name": "ACME_CUSTOMER_GOLD.DIM_CUSTOMER_ACCOUNT.RATE_CLASS",
     "displayName": "Rate Class",
     "type": {
       "name": "Column"
@@ -188,7 +188,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT",
+          "name": "ACME_CUSTOMER_GOLD.DIM_CUSTOMER_ACCOUNT",
           "domain": {
             "name": "utilities-meter-to-cash - Physical Data Dictionary",
             "community": {
@@ -202,7 +202,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT.CUSTOMER_NAME",
+      "name": "ACME_CUSTOMER_GOLD.DIM_CUSTOMER_ACCOUNT.CUSTOMER_NAME",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -210,7 +210,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT.CUSTOMER_NAME",
+    "name": "ACME_CUSTOMER_GOLD.DIM_CUSTOMER_ACCOUNT.CUSTOMER_NAME",
     "displayName": "Customer Name",
     "type": {
       "name": "Column"
@@ -245,7 +245,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT",
+          "name": "ACME_CUSTOMER_GOLD.DIM_CUSTOMER_ACCOUNT",
           "domain": {
             "name": "utilities-meter-to-cash - Physical Data Dictionary",
             "community": {
@@ -259,7 +259,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT.OPEN_DATE",
+      "name": "ACME_CUSTOMER_GOLD.DIM_CUSTOMER_ACCOUNT.OPEN_DATE",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -267,7 +267,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT.OPEN_DATE",
+    "name": "ACME_CUSTOMER_GOLD.DIM_CUSTOMER_ACCOUNT.OPEN_DATE",
     "displayName": "Open Date",
     "type": {
       "name": "Column"
@@ -302,7 +302,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER_ACCOUNT",
+          "name": "ACME_CUSTOMER_GOLD.DIM_CUSTOMER_ACCOUNT",
           "domain": {
             "name": "utilities-meter-to-cash - Physical Data Dictionary",
             "community": {
@@ -316,7 +316,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE",
+      "name": "ACME_CUSTOMER_GOLD.DIM_PREMISE",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -324,7 +324,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE",
+    "name": "ACME_CUSTOMER_GOLD.DIM_PREMISE",
     "displayName": "Premise",
     "type": {
       "name": "Table"
@@ -345,7 +345,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE.PREMISE_ID",
+      "name": "ACME_CUSTOMER_GOLD.DIM_PREMISE.PREMISE_ID",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -353,7 +353,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE.PREMISE_ID",
+    "name": "ACME_CUSTOMER_GOLD.DIM_PREMISE.PREMISE_ID",
     "displayName": "Premise Id",
     "type": {
       "name": "Column"
@@ -388,7 +388,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE",
+          "name": "ACME_CUSTOMER_GOLD.DIM_PREMISE",
           "domain": {
             "name": "utilities-meter-to-cash - Physical Data Dictionary",
             "community": {
@@ -402,7 +402,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE.CUSTOMER_ACCOUNT_ID",
+      "name": "ACME_CUSTOMER_GOLD.DIM_PREMISE.CUSTOMER_ACCOUNT_ID",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -410,7 +410,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE.CUSTOMER_ACCOUNT_ID",
+    "name": "ACME_CUSTOMER_GOLD.DIM_PREMISE.CUSTOMER_ACCOUNT_ID",
     "displayName": "Customer Account Id",
     "type": {
       "name": "Column"
@@ -445,7 +445,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE",
+          "name": "ACME_CUSTOMER_GOLD.DIM_PREMISE",
           "domain": {
             "name": "utilities-meter-to-cash - Physical Data Dictionary",
             "community": {
@@ -459,7 +459,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE.PREMISE_TYPE",
+      "name": "ACME_CUSTOMER_GOLD.DIM_PREMISE.PREMISE_TYPE",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -467,7 +467,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE.PREMISE_TYPE",
+    "name": "ACME_CUSTOMER_GOLD.DIM_PREMISE.PREMISE_TYPE",
     "displayName": "Premise Type",
     "type": {
       "name": "Column"
@@ -502,7 +502,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE",
+          "name": "ACME_CUSTOMER_GOLD.DIM_PREMISE",
           "domain": {
             "name": "utilities-meter-to-cash - Physical Data Dictionary",
             "community": {
@@ -516,7 +516,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE.REGION_CODE",
+      "name": "ACME_CUSTOMER_GOLD.DIM_PREMISE.REGION_CODE",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -524,7 +524,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE.REGION_CODE",
+    "name": "ACME_CUSTOMER_GOLD.DIM_PREMISE.REGION_CODE",
     "displayName": "Region Code",
     "type": {
       "name": "Column"
@@ -559,7 +559,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_PREMISE",
+          "name": "ACME_CUSTOMER_GOLD.DIM_PREMISE",
           "domain": {
             "name": "utilities-meter-to-cash - Physical Data Dictionary",
             "community": {
@@ -573,7 +573,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_METER",
+      "name": "ACME_CUSTOMER_GOLD.DIM_METER",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -581,7 +581,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_METER",
+    "name": "ACME_CUSTOMER_GOLD.DIM_METER",
     "displayName": "Meter",
     "type": {
       "name": "Table"
@@ -602,7 +602,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_METER.METER_ID",
+      "name": "ACME_CUSTOMER_GOLD.DIM_METER.METER_ID",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -610,7 +610,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_METER.METER_ID",
+    "name": "ACME_CUSTOMER_GOLD.DIM_METER.METER_ID",
     "displayName": "Meter Id",
     "type": {
       "name": "Column"
@@ -645,7 +645,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_METER",
+          "name": "ACME_CUSTOMER_GOLD.DIM_METER",
           "domain": {
             "name": "utilities-meter-to-cash - Physical Data Dictionary",
             "community": {
@@ -659,7 +659,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_METER.PREMISE_ID",
+      "name": "ACME_CUSTOMER_GOLD.DIM_METER.PREMISE_ID",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -667,7 +667,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_METER.PREMISE_ID",
+    "name": "ACME_CUSTOMER_GOLD.DIM_METER.PREMISE_ID",
     "displayName": "Premise Id",
     "type": {
       "name": "Column"
@@ -702,7 +702,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_METER",
+          "name": "ACME_CUSTOMER_GOLD.DIM_METER",
           "domain": {
             "name": "utilities-meter-to-cash - Physical Data Dictionary",
             "community": {
@@ -716,7 +716,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_METER.METER_TYPE",
+      "name": "ACME_CUSTOMER_GOLD.DIM_METER.METER_TYPE",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -724,7 +724,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_METER.METER_TYPE",
+    "name": "ACME_CUSTOMER_GOLD.DIM_METER.METER_TYPE",
     "displayName": "Meter Type",
     "type": {
       "name": "Column"
@@ -759,7 +759,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_METER",
+          "name": "ACME_CUSTOMER_GOLD.DIM_METER",
           "domain": {
             "name": "utilities-meter-to-cash - Physical Data Dictionary",
             "community": {
@@ -773,7 +773,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.DIM_METER.INSTALL_DATE",
+      "name": "ACME_CUSTOMER_GOLD.DIM_METER.INSTALL_DATE",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -781,7 +781,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.DIM_METER.INSTALL_DATE",
+    "name": "ACME_CUSTOMER_GOLD.DIM_METER.INSTALL_DATE",
     "displayName": "Install Date",
     "type": {
       "name": "Column"
@@ -816,7 +816,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.DIM_METER",
+          "name": "ACME_CUSTOMER_GOLD.DIM_METER",
           "domain": {
             "name": "utilities-meter-to-cash - Physical Data Dictionary",
             "community": {
@@ -830,7 +830,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION",
+      "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -838,7 +838,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION",
+    "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION",
     "displayName": "Billed Consumption",
     "type": {
       "name": "Table"
@@ -859,7 +859,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.BILL_ID",
+      "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION.BILL_ID",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -867,7 +867,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.BILL_ID",
+    "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION.BILL_ID",
     "displayName": "Bill Id",
     "type": {
       "name": "Column"
@@ -902,7 +902,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION",
+          "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION",
           "domain": {
             "name": "utilities-meter-to-cash - Physical Data Dictionary",
             "community": {
@@ -916,7 +916,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.CUSTOMER_ACCOUNT_ID",
+      "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION.CUSTOMER_ACCOUNT_ID",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -924,7 +924,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.CUSTOMER_ACCOUNT_ID",
+    "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION.CUSTOMER_ACCOUNT_ID",
     "displayName": "Customer Account Id",
     "type": {
       "name": "Column"
@@ -959,7 +959,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION",
+          "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION",
           "domain": {
             "name": "utilities-meter-to-cash - Physical Data Dictionary",
             "community": {
@@ -973,7 +973,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.BILL_PERIOD_START",
+      "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION.BILL_PERIOD_START",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -981,7 +981,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.BILL_PERIOD_START",
+    "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION.BILL_PERIOD_START",
     "displayName": "Bill Period Start",
     "type": {
       "name": "Column"
@@ -1016,7 +1016,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION",
+          "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION",
           "domain": {
             "name": "utilities-meter-to-cash - Physical Data Dictionary",
             "community": {
@@ -1030,7 +1030,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.BILL_PERIOD_END",
+      "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION.BILL_PERIOD_END",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -1038,7 +1038,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.BILL_PERIOD_END",
+    "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION.BILL_PERIOD_END",
     "displayName": "Bill Period End",
     "type": {
       "name": "Column"
@@ -1073,7 +1073,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION",
+          "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION",
           "domain": {
             "name": "utilities-meter-to-cash - Physical Data Dictionary",
             "community": {
@@ -1087,7 +1087,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.BILLED_KWH",
+      "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION.BILLED_KWH",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -1095,7 +1095,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.BILLED_KWH",
+    "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION.BILLED_KWH",
     "displayName": "Billed Kwh",
     "type": {
       "name": "Column"
@@ -1130,7 +1130,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION",
+          "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION",
           "domain": {
             "name": "utilities-meter-to-cash - Physical Data Dictionary",
             "community": {
@@ -1144,7 +1144,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.METERED_KWH",
+      "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION.METERED_KWH",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -1152,7 +1152,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.METERED_KWH",
+    "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION.METERED_KWH",
     "displayName": "Metered Kwh",
     "type": {
       "name": "Column"
@@ -1187,7 +1187,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION",
+          "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION",
           "domain": {
             "name": "utilities-meter-to-cash - Physical Data Dictionary",
             "community": {
@@ -1201,7 +1201,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.ESTIMATED_READ_SHARE",
+      "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION.ESTIMATED_READ_SHARE",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -1209,7 +1209,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.ESTIMATED_READ_SHARE",
+    "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION.ESTIMATED_READ_SHARE",
     "displayName": "Estimated Read Share",
     "type": {
       "name": "Column"
@@ -1244,7 +1244,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION",
+          "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION",
           "domain": {
             "name": "utilities-meter-to-cash - Physical Data Dictionary",
             "community": {
@@ -1258,7 +1258,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.VARIANCE_KWH",
+      "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION.VARIANCE_KWH",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -1266,7 +1266,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.VARIANCE_KWH",
+    "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION.VARIANCE_KWH",
     "displayName": "Variance Kwh",
     "type": {
       "name": "Column"
@@ -1301,7 +1301,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION",
+          "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION",
           "domain": {
             "name": "utilities-meter-to-cash - Physical Data Dictionary",
             "community": {
@@ -1315,7 +1315,7 @@
   {
     "resourceType": "Asset",
     "identifier": {
-      "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.AMOUNT_DUE",
+      "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION.AMOUNT_DUE",
       "domain": {
         "name": "utilities-meter-to-cash - Physical Data Dictionary",
         "community": {
@@ -1323,7 +1323,7 @@
         }
       }
     },
-    "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION.AMOUNT_DUE",
+    "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION.AMOUNT_DUE",
     "displayName": "Amount Due",
     "type": {
       "name": "Column"
@@ -1358,7 +1358,7 @@
     "relations": {
       "00000000-0000-0000-0000-000000007042:SOURCE": [
         {
-          "name": "ACME_CUSTOMER_CURATED.FCT_BILLED_CONSUMPTION",
+          "name": "ACME_CUSTOMER_GOLD.FCT_BILLED_CONSUMPTION",
           "domain": {
             "name": "utilities-meter-to-cash - Physical Data Dictionary",
             "community": {

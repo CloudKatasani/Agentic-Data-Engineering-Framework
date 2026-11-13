@@ -1,0 +1,43 @@
+-- As-is enterprise data warehouse: churn reporting mart (Nimbus Mobile, fictional)
+-- Exported from the modelling tool, Oracle target. Candidate for modernisation.
+
+CREATE TABLE DW_RPT.DIM_CUSTOMER (
+    CUSTOMER_KEY        NUMBER(12)      NOT NULL,
+    SUBSCRIBER_ID       VARCHAR2(20)    NOT NULL,
+    CUSTOMER_SEGMENT    VARCHAR2(20),
+    MSISDN              VARCHAR2(15),
+    ACTIVATION_DT       DATE,
+    STATUS_CD           VARCHAR2(12),
+    EFF_FROM_DT         DATE,
+    EFF_TO_DT           DATE,
+    CURRENT_FLG         CHAR(1),
+    CONSTRAINT PK_DIM_CUSTOMER PRIMARY KEY (CUSTOMER_KEY)
+);
+
+CREATE TABLE DW_RPT.DIM_PRODUCT (
+    PRODUCT_KEY         NUMBER(10)      NOT NULL,
+    PRODUCT_CD          VARCHAR2(12)    NOT NULL,
+    PRODUCT_NM          VARCHAR2(100),
+    PRODUCT_FAMILY      VARCHAR2(30),
+    LIST_PRICE_AMT      NUMBER(12,2),
+    CONSTRAINT PK_DIM_PRODUCT PRIMARY KEY (PRODUCT_KEY)
+);
+
+CREATE TABLE DW_RPT.DIM_DATE (
+    DATE_KEY            NUMBER(8)       NOT NULL,
+    CAL_DATE            DATE            NOT NULL,
+    CAL_MONTH           NUMBER(6),
+    FISCAL_QUARTER      VARCHAR2(7),
+    CONSTRAINT PK_DIM_DATE PRIMARY KEY (DATE_KEY)
+);
+
+CREATE TABLE DW_RPT.FCT_MONTHLY_SUBSCRIBER (
+    CUSTOMER_KEY        NUMBER(12)      NOT NULL,
+    PRODUCT_KEY         NUMBER(10)      NOT NULL,
+    MONTH_DATE_KEY      NUMBER(8)       NOT NULL,
+    REVENUE_AMT         NUMBER(14,2),
+    DATA_MB             NUMBER(14,2),
+    VOICE_MIN           NUMBER(10,2),
+    CHURN_FLG           CHAR(1),
+    CONSTRAINT PK_FCT_MONTHLY_SUBSCRIBER PRIMARY KEY (CUSTOMER_KEY, PRODUCT_KEY, MONTH_DATE_KEY)
+);

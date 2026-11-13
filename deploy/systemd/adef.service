@@ -1,0 +1,23 @@
+# Run ADEF without Docker on a VM. Install:
+#   sudo cp deploy/systemd/adef.service /etc/systemd/system/ && sudo systemctl daemon-reload
+#   sudo systemctl enable --now adef
+# Secrets go in /opt/adef/.env (chmod 600), same variables as .env.example.
+[Unit]
+Description=ADEF - Agentic Data Engineering Framework
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=adef
+WorkingDirectory=/opt/adef
+EnvironmentFile=/opt/adef/.env
+Environment=ADEF_HOME=/var/lib/adef
+ExecStart=/opt/adef/run.sh --host 0.0.0.0 --port 8000
+Restart=on-failure
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/adef /opt/adef/.venv
+StateDirectory=adef
+
+[Install]
+WantedBy=multi-user.target

@@ -42,7 +42,7 @@ def export_ddl(model: dict, ctx: Ctx) -> str:
     prof = ctx.get("profile")
     schema = ph.schema_name(prof)
     out = [f"-- ADEF physical DDL | model {model['name']} v{model['version']} | dialect {ph.DIALECT_LABELS.get(d, d)}",
-           f"-- Generated {now_iso()} from the approved logical model. Review before running (A2).", ""]
+           f"-- Generated {ctx.get('generated_at') or now_iso()} from the approved logical model. Review before running (A2).", ""]
     if d == "tsql":
         out.append(f"IF SCHEMA_ID('{schema}') IS NULL EXEC('CREATE SCHEMA {schema}');")
     else:
@@ -430,7 +430,7 @@ def export_openlineage(model: dict, ctx: Ctx) -> str:
                 fields.setdefault(m["target_attribute"], {"inputFields": [],
                                                           "transformationDescription": m.get("transformation", "")})
                 fields[m["target_attribute"]]["inputFields"].append({"namespace": ns, "name": ds, "field": col})
-        events.append({"eventType": "COMPLETE", "eventTime": now_iso(), "producer": "https://adef.local/adef-framework",
+        events.append({"eventType": "COMPLETE", "eventTime": ctx.get("generated_at") or now_iso(), "producer": "https://adef.local/adef-framework",
                        "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/definitions/RunEvent",
                        "run": {"runId": "00000000-0000-4000-8000-000000000000"},
                        "job": {"namespace": ns, "name": f"load_{ph.table_name(e, prof).lower()}"},

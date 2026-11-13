@@ -10,7 +10,7 @@ import threading
 from pathlib import Path
 from typing import Any
 
-from .catalog.providers import SEED_PROVIDERS, TEAM_PRESETS
+from .catalog.providers import ENV_KEYS, SEED_PROVIDERS, TEAM_PRESETS, env_key_for, preset_for_env
 from .config import adef_home
 
 AGENT_NAMES = [
@@ -43,6 +43,10 @@ class SettingsStore:
 
     def load(self) -> dict:
         data = copy.deepcopy(DEFAULTS)
+        if not self.path.exists():  # fresh install: choose the agent team from the keys in the environment
+            name = preset_for_env()
+            data["agents"] = copy.deepcopy(TEAM_PRESETS[name]["agents"])
+            data["runtime"]["team_preset"] = name
         if self.path.exists():
             saved = json.loads(self.path.read_text())
             # settings written before the ADPE -> ADEF rename keyed agents as adpe-*
@@ -62,14 +66,34 @@ class SettingsStore:
         for seed in SEED_PROVIDERS:
             if seed["id"] not in have and any(b.get("provider_id") == seed["id"] for b in data["agents"].values()):
                 data["providers"].append(copy.deepcopy(seed))
+        return self._apply_env(data)
+
+    @staticmethod
+    def _apply_env(data: dict) -> dict:
+        """Reference provider keys found in the environment (in memory only; never written to disk)."""
+        import os
+        for p in data["providers"]:
+            spec = ENV_KEYS.get(p["id"], {})
+            var = env_key_for(p["id"])
+            if var and not p.get("api_key_ref"):
+                p["api_key_ref"] = f"env:{var}"
+                p["key_source"] = "environment"
+            if spec.get("base_url") and os.environ.get(spec["base_url"]) and not p.get("base_url_locked"):
+                p["base_url"] = os.environ[spec["base_url"]]
+            if spec.get("region") and os.environ.get(spec["region"]):
+                p.setdefault("options", {})["region"] = os.environ[spec["region"]]
         return data
 
     def save(self, data: dict) -> dict:
+        disk = copy.deepcopy(data)
+        for p in disk.get("providers", []):  # environment-derived references are not persisted
+            if p.pop("key_source", None) == "environment":
+                p["api_key_ref"] = ""
         with _lock:
             tmp = self.path.with_suffix(".tmp")
-            tmp.write_text(json.dumps(data, indent=2))
+            tmp.write_text(json.dumps(disk, indent=2))
             tmp.replace(self.path)
-        return data
+        return self._apply_env(disk)
 
     def update(self, key: str, value: Any) -> dict:
         data = self.load()

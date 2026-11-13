@@ -1,7 +1,7 @@
 [
   {
     "eventType": "COMPLETE",
-    "eventTime": "2026-11-12T19:52:54+00:00",
+    "eventTime": "2026-11-01T00:00:00+00:00",
     "producer": "https://adef.local/adef-framework",
     "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/definitions/RunEvent",
     "run": {
@@ -20,7 +20,7 @@
     "outputs": [
       {
         "namespace": "adef://azure-fabric",
-        "name": "ACME_CUSTOMER_CURATED.DIM_CUSTOMER",
+        "name": "acme_customer_gold.dim_customer",
         "facets": {
           "columnLineage": {
             "_producer": "https://adef.local/adef-framework",
@@ -74,7 +74,7 @@
   },
   {
     "eventType": "COMPLETE",
-    "eventTime": "2026-11-12T19:52:54+00:00",
+    "eventTime": "2026-11-01T00:00:00+00:00",
     "producer": "https://adef.local/adef-framework",
     "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/definitions/RunEvent",
     "run": {
@@ -93,7 +93,7 @@
     "outputs": [
       {
         "namespace": "adef://azure-fabric",
-        "name": "ACME_CUSTOMER_CURATED.DIM_PRODUCT",
+        "name": "acme_customer_gold.dim_product",
         "facets": {
           "columnLineage": {
             "_producer": "https://adef.local/adef-framework",
@@ -137,7 +137,7 @@
   },
   {
     "eventType": "COMPLETE",
-    "eventTime": "2026-11-12T19:52:54+00:00",
+    "eventTime": "2026-11-01T00:00:00+00:00",
     "producer": "https://adef.local/adef-framework",
     "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/definitions/RunEvent",
     "run": {
@@ -156,7 +156,7 @@
     "outputs": [
       {
         "namespace": "adef://azure-fabric",
-        "name": "ACME_CUSTOMER_CURATED.DIM_ACCOUNT",
+        "name": "acme_customer_gold.dim_account",
         "facets": {
           "columnLineage": {
             "_producer": "https://adef.local/adef-framework",
@@ -230,7 +230,7 @@
   },
   {
     "eventType": "COMPLETE",
-    "eventTime": "2026-11-12T19:52:54+00:00",
+    "eventTime": "2026-11-01T00:00:00+00:00",
     "producer": "https://adef.local/adef-framework",
     "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/definitions/RunEvent",
     "run": {
@@ -249,7 +249,7 @@
     "outputs": [
       {
         "namespace": "adef://azure-fabric",
-        "name": "ACME_CUSTOMER_CURATED.FCT_DAILY_BALANCE",
+        "name": "acme_customer_gold.fct_daily_balance",
         "facets": {
           "columnLineage": {
             "_producer": "https://adef.local/adef-framework",

@@ -124,6 +124,10 @@ class Engine:
                    "limits": {"profiling_row_cap": int(profile.get("limits", {}).get("profiling_row_cap", 10000)),
                               "query_timeout_seconds": int(profile.get("limits", {}).get("query_timeout_seconds", 120))},
                    "autopilot": bool(p.get("autopilot", True)),
+                   # where Pipeline 1 extracts from; credentials only by vault reference
+                   "source_connection": {k: v for k, v in (p.get("source_connection") or
+                                                           {"type": "sqlite-local", "pack": domain}).items()
+                                         if k != "password"},
                    "agent_bindings": {a: {k: v for k, v in binding_for(a).items() if k in ("provider_id", "model", "effort")}
                                       for a in self.settings.load()["agents"]}}
         ws = RunWorkspace(run_id)

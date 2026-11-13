@@ -90,7 +90,10 @@ def health():
 
 @app.get("/api/catalog")
 def catalog():
-    return {"provider_types": PROVIDER_TYPES, "effort_levels": EFFORT_LEVELS, "team_presets": TEAM_PRESETS, "slots": stacks.SLOTS,
+    return {"provider_types": PROVIDER_TYPES, "effort_levels": EFFORT_LEVELS, "team_presets": TEAM_PRESETS,
+            "pipeline_slots": stacks.PIPELINE_SLOTS,
+            "preset_pipelines": {p["profile_id"]: {"steps": stacks.pipeline_summary(p), "local": stacks.is_local(p)}
+                                 for p in stacks.PRESETS}, "slots": stacks.SLOTS,
             "presets": stacks.PRESETS, "domain_packs": list_packs(), "exporters": exports.list_exporters(),
             "dialects": list(exports.ph.DIALECT_LABELS.items()), "stages": STAGES, "gate_labels": GATE_LABELS,
             "gate_roles": GATE_ROLES, "role_labels": ROLE_LABELS, "agents": _agent_defs(),
@@ -287,13 +290,37 @@ def demo_files():
     return out
 
 
+def _demo_path(path: str) -> Path:
+    p = (DEMO_DATA_DIR / path).resolve()
+    if not (str(p) + "/").startswith(str(DEMO_DATA_DIR.resolve()) + "/") or p == DEMO_DATA_DIR.resolve():
+        raise HTTPException(404, "no such demo file")
+    return p
+
+
 @app.get("/api/demo-files/file")
 def demo_file(path: str):
-    p = (DEMO_DATA_DIR / path).resolve()
-    if not str(p).startswith(str(DEMO_DATA_DIR.resolve()) + "/") or not p.is_file():
+    p = _demo_path(path)
+    if not p.is_file():
         raise HTTPException(404, "no such demo file")
-    return Response(p.read_text(errors="replace"), media_type="text/plain; charset=utf-8",
+    return Response(p.read_bytes(), media_type="text/plain; charset=utf-8",
                     headers={"Content-Disposition": f'attachment; filename="{p.name}"'})
+
+
+@app.get("/api/demo-files/zip")
+def demo_folder_zip(folder: str):
+    """Download a demo folder (e.g. telco/client-demo-kit) as one zip."""
+    d = _demo_path(folder)
+    if not d.is_dir():
+        raise HTTPException(404, "no such demo folder")
+    buf = io.BytesIO()
+    name = "-".join(d.relative_to(DEMO_DATA_DIR.resolve()).parts)
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        for f in sorted(d.rglob("*")):
+            if f.is_file():
+                z.write(f, f"{name}/{f.relative_to(d)}")
+    buf.seek(0)
+    return StreamingResponse(buf, media_type="application/zip",
+                             headers={"Content-Disposition": f'attachment; filename="{name}.zip"'})
 
 
 # ----------------------------------------------------------------------------- stacks
@@ -507,6 +534,140 @@ def run_bundle(rid: str):
     buf.seek(0)
     return StreamingResponse(buf, media_type="application/zip",
                              headers={"Content-Disposition": f'attachment; filename="{rid}.zip"'})
+
+
+# ----------------------------------------------------------------------------- lakehouse (real pipeline runs)
+LAKE_REPORTS = {"rehearsal": "05-test/rehearsal/lakehouse-report.json", "test": "06-release/lakehouse-test.json",
+                "prod": "06-release/lakehouse-prod.json"}
+
+
+@app.get("/api/runs/{rid}/lakehouse")
+def run_lakehouse(rid: str):
+    ws = engine().ws(rid)
+    out = {}
+    for env_, path in LAKE_REPORTS.items():
+        if ws.has(path):
+            rep = ws.read_json(path)
+            rep.pop("gold_sql", None)
+            out[env_] = rep
+    return {"executable_locally": stacks.is_local(ws.stack), "pipelines": stacks.pipeline_summary(ws.stack),
+            "source": ws.run.get("source_connection"), "reports": out}
+
+
+@app.get("/api/runs/{rid}/lakehouse/query")
+def run_lakehouse_query(rid: str, env: str, table: str, limit: int = 25):
+    from ..lakehouse.runner import query_serving
+    ws = engine().ws(rid)
+    if env not in LAKE_REPORTS:
+        raise HTTPException(400, "unknown environment")
+    db = ws.root / "lakehouse" / "analytics" / f"{env}.duckdb"
+    if not db.exists():
+        raise HTTPException(404, f"no analytics database for {env} yet")
+    try:
+        return query_serving(db, table, min(max(limit, 1), 200))
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+
+
+@app.post("/api/runs/{rid}/lakehouse/rehearse")
+def run_lakehouse_rehearse(rid: str):
+    """Re-run the three pipelines in the rehearsal environment (incremental on the source watermark)."""
+    from ..engine.agents_back import run_lakehouse as _run
+    ws = engine().ws(rid)
+    if not ws.has("03-design/logical/logical-model.json"):
+        raise HTTPException(409, "the design stage must be complete first")
+    try:
+        rep = _run(ws, "rehearsal", lambda t: engine().event(ws, t, "action"))
+    except Exception as e:  # noqa: BLE001 - source unreachable, driver missing, ...
+        raise HTTPException(502, f"Pipeline run failed: {type(e).__name__}: {str(e).splitlines()[0][:300]}") from e
+    ws.log_action({"agent": "human", "action": "run_sandbox_tests", "class": "A1", "target": "lakehouse:rehearsal",
+                   "phase": "done", "status": rep["status"]})
+    ws._raw_write(LAKE_REPORTS["rehearsal"], json.dumps(rep, indent=2, default=str))
+    rep.pop("gold_sql", None)
+    return rep
+
+
+# ----------------------------------------------------------------------------- source databases
+def _source_list() -> list[dict]:
+    from ..engine.scenarios import SCENARIOS
+    built_in = [{"id": f"synthetic-{p}", "type": "sqlite-local", "pack": p, "label": f"Synthetic {p} (SQLite, built in)",
+                 "built_in": True} for p in SCENARIOS]
+    return built_in + settings.load().get("sources", [])
+
+
+@app.get("/api/sources")
+def list_sources():
+    return _source_list()
+
+
+@app.put("/api/settings/sources")
+def put_sources(items: list[dict] = Body(...)):
+    clean = []
+    for it in items:
+        if it.get("built_in"):
+            continue
+        if it.get("type") not in ("oracle", "db2", "postgres"):
+            raise HTTPException(400, "type must be oracle, db2 or postgres")
+        if not re.match(r"^[a-z0-9][a-z0-9-]{1,40}$", it.get("id", "")):
+            raise HTTPException(400, "id must be lowercase letters, digits and dashes")
+        ref = it.get("password_ref") or ""
+        if ref and not ref.startswith(("secret:", "env:")):
+            raise HTTPException(400, "password_ref must be secret:<vault name> or env:<VAR>")
+        clean.append({k: it.get(k) for k in ("id", "type", "label", "dsn", "host", "port", "database", "user", "password_ref")})
+    return settings.update("sources", clean)["sources"]
+
+
+def _source_cfg(sid: str) -> dict:
+    cfg = next((x for x in _source_list() if x["id"] == sid), None)
+    if not cfg:
+        raise HTTPException(404, "unknown source")
+    return cfg
+
+
+@app.post("/api/sources/{sid}/test")
+def test_source(sid: str):
+    from .. import sources as src
+    try:
+        con = src.connect(_source_cfg(sid), vault)
+        tables = con.tables()
+        counts = {}
+        for t in tables[:40]:
+            schema, name = t.split(".", 1)
+            counts[t] = con.query(f"SELECT COUNT(*) FROM {schema}.{name}")[1][0][0]
+        con.close()
+        return {"ok": True, "tables": counts}
+    except Exception as e:  # noqa: BLE001 - surface driver errors without secrets
+        return {"ok": False, "error": f"{type(e).__name__}: {str(e).splitlines()[0][:300]}"}
+
+
+@app.post("/api/sources/{sid}/seed")
+def seed_source(sid: str, body: dict = Body(...)):
+    from .. import sources as src
+    cfg = _source_cfg(sid)
+    if cfg["type"] == "sqlite-local":
+        return {"ok": True, "path": str(src.build_sqlite(cfg["pack"], force=True))}
+    try:
+        return {"ok": True, **src.seed(cfg, body.get("domain", "telco"), vault, log=lambda t: None)}
+    except Exception as e:  # noqa: BLE001
+        return {"ok": False, "error": f"{type(e).__name__}: {str(e).splitlines()[0][:300]}"}
+
+
+# ----------------------------------------------------------------------------- platform status
+@app.get("/api/status")
+def platform_status():
+    from ..catalog.providers import ENV_KEYS, env_key_for
+    st = settings.load()
+    # "live" means a provider that can really answer: it has a key, or it is a local endpoint the operator pointed us at
+    ready = {p["id"]: bool(p.get("api_key_ref")) or (p["type"] == "openai_compatible" and bool(os.environ.get("OLLAMA_BASE_URL")))
+             for p in st["providers"]}
+    ready["demo"] = True
+    bound = {b["provider_id"] for b in st["agents"].values()}
+    return {"keys_from_environment": [f"{pid}:{env_key_for(pid)}" for pid in ENV_KEYS if env_key_for(pid)],
+            "team_preset": st.get("runtime", {}).get("team_preset"),
+            "agents_with_live_model": sum(1 for b in st["agents"].values() if b["provider_id"] != "demo" and ready.get(b["provider_id"])),
+            "agents_total": len(st["agents"]), "bound_providers_without_key": sorted(p for p in bound if not ready.get(p)),
+            "demo_fallback": st.get("runtime", {}).get("simulate_unavailable_providers", True),
+            "sources": len(_source_list()), "token_required": bool(API_TOKEN)}
 
 
 # ----------------------------------------------------------------------------- guardrails

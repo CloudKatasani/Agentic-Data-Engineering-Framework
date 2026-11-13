@@ -19,12 +19,18 @@ TYPE_MAP = {
              "decimal": "DECIMAL({p},{s})", "boolean": "BIT", "date": "DATE", "timestamp": "DATETIME2(6)"},
     "ansi": {"string": "VARCHAR({n})", "string_": "VARCHAR(255)", "integer": "INTEGER", "bigint": "BIGINT",
              "decimal": "DECIMAL({p},{s})", "boolean": "BOOLEAN", "date": "DATE", "timestamp": "TIMESTAMP"},
+    "duckdb": {"string": "VARCHAR", "string_": "VARCHAR", "integer": "INTEGER", "bigint": "BIGINT",
+               "decimal": "DECIMAL({p},{s})", "boolean": "BOOLEAN", "date": "DATE", "timestamp": "TIMESTAMP"},
+    "oracle": {"string": "VARCHAR2({n})", "string_": "VARCHAR2(4000)", "integer": "NUMBER(10)", "bigint": "NUMBER(19)",
+               "decimal": "NUMBER({p},{s})", "boolean": "NUMBER(1)", "date": "DATE", "timestamp": "TIMESTAMP"},
+    "db2": {"string": "VARCHAR({n})", "string_": "VARCHAR(4000)", "integer": "INTEGER", "bigint": "BIGINT",
+            "decimal": "DECIMAL({p},{s})", "boolean": "BOOLEAN", "date": "DATE", "timestamp": "TIMESTAMP"},
     "sqlite": {"string": "TEXT", "string_": "TEXT", "integer": "INTEGER", "bigint": "INTEGER",
                "decimal": "REAL", "boolean": "INTEGER", "date": "TEXT", "timestamp": "TEXT"},
 }
 DIALECT_LABELS = {"snowflake": "Snowflake", "databricks": "Databricks (Delta)", "bigquery": "BigQuery",
                   "redshift": "Redshift", "postgres": "PostgreSQL", "tsql": "SQL Server / Synapse / Fabric",
-                  "ansi": "ANSI SQL"}
+                  "duckdb": "DuckDB", "ansi": "ANSI SQL"}
 
 
 def phys_type(logical: str, dialect: str) -> str:

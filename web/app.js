@@ -205,6 +205,23 @@ function erSvg(model) {
 }
 const erLegend = '<div class="row small muted" style="margin-top:8px"><span><b style="color:var(--accent)">■</b> fact</span><span><b style="color:var(--ok)">■</b> dimension</span><span style="color:var(--bad)">restricted attribute</span><span style="color:var(--warn)">confidential attribute</span></div>';
 
+// ------------------------------------------------------------------ medallion flow (source -> bronze -> silver -> gold -> analytics)
+function pipelineFlow(profile, counts) {
+  const t = (slot) => profile?.slots?.[slot]?.tool || "-";
+  const c = counts || {};
+  const node = (title, sub, k, cls = "") => `<div class="fnode ${cls}"><div class="ft">${esc(title)}</div><div class="fs">${esc(sub)}</div>${c[k] ? `<div class="fc">${esc(c[k])}</div>` : ""}</div>`;
+  const arrow = (label, sub) => `<div class="farrow"><div class="fl">${esc(label)}</div><div class="fs">${esc(sub)}</div><div class="fa">→</div></div>`;
+  return `<div class="flow">
+    ${node("Source database", t("source_database"), "source", "src")}
+    ${arrow("Pipeline 1 · Ingest", t("ingestion"))}
+    ${node("Bronze", `${t("table_format")} · ${t("object_storage")}`, "bronze", "bronze")}
+    ${arrow("Pipeline 2 · Curate", `${t("transformation")} on ${t("lakehouse_compute")}`)}
+    ${node("Silver → Gold", `${t("table_format")} · ${t("lake_catalog")}`, "gold", "gold")}
+    ${arrow("Pipeline 3 · Publish", t("compute_engine"))}
+    ${node("Analytics", t("compute_engine"), "serving", "serve")}
+  </div>`;
+}
+
 // ------------------------------------------------------------------ router
 const routes = {};
 function route(name, fn) { routes[name] = fn; }
@@ -246,11 +263,16 @@ route("dashboard", async () => {
       ${runs.map((r) => `<tr class="click" data-run="${esc(r.run_id)}"><td class="mono">${esc(r.run_id)}</td><td>${esc(r.client_code)}</td><td>${esc(r.use_case)}</td><td>${esc(r.domain_pack)}</td><td>${esc(r.stack)}</td><td>${badge(r.status)}</td><td>${esc(r.current || "-")}</td><td>${r.pending_gates.map((g) => `<span class="chip pending">${esc(g)}</span>`).join(" ")}</td><td class="small muted">${fmtTime(r.updated)}</td></tr>`).join("")}
       </tbody></table></div>` : `<div class="empty">No runs yet. <a href="#/new">Start one</a> - the offline Demo Simulator needs no API key.</div>`}
     </div>
-    <div class="grid g3" style="margin-top:16px">
-      <div class="card"><h2>1 · Bind models</h2><p class="muted">Pick a provider and model per agent. Keys live in the encrypted vault, never in chat or artifacts.</p><a href="#/agents">Agents &amp; models →</a></div>
-      <div class="card"><h2>2 · Choose the stack</h2><p class="muted">Five reference stacks or your own Stack Profile, validated slot by slot.</p><a href="#/stacks">Technology stacks →</a></div>
-      <div class="card"><h2>3 · Connect sources</h2><p class="muted">Read requirements from Jira; import catalog or modelling-tool exports.</p><a href="#/integrations">Jira &amp; metadata →</a></div>
-    </div>`;
+    <div class="card" style="margin-top:16px" id="gettingStarted"></div>`;
+  const stt = await api("GET", "/status");
+  const live = stt.agents_with_live_model;
+  const check = (ok, title, text, link, linkText) => `<div class="gs ${ok ? "ok" : ""}"><div class="gi">${ok ? "✓" : "•"}</div><div><b>${title}</b><div class="small muted">${text}</div><a href="${link}" class="small">${linkText} →</a></div></div>`;
+  $("#gettingStarted").innerHTML = `<h2>Getting started</h2><div class="gs-grid">
+    ${check(live > 0, "Model keys", live ? `${live}/${stt.agents_total} agents on live models${stt.keys_from_environment.length ? ` · keys from environment: ${esc(stt.keys_from_environment.join(", "))}` : ""}` : "No keys yet: agents run on the Demo Simulator. Start with ANTHROPIC_API_KEY=… ./run.sh or add a key in the console.", "#/providers", "Providers & API keys")}
+    ${check(true, "Agent team", `Preset: ${esc(CATALOG.team_presets[stt.team_preset]?.label || stt.team_preset || "custom")}${stt.bound_providers_without_key.length ? ` · ${stt.bound_providers_without_key.length} providers without a key${stt.demo_fallback ? " (simulated)" : ""}` : ""}`, "#/agents", "Agents & models")}
+    ${check(stt.sources > 0, "Source database", `${stt.sources} available, including synthetic SQLite sources for every industry. Oracle and Db2 can be connected.`, "#/integrations", "Source databases")}
+    ${check(true, "Technology stack", "Six reference stacks: Oracle/Db2 → S3, ADLS, GCS or OneLake (Iceberg/Delta) → Snowflake, Databricks, BigQuery, Redshift or Fabric, plus a Local lakehouse that really runs.", "#/stacks", "Technology stacks")}
+  </div>`;
   $$("tr[data-run]").forEach((tr) => tr.addEventListener("click", () => (location.hash = `#/run/${tr.dataset.run}`)));
 });
 
@@ -262,7 +284,7 @@ function wizardDefaults() {
     client_code: "ACME-ENERGY", domain_pack: "utilities", use_case: "", request: "", req_source: "jira",
     jql: SETTINGS.jira.default_jql && SETTINGS.jira.mode !== "demo" ? SETTINGS.jira.default_jql : "project = UTIL",
     jira_issues: [], selected_keys: [], documents: "", stack_id: "example-a", source_metadata: meta,
-    approvers: { ...SETTINGS.approver_defaults }, compute_cost_cap: 500, autopilot: true,
+    approvers: { ...SETTINGS.approver_defaults }, compute_cost_cap: 500, autopilot: true, source_id: "synthetic-utilities",
   };
 }
 const DOMAIN_PROJECT = { utilities: "UTIL", telco: "TEL", "financial-services": "FIN", retail: "RET" };
@@ -279,6 +301,7 @@ async function importDemoFile(path, endpoint) {
 }
 async function uploadFile(file, endpoint) { const fd = new FormData(); fd.append("file", file); return api("POST", endpoint, fd); }
 route("new", async () => {
+  WZ.sources = await api("GET", "/sources");
   WZ.data = WZ.data || wizardDefaults();
   WZ.step = 0;
   renderWizard();
@@ -339,7 +362,12 @@ function issuesTable(d) {
 function wzStack(d) {
   const stacksList = allStacks();
   const cur = stacksList.find((s) => s.profile_id === d.stack_id) || stacksList[0];
-  return `<div class="option-cards">${stacksList.map((s) => `<div class="option ${s.profile_id === d.stack_id ? "sel" : ""}" data-stack="${esc(s.profile_id)}"><div class="t">${esc(s.label || s.profile_id)}</div><div class="small muted">${esc(s.description || "")}</div></div>`).join("")}</div>
+  const srcs = (WZ.sources || []).filter((x) => !x.built_in || x.pack === d.domain_pack);
+  if (!srcs.find((x) => x.id === d.source_id)) d.source_id = `synthetic-${d.domain_pack}`;
+  return `<div class="option-cards">${stacksList.map((s) => `<div class="option ${s.profile_id === d.stack_id ? "sel" : ""}" data-stack="${esc(s.profile_id)}"><div class="t">${esc(s.label || s.profile_id)}</div><div class="small muted">${esc(s.description || "")}</div>${CATALOG.preset_pipelines[s.profile_id]?.local ? '<div style="margin-top:6px"><span class="badge b-ok">runs locally</span></div>' : ""}</div>`).join("")}</div>
+    <h3>The three pipelines</h3>${pipelineFlow(cur)}
+    <label>Source database for Pipeline 1</label><select data-f="source_id">${srcs.map((x) => `<option value="${esc(x.id)}" ${x.id === d.source_id ? "selected" : ""}>${esc(x.label || x.id)}</option>`).join("")}</select>
+    <p class="small muted">The Test stage rehearses all three pipelines against this database for real. With the Local lakehouse stack, the G6a/G6b releases also run them. Add Oracle or Db2 connections on <a href="#/integrations">Jira &amp; metadata</a>.</p>
     <h3>Bound tools - ${esc(cur.label || cur.profile_id)}</h3><div class="slot-grid">${CATALOG.slots.map((sl) => `<div class="slot"><div class="name">${esc(sl.slot)}</div><div>${esc(cur.slots[sl.slot]?.tool || "-")}</div></div>`).join("")}</div>
     <p class="small muted">Build your own on <a href="#/stacks">Technology stacks</a>. The logical design never names a product; technology is bound in Design step B, so switching stack means switching profile.</p>`;
 }
@@ -397,7 +425,9 @@ async function launch() {
   const d = WZ.data;
   const issues = d.req_source === "text" ? [] : d.jira_issues.filter((i) => d.selected_keys.includes(i.key));
   if (d.req_source !== "text" && !issues.length && !d.request) { toast("Fetch and select Jira issues, or describe the request.", "err"); return; }
-  const body = { client_code: d.client_code, domain_pack: d.domain_pack, use_case: d.use_case || undefined,
+  const src = (WZ.sources || []).find((x) => x.id === d.source_id) || { type: "sqlite-local", pack: d.domain_pack };
+  const source_connection = Object.fromEntries(Object.entries(src).filter(([k]) => !["label", "built_in"].includes(k)));
+  const body = { source_connection, client_code: d.client_code, domain_pack: d.domain_pack, use_case: d.use_case || undefined,
     request: d.req_source === "jira" ? "" : d.request, documents: d.req_source === "jira" ? "" : d.documents,
     jira_issues: issues, stack_profile: allStacks().find((s) => s.profile_id === d.stack_id),
     source_metadata: d.source_metadata, approvers: d.approvers, compute_cost_cap: +d.compute_cost_cap, autopilot: d.autopilot };
@@ -447,7 +477,7 @@ function renderRunHead(st) {
     return `<div class="step s-${esc(disp)}" title="${esc(ss.error || ss.summary || disp)}"><div class="n">${i} · ${esc(disp)}</div><div class="t">${esc(s.label)}</div>
       <div class="gates">${s.gates.map((g) => `<span class="chip ${esc(st.gates_detail[g]?.state || "")}">${esc(g)}</span>`).join("")}</div></div>`;
   }).join("");
-  const tabs = [["approvals", "Approvals"], ["artifacts", "Artifacts"], ["model", "Data model & exports"], ["code", "Code"], ["handoffs", "Handoffs"], ["audit", "Audit logs"], ["metrics", "Agents & cost"]];
+  const tabs = [["approvals", "Approvals"], ["lakehouse", "Lakehouse"], ["artifacts", "Artifacts"], ["model", "Data model & exports"], ["code", "Code"], ["handoffs", "Handoffs"], ["audit", "Audit logs"], ["metrics", "Agents & cost"]];
   $("#runTabs").innerHTML = tabs.map(([k, l]) => `<div class="tab ${RUN.tab === k ? "active" : ""}" data-tab="${k}">${l}</div>`).join("");
   $$("#runTabs .tab").forEach((t) => (t.onclick = () => { RUN.tab = t.dataset.tab; store.set("adef_run_tab", RUN.tab); renderRunHead(st); renderRunBody(); }));
 }
@@ -460,6 +490,7 @@ async function renderRunBody() {
   if (RUN.tab === "handoffs") return renderHandoffs(el);
   if (RUN.tab === "audit") return renderAudit(el);
   if (RUN.tab === "metrics") return renderMetrics(st, el);
+  if (RUN.tab === "lakehouse") return renderLakehouse(st, el);
 }
 function renderApprovals(st, el) {
   const blocks = [];
@@ -596,6 +627,37 @@ function renderMetrics(st, el) {
   el.innerHTML = `<div class="grid g3"><div class="card kpi"><div class="l">LLM tokens</div><div class="v">${tot.t.toLocaleString()}</div></div><div class="card kpi"><div class="l">LLM cost (list price)</div><div class="v">$${tot.c.toFixed(3)}</div></div><div class="card kpi"><div class="l">Guardrail blocks</div><div class="v">${st.metrics.guardrail_blocks || 0}</div></div></div>
     <div class="card"><h2>Agent team for this run</h2><div class="table-wrap"><table><thead><tr><th>Agent</th><th>Bound to</th><th>Served by</th><th>Calls</th><th>Tokens</th><th>Cost</th></tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td class="${i < 3 ? "mono small" : ""}">${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
     <p class="small muted">"Served by" shows what actually ran. A simulated stage means the bound provider had no key or could not be reached and the demo fallback was on. Bindings are captured when the run is created.</p></div>`;
+}
+
+async function renderLakehouse(st, el) {
+  const lk = await api("GET", `/runs/${RUN.id}/lakehouse`);
+  const envs = ["prod", "test", "rehearsal"].filter((e) => lk.reports[e]);
+  RUN.lakeEnv = envs.includes(RUN.lakeEnv) ? RUN.lakeEnv : envs[0];
+  const rep = lk.reports[RUN.lakeEnv];
+  const sum = (layer) => (rep?.layers[layer] || []).reduce((n, x) => n + (x.rows ?? x.rows_extracted ?? 0), 0);
+  const counts = rep ? { source: `${rep.layers.source.length} tables · ${sum("source").toLocaleString()} rows`, bronze: `${rep.layers.bronze.length} tables · ${sum("bronze").toLocaleString()} rows`,
+    gold: `${rep.layers.silver.length} silver · ${rep.layers.gold.length} gold`, serving: `${rep.layers.serving.length} tables · masked views` } : null;
+  const canRun = ["test", "release", "operations", "consumption", "assembly"].some((k) => st.stages[k].status !== "pending") || st.stages.design.status === "approved";
+  el.innerHTML = `<div class="card"><div class="spread"><div><h2>Three pipelines ${lk.executable_locally ? badge("pass", "executes locally") : badge("", "cloud code generated · rehearsed locally")}</h2>
+    <div class="small muted">Source: ${esc(lk.source?.type || "synthetic")} ${lk.source?.pack ? `(${esc(lk.source.pack)})` : ""}${lk.source?.dsn ? ` · ${esc(lk.source.dsn)}` : ""}</div></div>
+    <div class="row">${envs.length ? `<select id="lkEnv" style="width:auto">${envs.map((e) => `<option value="${e}" ${e === RUN.lakeEnv ? "selected" : ""}>${e}</option>`).join("")}</select>` : ""}
+    ${canRun ? '<button class="btn" id="lkRun">Re-run rehearsal (incremental)</button>' : ""}</div></div>
+    ${pipelineFlow({ ...st.stack, slots: { ...st.stack.slots, source_database: { tool: lk.source?.type || st.stack.slots.source_database?.tool } } }, counts)}
+    ${rep ? `<div class="row small" style="margin-top:8px">${badge(rep.status === "passed" ? "pass" : rep.status === "failed" ? "fail" : "awaiting-approval", rep.status)} <span class="muted">${esc(rep.format)} · batch ${esc(rep.pipelines.ingest.batch_id)} · ingest ${rep.pipelines.ingest.seconds}s · curate ${rep.pipelines.curate.seconds}s${rep.pipelines.publish ? ` · publish ${rep.pipelines.publish.seconds}s` : ""} · finished ${fmtTime(rep.finished)}</span></div>` : `<div class="notice" style="margin-top:10px">No pipeline run yet. The Test stage rehearses the three pipelines against the source database${lk.executable_locally ? "; G6a and G6b deploy them for real to test and prod" : ""}.</div>`}</div>
+    ${rep ? `<div class="grid g2" style="margin-top:16px">
+      <div class="card"><h2>Layers</h2><div class="table-wrap"><table><thead><tr><th>Layer</th><th>Table</th><th>Rows</th><th>Version</th></tr></thead><tbody>
+        ${["bronze", "silver", "gold", "serving"].map((L) => rep.layers[L].map((x, i) => `<tr><td>${i === 0 ? `<b>${L}</b>` : ""}</td><td class="mono small">${esc(x.table)}</td><td>${esc(x.rows ?? x.rows_extracted)}</td><td class="hash">${esc(String(x.version ?? (x.masked_columns?.length ? "masked: " + x.masked_columns.join(", ") : "")).slice(0, 22))}</td></tr>`).join("")).join("")}
+      </tbody></table></div></div>
+      <div class="card"><h2>Quality on real data</h2><table>${(rep.dq || []).map((d) => `<tr><td class="mono">${esc(d.id)}</td><td>${badge(d.status === "pass" ? "pass" : "fail", d.status)}</td><td class="small muted">${d.failures ? `${d.failures} of ${d.rows} rows` : ""}</td></tr>`).join("")}</table>
+        <h3>Metrics: gold vs analytics layer</h3><table>${(rep.metrics || []).map((m) => `<tr><td>${esc(m.label)}</td><td class="mono">${m.gold != null ? Number(m.gold).toLocaleString(undefined, { maximumFractionDigits: 3 }) : "-"}</td><td>${badge(m.status)}</td></tr>`).join("")}</table></div></div>
+    <div class="card"><div class="spread"><h2>Analytics layer preview (consumer view, masked)</h2><select id="lkTable" style="width:auto">${rep.layers.serving.map((x) => `<option value="${esc(x.table.replace("serving.", ""))}">${esc(x.table)}</option>`).join("")}</select></div><div id="lkRows" class="small muted">Select a table</div></div>` : ""}`;
+  if ($("#lkEnv")) $("#lkEnv").onchange = () => { RUN.lakeEnv = $("#lkEnv").value; renderLakehouse(st, el); };
+  if ($("#lkRun")) $("#lkRun").onclick = async (e) => { e.target.disabled = true; e.target.textContent = "Running…"; await guard(() => api("POST", `/runs/${RUN.id}/lakehouse/rehearse`), "Pipelines executed"); RUN.lakeEnv = "rehearsal"; renderLakehouse(st, el); };
+  const preview = async () => {
+    const q = await guard(() => api("GET", `/runs/${RUN.id}/lakehouse/query?env=${RUN.lakeEnv}&table=${$("#lkTable").value}&limit=15`));
+    $("#lkRows").innerHTML = `<div class="small muted" style="margin-bottom:6px">${q.total_rows.toLocaleString()} rows · showing ${q.rows.length}</div><div class="table-wrap"><table><thead><tr>${q.columns.map((c) => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>${q.rows.map((r) => `<tr>${r.map((v) => `<td class="small">${v === "***" ? '<span class="badge b-violet">masked</span>' : esc(v ?? "")}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+  };
+  if ($("#lkTable")) { $("#lkTable").onchange = preview; preview(); }
 }
 
 // ------------------------------------------------------------------ agents & models
@@ -740,6 +802,7 @@ route("stacks", async () => {
       <div class="field-row"><div><label>Profile ID</label><input id="sId"></div><div><label>Label</label><input id="sLabel"></div><div><label>Naming case</label><select id="sCase"><option>upper_snake</option><option>lower_snake</option></select></div>
       <div><label>Max compute size</label><input id="sSize"></div><div><label>Monthly cost cap</label><input id="sCap" type="number"></div><div><label>Org prefix variable</label><input id="sPrefix"></div></div>
       <label>Layers (comma separated)</label><input id="sLayers">
+      <h3>The three pipelines</h3><div id="flowBox"></div>
       <h3>Capability slots</h3><div class="slot-grid" id="slotGrid"></div>
       <div id="valOut" style="margin-top:14px"></div></div>`;
   const cards = () => ($("#stackCards").innerHTML = list.map((s) => `<div class="option ${s.profile_id === cur.profile_id ? "sel" : ""}" data-s="${esc(s.profile_id)}"><div class="t">${esc(s.label || s.profile_id)}</div><div class="small muted">${esc(s.description || "custom profile")}</div>${CATALOG.presets.some((p) => p.profile_id === s.profile_id) ? "" : `<div style="margin-top:6px"><span class="badge b-violet">custom</span> <a href="#" data-sdel="${esc(s.profile_id)}" class="small">delete</a></div>`}</div>`).join(""));
@@ -750,7 +813,8 @@ route("stacks", async () => {
     $("#sCap").value = cur.limits.monthly_cost_cap; $("#sPrefix").value = cur.variables.org_prefix; $("#sLayers").value = cur.standards.layers.join(", ");
     $("#slotGrid").innerHTML = CATALOG.slots.map((sl) => { const t = cur.slots[sl.slot]?.tool || ""; const opts = [...new Set([...sl.options, ...(sl.required ? [] : ["none"]), t].filter(Boolean))];
       return `<div class="slot"><div class="name">${esc(sl.slot)} ${sl.required ? '<span class="badge b-info">required</span>' : ""}</div><div class="job">${esc(sl.job)}</div><select data-slot="${esc(sl.slot)}">${opts.map((o) => `<option ${o === t ? "selected" : ""}>${esc(o)}</option>`).join("")}<option value="__custom">other…</option></select></div>`; }).join("");
-    $$("[data-slot]").forEach((s) => (s.onchange = () => { if (s.value === "__custom") { const v = prompt(`Tool for ${s.dataset.slot}`); if (v) { s.insertAdjacentHTML("afterbegin", `<option selected>${esc(v)}</option>`); } } }));
+    $$("[data-slot]").forEach((s) => (s.onchange = () => { if (s.value === "__custom") { const v = prompt(`Tool for ${s.dataset.slot}`); if (v) { s.insertAdjacentHTML("afterbegin", `<option selected>${esc(v)}</option>`); } } $("#flowBox").innerHTML = pipelineFlow(gather()); }));
+    $("#flowBox").innerHTML = pipelineFlow(cur);
     $("#valOut").innerHTML = "";
   };
   const gather = () => {
@@ -801,20 +865,35 @@ route("integrations", async () => {
       </div>
     </div>
     <div class="card"><div class="spread"><div><h2>Demo data packs</h2><div class="small muted">Synthetic, deterministic files per industry: Jira exports, source catalog and DDL, source data, data model exports, catalog payloads and lineage. Regenerate with <code>python -m adef demo-data</code>.</div></div>
-      <select id="ddDomain" style="width:auto">${CATALOG.domain_packs.map((p) => `<option>${esc(p.pack_id)}</option>`).join("")}</select></div>
+      <select id="ddDomain" style="width:auto">${CATALOG.domain_packs.map((p) => `<option value="${esc(p.pack_id)}">${esc(p.pack_id)}</option>`).join("")}</select></div>
       <div id="ddOut" style="margin-top:12px"></div></div>`;
   const demo = await api("GET", "/demo-files");
-  const ACTIONS = { jira: ["Preview issues", "jira"], "source-metadata": ["Import as metadata", "meta"], model: ["Open in studio", "studio"] };
+  const kitDomains = new Set(demo.filter((f) => f.folder === "client-demo-kit").map((f) => f.domain));
+  $$("#ddDomain option").forEach((o) => { if (kitDomains.has(o.value)) o.textContent = `${o.value} (client demo kit)`; });
+  if (kitDomains.size) $("#ddDomain").value = [...kitDomains][0];
+  // what a demo file can be fed into, decided by its name
+  const actionFor = (f) => {
+    const n = f.name;
+    if (/jira-export.*\.(csv|json)$/.test(n)) return ["Preview issues", "jira"];
+    if (/legacy-warehouse|logical-model\.json$|\.model\.dbml$/.test(n)) return ["Open in studio", "studio"];
+    if (/(catalog-export|source-catalog|source-model|source-ddl).*\.(csv|sql|dbml)$/.test(n)) return ["Import as metadata", "meta"];
+    return null;
+  };
+  const FOLDER_ORDER = ["client-demo-kit", "jira", "source-metadata", "source-data", "model", "catalog", "lineage", "-"];
   const renderDemo = () => {
     const dom = $("#ddDomain").value;
     const files = demo.filter((f) => f.domain === dom);
     const groups = {};
     files.forEach((f) => (groups[f.folder || "-"] = groups[f.folder || "-"] || []).push(f));
-    $("#ddOut").innerHTML = files.length ? `<div class="table-wrap"><table><thead><tr><th>Folder</th><th>File</th><th>Size</th><th></th></tr></thead><tbody>${Object.entries(groups).map(([g, fs]) => fs.map((f, i) => {
-      const act = ACTIONS[g]; const canAct = act && (g !== "model" || f.name.endsWith(".logical-model.json") || f.name.endsWith(".dbml")) && (g !== "source-metadata" || f.name.endsWith(".csv") || f.name.endsWith(".sql"));
-      return `<tr><td>${i === 0 ? `<b>${esc(g)}</b>` : ""}</td><td class="mono small">${esc(f.name)}</td><td class="small muted">${(f.bytes / 1024).toFixed(1)} KB</td><td style="white-space:nowrap"><button class="btn small" data-dl="${esc(f.path)}">Download</button>${canAct ? ` <button class="btn small" data-act="${act[1]}" data-path="${esc(f.path)}">${act[0]}</button>` : ""}</td></tr>`;
+    const ordered = Object.entries(groups).sort((a, b) => FOLDER_ORDER.indexOf(a[0]) - FOLDER_ORDER.indexOf(b[0]));
+    $("#ddOut").innerHTML = files.length ? `${groups["client-demo-kit"] ? `<div class="notice" style="margin-bottom:10px"><b>Client demo kit</b>: the input files a client hands over, numbered in upload order. See <code>00-README.md</code> for where each one goes.</div>` : ""}
+    <div class="table-wrap"><table><thead><tr><th>Folder</th><th>File</th><th>Size</th><th></th></tr></thead><tbody>${ordered.map(([g, fs]) => fs.map((f, i) => {
+      const act = actionFor(f);
+      const head = i === 0 ? `<b>${esc(g)}</b>${g !== "-" ? `<div><button class="btn small" data-zip="${esc(`${dom}/${g}`)}" style="margin-top:4px">Download all (.zip)</button></div>` : ""}` : "";
+      return `<tr><td>${head}</td><td class="mono small">${esc(f.name)}</td><td class="small muted">${(f.bytes / 1024).toFixed(1)} KB</td><td style="white-space:nowrap"><button class="btn small" data-dl="${esc(f.path)}">Download</button>${act ? ` <button class="btn small" data-act="${act[1]}" data-path="${esc(f.path)}">${act[0]}</button>` : ""}</td></tr>`;
     }).join("")).join("")}</tbody></table></div>` : '<div class="empty">No demo files found. Run <code>python -m adef demo-data</code>.</div>';
     $$("[data-dl]").forEach((b) => (b.onclick = () => download(`/demo-files/file?path=${encodeURIComponent(b.dataset.dl)}`, b.dataset.dl.split("/").pop())));
+    $$("[data-zip]").forEach((b) => (b.onclick = () => download(`/demo-files/zip?folder=${encodeURIComponent(b.dataset.zip)}`, `${b.dataset.zip.replace("/", "-")}.zip`)));
     $$("[data-act]").forEach((b) => (b.onclick = async () => {
       const path = b.dataset.path;
       if (b.dataset.act === "jira") showIssues(await guard(() => importDemoFile(path, "/jira/import")));
@@ -836,6 +915,39 @@ route("integrations", async () => {
     if ($("#metaClear")) $("#metaClear").onclick = () => ($("#mOut").innerHTML = "");
   };
   $("#jFile").onchange = async (e) => showIssues(await guard(() => uploadFile(e.target.files[0], "/jira/import")));
+  // ---- source databases (Pipeline 1 extracts from these)
+  main().insertAdjacentHTML("beforeend", `<div class="card"><div class="spread"><div><h2>Source databases</h2><div class="small muted">Where Pipeline 1 extracts from. Synthetic SQLite sources are built in for every industry; add Oracle, Db2 or PostgreSQL (for example the containers from <code>docker compose --profile oracle</code>). Passwords go to the encrypted vault.</div></div></div>
+    <div id="srcList" style="margin-top:10px"></div>
+    <h3>Add a connection</h3><div class="field-row">
+      <div><label>Type</label><select id="sType"><option value="oracle">Oracle</option><option value="db2">IBM Db2</option><option value="postgres">PostgreSQL</option></select></div>
+      <div><label>ID</label><input id="sId" placeholder="oracle-demo"></div><div><label>Label</label><input id="sLabel" placeholder="Oracle Free (container)"></div></div>
+    <div class="field-row"><div><label>DSN (Oracle host:port/service, PostgreSQL DSN)</label><input id="sDsn" placeholder="localhost:1521/FREEPDB1"></div>
+      <div><label>Host (Db2)</label><input id="sHost" placeholder="localhost"></div><div><label>Port (Db2)</label><input id="sPort" placeholder="50000"></div><div><label>Database (Db2)</label><input id="sDb" placeholder="ADEF"></div></div>
+    <div class="field-row"><div><label>User</label><input id="sUser" placeholder="system / db2inst1"></div><div><label>Password (stored encrypted, never shown again)</label><input id="sPw" type="password" autocomplete="off"></div></div>
+    <div class="row" style="margin-top:12px"><button class="btn primary" id="sSave">Save connection</button></div></div>`);
+  const renderSources = async () => {
+    const list = await api("GET", "/sources");
+    $("#srcList").innerHTML = `<div class="table-wrap"><table><thead><tr><th>Source</th><th>Type</th><th>Connection</th><th></th></tr></thead><tbody>${list.map((x) => `<tr><td><b>${esc(x.label || x.id)}</b><div class="small muted mono">${esc(x.id)}</div></td><td>${esc(x.type)}</td><td class="small mono">${esc(x.built_in ? `${x.pack} synthetic data` : x.dsn || `${x.host}:${x.port}/${x.database}`)} ${x.password_ref ? `· ${esc(x.password_ref)}` : ""}</td>
+      <td style="white-space:nowrap"><button class="btn small" data-stest="${esc(x.id)}">Test</button> ${x.built_in ? "" : `<select data-sdom="${esc(x.id)}" style="width:auto;padding:4px">${CATALOG.domain_packs.map((p) => `<option>${esc(p.pack_id)}</option>`).join("")}</select> <button class="btn small" data-sseed="${esc(x.id)}">Seed synthetic data</button> <button class="btn small bad" data-sdel="${esc(x.id)}">Remove</button>`}</td></tr>`).join("")}</tbody></table></div><div id="srcOut" style="margin-top:8px"></div>`;
+    $$("[data-stest]").forEach((b) => (b.onclick = async () => {
+      b.textContent = "…"; const r = await api("POST", `/sources/${b.dataset.stest}/test`); b.textContent = "Test";
+      $("#srcOut").innerHTML = r.ok ? `<div class="notice">${esc(b.dataset.stest)}: ${Object.keys(r.tables).length} tables · ${esc(Object.entries(r.tables).map(([t, n]) => `${t} (${n})`).join(", "))}</div>` : `<div class="notice bad">${esc(r.error)}</div>`;
+    }));
+    $$("[data-sseed]").forEach((b) => (b.onclick = async () => {
+      b.textContent = "Seeding…"; const r = await api("POST", `/sources/${b.dataset.sseed}/seed`, { domain: $(`[data-sdom="${b.dataset.sseed}"]`).value }); b.textContent = "Seed synthetic data";
+      $("#srcOut").innerHTML = r.ok ? `<div class="notice">Seeded: ${esc(JSON.stringify(r.tables))}</div>` : `<div class="notice bad">${esc(r.error)}</div>`;
+    }));
+    $$("[data-sdel]").forEach((b) => (b.onclick = async () => { await guard(() => api("PUT", "/settings/sources", list.filter((x) => !x.built_in && x.id !== b.dataset.sdel)), "Removed"); renderSources(); }));
+    $("#sSave").onclick = async () => {
+      const id = $("#sId").value.trim(); let ref = "";
+      if ($("#sPw").value) { await guard(() => api("POST", "/secrets", { name: `${id}-password`, value: $("#sPw").value, description: `Source database ${id}` })); ref = `secret:${id}-password`; $("#sPw").value = ""; }
+      const item = { id, type: $("#sType").value, label: $("#sLabel").value || id, dsn: $("#sDsn").value || null, host: $("#sHost").value || null,
+        port: $("#sPort").value ? +$("#sPort").value : null, database: $("#sDb").value || null, user: $("#sUser").value, password_ref: ref };
+      await guard(() => api("PUT", "/settings/sources", list.filter((x) => !x.built_in && x.id !== id).concat([item])), "Source saved");
+      renderSources();
+    };
+  };
+  renderSources();
   $("#jTokMode").onchange = () => ($("#jTokBox").innerHTML = $("#jTokMode").value === "new" ? '<input id="jTok" type="password" autocomplete="off" placeholder="Token is encrypted and never displayed again"><label>Vault name</label><input id="jTokName" value="jira-token">' : "");
   $("#jSave").onclick = async () => {
     let ref = j.token_ref; const m = $("#jTokMode").value;

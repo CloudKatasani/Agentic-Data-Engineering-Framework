@@ -31,7 +31,8 @@ def stg_name(table: str) -> str:
 
 class CodeGen:
     def __init__(self, model: dict, mapping: list[dict], dq: list[dict], profile: dict, run_id: str,
-                 entity_filters: dict | None = None, package: str = "WP-001"):
+                 entity_filters: dict | None = None, package: str = "WP-001", sources: list[dict] | None = None):
+        self.sources = sources or []
         self.model, self.mapping, self.dq, self.p = model, mapping, dq, profile
         self.run_id, self.pkg = run_id, package
         self.filters = entity_filters or {}
@@ -98,7 +99,9 @@ class CodeGen:
                 self.implemented.add(m["id"])
                 if m.get("business_rule"):
                     self.implemented.add(m["business_rule"])
-            if m and m.get("source") == "derived":
+            # A derived value computed from source columns (src.x, {{stg:..}}) belongs in the inner select, so
+            # other derived values can reference it by name; only expressions over target attributes go outside.
+            if m and m.get("source") == "derived" and not re.search(r"\bsrc\.|\{\{stg:", m.get("expression") or ""):
                 expr = m.get("expression")
                 if not expr:
                     self.gaps.append(f"{m['id']}: derived `{a['name']}` has no expression in the approved mapping")
@@ -164,6 +167,8 @@ class CodeGen:
             self.gen_dataform()
         elif self.trans == "native-sql":
             self.gen_native()
+        elif self.trans in ("spark-sql", "duckdb-sql"):
+            pass  # silver and gold are the medallion SQL below
         else:
             self.gaps.append(f"transformation tool `{self.trans}` has no reviewed adapter; generated portable SQL only")
             self.gen_native()
@@ -171,6 +176,7 @@ class CodeGen:
         self.gen_ci()
         self.gen_iac()
         self.gen_dq_files()
+        self.gen_medallion()
         return {"files": self.files, "gaps": self.gaps, "implemented": sorted(self.implemented),
                 "objects": [f"{self.schema}.{ph.table_name(e, self.p)}" for e in self.model["entities"]]}
 
@@ -292,6 +298,19 @@ class CodeGen:
         if self.engine == "snowflake" and self.orch == "snowflake-tasks":
             pass
 
+    def lake_gold_sql(self) -> dict[str, str]:
+        """Gold SELECTs reading silver tables (shared with the local lakehouse runner)."""
+        lake = CodeGen(self.model, self.mapping, self.dq, self.p, self.run_id, self.filters, self.pkg, self.sources)
+        lake.ref = lambda table: "silver_" + table.lower().replace(".", "__")  # type: ignore[method-assign]
+        return {ph.table_name(e, None): lake.entity_select(e) for e in self.model["entities"]}
+
+    def gen_medallion(self):
+        from .medallion import MedallionGen
+        mg = MedallionGen(self.model, {"mappings": self.mapping, "sources": self.sources}, self.p, self.run_id,
+                          self.lake_gold_sql()).generate()
+        self.files.update(mg["files"])
+        self.gaps += mg["gaps"]
+
     def gen_dq_files(self):
         for r in self.dq:
             sql = self.dq_sql(r)
@@ -355,7 +374,7 @@ with DAG(
             self.files["orchestration/definitions.py"] = (
                 f'from dagster import Definitions, ScheduleDefinition, define_asset_job\n\njob = define_asset_job("{dag}")\n'
                 f'defs = Definitions(jobs=[job], schedules=[ScheduleDefinition(job=job, cron_schedule="0 3 * * *")])\n')
-        else:
+        elif self.orch != "adef-runner":
             self.gaps.append(f"orchestration tool `{self.orch}` has no generator; schedule documented in build plan only")
 
     def gen_ci(self):

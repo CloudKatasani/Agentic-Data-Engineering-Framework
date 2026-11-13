@@ -171,8 +171,8 @@ class Sandbox:
             fsql, tsql = self.rule_sql(r)
         except (ValueError, StopIteration, KeyError) as ex:
             return {"id": r["id"], "status": "not-executable", "reason": str(ex)}
-        failures = db.execute(fsql).fetchone()[0] or 0
-        total = db.execute(tsql).fetchone()[0] or 0
+        failures = db.execute(fsql).fetchall()[0][0] or 0
+        total = db.execute(tsql).fetchall()[0][0] or 0
         ratio = 1.0 if total == 0 else max(0.0, 1 - failures / total)
         passed = ratio >= float(r.get("threshold", 1.0)) and not (r["type"] == "row_count_min" and failures)
         return {"id": r["id"], "status": "pass" if passed else "fail", "failures": failures, "rows": total,
@@ -191,7 +191,7 @@ class Sandbox:
             return {"id": r["id"], "detected": False, "reason": "unknown entity"}
         t, c, p = tname(e), r.get("attribute"), r.get("params") or {}
         typ = r["type"]
-        n = db.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
+        n = db.execute(f"SELECT COUNT(*) FROM {t}").fetchall()[0][0]
         k = max(1, int(n * (1 - float(r.get("threshold", 1.0)))) + 1)
         try:
             if typ == "not_null":
@@ -259,7 +259,7 @@ class Sandbox:
 
     def reconcile(self, m: dict) -> dict:
         sql = self.metric_sql(m)
-        a = self.db.execute(sql).fetchone()[0]
+        a = self.db.execute(sql).fetchall()[0][0]
         b = self.metric_python(m)
         ok = a is not None and b is not None and abs(a - b) <= 1e-6 * max(1.0, abs(b))
         return {"metric": m["name"], "sql_value": a, "independent_value": b, "status": "pass" if ok else "fail",
@@ -282,9 +282,9 @@ class Sandbox:
         db.execute(f"CREATE UNIQUE INDEX ux_tgt_{t} ON tgt_{t} ({key})")
         load = f"INSERT OR REPLACE INTO tgt_{t} ({', '.join(cols)}) SELECT {', '.join(cols)} FROM stage_{t}"
         db.execute(load)
-        c1, n1 = self.checksum(f"tgt_{t}", db), db.execute(f"SELECT COUNT(*) FROM tgt_{t}").fetchone()[0]
+        c1, n1 = self.checksum(f"tgt_{t}", db), db.execute(f"SELECT COUNT(*) FROM tgt_{t}").fetchall()[0][0]
         db.execute(load)
-        c2, n2 = self.checksum(f"tgt_{t}", db), db.execute(f"SELECT COUNT(*) FROM tgt_{t}").fetchone()[0]
+        c2, n2 = self.checksum(f"tgt_{t}", db), db.execute(f"SELECT COUNT(*) FROM tgt_{t}").fetchall()[0][0]
         return {"table": t, "rows_run1": n1, "rows_run2": n2, "checksum_equal": c1 == c2,
                 "status": "pass" if (c1 == c2 and n1 == n2) else "fail", "load_sql": load}
 
@@ -294,7 +294,7 @@ class Sandbox:
         self.db.execute(f"CREATE VIEW IF NOT EXISTS v_consumer_{t} AS SELECT {sel} FROM {t}")
         leaks = 0
         for c in restricted:
-            leaks += self.db.execute(f"SELECT COUNT(*) FROM v_consumer_{t} WHERE {c} <> '***'").fetchone()[0]
+            leaks += self.db.execute(f"SELECT COUNT(*) FROM v_consumer_{t} WHERE {c} <> '***'").fetchall()[0][0]
         return {"view": f"v_consumer_{t}", "restricted_columns": restricted, "unmasked_values": leaks,
                 "status": "pass" if leaks == 0 else "fail"}
 
@@ -314,13 +314,13 @@ class Sandbox:
                 "status": "pass" if before == after_rb and after_deploy != before else "fail"}
 
     def row_counts(self) -> dict:
-        return {tname(e): self.db.execute(f"SELECT COUNT(*) FROM {tname(e)}").fetchone()[0] for e in self.model["entities"]}
+        return {tname(e): self.db.execute(f"SELECT COUNT(*) FROM {tname(e)}").fetchall()[0][0] for e in self.model["entities"]}
 
     def attribute_population(self, e: dict, attrs: list[str]) -> dict:
         t = tname(e)
         res = {}
         for a in attrs:
-            res[a] = self.db.execute(f"SELECT COUNT({a}) FROM {t}").fetchone()[0]
+            res[a] = self.db.execute(f"SELECT COUNT({a}) FROM {t}").fetchall()[0][0]
         return res
 
     def relationships(self):
