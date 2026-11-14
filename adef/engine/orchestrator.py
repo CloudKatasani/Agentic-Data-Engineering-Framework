@@ -16,7 +16,7 @@ from datetime import datetime
 from .. import context_hub
 from ..catalog import stacks
 from ..catalog.domains import load_pack_text
-from ..config import runs_dir
+from ..config import adef_home, runs_dir
 from ..guardrails.actions import GuardrailBlocked
 from ..guardrails.scanners import scan_injection, scan_secrets
 from ..llm.base import LLMError
@@ -96,7 +96,66 @@ class Engine:
         year = datetime.now().year
         existing = [int(m.group(1)) for d in runs_dir().glob(f"RUN-{year}-*")
                     if (m := re.match(rf"RUN-{year}-(\d+)$", d.name))]
+        # a cleaned-up run keeps its number: ids are never reused, so archives and audit references stay unique
+        existing += [int(m.group(1)) for r in self.cleanup_log() if (m := re.match(rf"RUN-{year}-(\d+)$", r.get("run_id", "")))]
         return f"RUN-{year}-{(max(existing) + 1 if existing else 1):03d}"
+
+    # ------------------------------------------------------------------ clean up previous runs
+    @staticmethod
+    def archive_dir():
+        d = adef_home() / "archive"
+        d.mkdir(parents=True, exist_ok=True)
+        return d
+
+    @staticmethod
+    def cleanup_log() -> list[dict]:
+        p = adef_home() / "cleanup-log.jsonl"
+        return [json.loads(line) for line in p.read_text().splitlines() if line.strip()] if p.exists() else []
+
+    def cleanup_runs(self, run_ids: list[str], by: str, mode: str = "archive") -> dict:
+        """Remove previous runs from the console. `archive` zips the whole run (evidence and logs) first;
+        `delete` removes it for good. Every removal is recorded with who did it. A run with an agent still
+        working is skipped, and a run governed by segregation of duties can only be archived."""
+        import shutil
+        import zipfile
+
+        from ..util import sha256_file
+        by = (by or "").strip()
+        if not by or by.lower().startswith("adef-") or by.lower() in ("agent", "system", "orchestrator"):
+            raise GuardrailBlocked("named-approver-only", "Runs are cleaned up by a named person")
+        if mode not in ("archive", "delete"):
+            raise ValueError("mode must be archive or delete")
+        removed, skipped = [], []
+        for rid in dict.fromkeys(run_ids):
+            try:
+                ws = self.ws(rid)
+            except KeyError:
+                skipped.append({"run_id": rid, "reason": "not found"})
+                continue
+            if any(r == rid for r, _ in self._live):
+                skipped.append({"run_id": rid, "reason": "an agent is still working on it; stop the run or wait"})
+                continue
+            try:
+                run, st = ws.run, self._state(ws)
+            except (OSError, ValueError, KeyError):
+                run, st = {}, {}
+            if mode == "delete" and (run.get("policy") or {}).get("separation_of_duties"):
+                skipped.append({"run_id": rid, "reason": "governed by the enterprise policy: its evidence must be kept, so archive it instead"})
+                continue
+            rec = {"ts": now_iso(), "by": by, "mode": mode, "run_id": rid, "client_code": run.get("client_code"),
+                   "use_case": run.get("use_case"), "status": st.get("status"), "created": st.get("created")}
+            if mode == "archive":
+                target = self.archive_dir() / f"{rid}.zip"
+                with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as z:
+                    for f in sorted(ws.root.rglob("*")):
+                        if f.is_file():
+                            z.write(f, f"{rid}/{f.relative_to(ws.root)}")
+                rec.update(archive=target.name, bytes=target.stat().st_size, sha256=sha256_file(target))
+            shutil.rmtree(ws.root)
+            with (adef_home() / "cleanup-log.jsonl").open("a") as fh:
+                fh.write(json.dumps(rec) + "\n")
+            removed.append(rec)
+        return {"removed": removed, "skipped": skipped}
 
     # ------------------------------------------------------------------ create
     def create_run(self, p: dict, start: bool = True) -> dict:

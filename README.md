@@ -228,6 +228,19 @@ Each kit contains:
 
 Everything is synthetic and reproducible: the same domain, scale and seed give identical files.
 
+## Cleaning up previous runs
+
+On the dashboard, **Clean up runs** removes runs you no longer need. Pick them by hand or with the
+quick selections (completed, stopped, not touched for 7 days, all), then choose:
+
+- **Archive, then remove** (default): the whole run, with its artifacts, approvals and audit logs,
+  is saved as a zip on the server (`<ADEF_HOME>/archive/`) before it leaves the console.
+- **Delete for good**: nothing is kept.
+
+Every clean-up is recorded with the name of the person who did it; **Archive** on the dashboard lists
+them and downloads the zips. Run numbers are never reused. A run an agent is still working on is
+skipped (stop it first), and a run created under segregation of duties can only be archived.
+
 ## Demo data packs
 
 `demo-data/` holds synthetic, deterministic files for each industry. Regenerate them with
