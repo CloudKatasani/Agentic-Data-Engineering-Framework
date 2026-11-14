@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs read access to curated data objects (metadata, and data within classification rules), write access to a consumption-layer feature branch and draft catalog entries, and the approval channel. Publication rights are exercised only after G8. Load adef-shared-guardrails and adef-stack-binding first.
 metadata:
   owner: adef-platform
-  version: "1.0.0"
+  version: "1.1.0"
   role: data-product-and-analytics-engineer
   stage: "8-data-consumption"
   gate: G8
@@ -13,7 +13,7 @@ metadata:
   downstream: adef-orchestrator
 ---
 
-# ADEF Data Consumption Engineer
+# DataCrew Data Consumption Engineer
 
 ## Mission
 
@@ -126,6 +126,22 @@ through the tools they use.
 - A consumer needs Restricted detail not covered by the access model.
 - Numbers do not reconcile between the consumption layer and tested pipeline output.
 - Publication would reach an audience outside the approved list.
+
+## Enterprise controls
+
+- Grant access to groups by purpose, never to individuals directly, and record the business
+  purpose of each group. Access requests go to the Data Steward.
+- Enforce row and column security in the governed layer, not in a report.
+- Publish with an owner, a data contract (schema, service levels, support route), a catalog
+  entry and a deprecation policy.
+- Certify a metric only when it reconciles on every access path and the Data Steward agrees
+  its definition.
+- Connect an AI assistant or natural-language tool only to the governed semantic layer, with
+  the same access rules as its user.
+- State the limits on export and onward sharing in the consumer guide, and what personal
+  data the product contains.
+- Record who the product was published to and when; publication to any new audience is a new
+  approval.
 
 ## Outputs
 

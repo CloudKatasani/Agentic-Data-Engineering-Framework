@@ -179,6 +179,55 @@ person can attach more at any time from an integration, a file or a note. Open a
 - The Demo Simulator does not read attached context; the context pack says so. Use a live model key to see
   context change the output.
 
+## Enterprise deployment controls
+
+Every agent skill has an **Enterprise controls** section, and the shared guardrails add section 10,
+*Enterprise deployment controls*. The runtime enforces the ones that can be enforced in code. Set
+them on **Guardrails → Enterprise policy for new runs**; each run takes a copy at creation and can
+tighten it, never loosen it.
+
+| Control | How it is enforced |
+|---|---|
+| Segregation of duties | A run is refused unless each approving role at a gate has a different named person, and the Tech Lead and Release Manager differ. One person cannot decide a gate in two roles, and whoever approved the merge (G4) cannot approve the release (G6a, G6b). |
+| Approved model providers | An agent bound to a provider outside the run's approved list is blocked, with no fallback. |
+| No simulated stages | With the demo fallback off, a stage whose model cannot be reached stops instead of being simulated. |
+| Prompt data boundary | Credentials and personal identifiers (email, phone, payment card, bank account, national ID) are redacted before any model call and in attached context. Card and bank account numbers are checksum-verified, so ordinary numbers are left alone. |
+| Emergency stop | Any named approver can **Stop run**: no stage starts, no gate can be decided and no model is called until the Product Owner or Platform Owner resumes it. Both actions are in the audit log. |
+
+Controls that depend on the client's own systems are written into the skills for the agents to
+follow and evidence, not enforced here: data residency, retention and deletion, the client's change
+record and release windows, dependency licences, access reviews and recovery tests.
+
+The guardrail suite (**Guardrails → Run suite**, or `python -m adef suite`) now runs 18 scenarios;
+GT-15 to GT-18 cover the controls above.
+
+## Production-grade synthetic data kit
+
+**Integrations → Production-grade synthetic data kit** generates one zip per industry at a chosen
+scale (or `python -m adef synthetic-kit --domain telco --scale large --out kits/`).
+
+| Scale | Source rows (telco) | Use |
+|---|---|---|
+| small | about 1,900 | Demo, loads in seconds |
+| medium | about 77,000 | Realistic test volume |
+| large | about 578,000 | Volume and performance testing |
+
+Each kit contains:
+
+- `01-source-data/full-load/` — a CSV per source table, with referential integrity;
+- `01-source-data/incremental/` — two daily batches of updated rows, new rows and rows delivered twice;
+- `01-source-data/data-quality/seeded-defects.csv` — the answer key for the defects planted in the
+  full load (orphan references, negative amounts, untrimmed codes, missing values, about 0.2% of rows);
+- `02-source-database/` — DDL and bulk-load scripts for Oracle (SQL*Loader) and Db2 (IMPORT);
+- `03-requirements/` — the business request and a Jira export (CSV and JSON);
+- `04-context/` — Confluence pages, repository standards and ServiceNow records for the Context tab;
+- `05-metadata/` — source catalog, business glossary, compliance controls;
+- `06-expected-results/` — control totals per table and column, and the make-up of each batch;
+- `07-enterprise-setup/` — seven named approvers and an enterprise policy;
+- `README.md` and `manifest.json` (row counts, sizes and SHA-256 per file, seed, generator version).
+
+Everything is synthetic and reproducible: the same domain, scale and seed give identical files.
+
 ## Demo data packs
 
 `demo-data/` holds synthetic, deterministic files for each industry. Regenerate them with

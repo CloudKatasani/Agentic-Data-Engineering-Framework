@@ -5,12 +5,12 @@ license: Proprietary
 compatibility: Runtime-neutral. Needs read access to the run workspace and to the adapter library. Load adef-shared-guardrails first.
 metadata:
   owner: adef-platform
-  version: "1.0.0"
+  version: "1.1.0"
   scope: shared
   used-by: orchestrator design build test release operations consumption
 ---
 
-# ADEF Stack Binding
+# DataCrew Stack Binding
 
 This skill is what keeps the team platform, cloud, and vendor agnostic. Agents reason in
 **capabilities**. A **Stack Profile** says which tool fills each capability for this run.
@@ -95,6 +95,15 @@ different stack.
 - Invent adapter content or tool capabilities.
 - Put credentials, tokens, or connection strings in a profile. Reference names only.
 - Copy a client-specific profile or pack into another client's run.
+
+## Enterprise controls
+
+- Bind only to tools, versions and regions the client has approved. Record the region of
+  every slot and check it against the residency requirement.
+- Record for every slot who operates it, how it authenticates (service identity, never a
+  personal account) and where its audit logs go.
+- A capability the stack lacks is recorded as a binding gap with options. Never substitute
+  an unapproved tool or a manual step.
 
 ## Outputs
 

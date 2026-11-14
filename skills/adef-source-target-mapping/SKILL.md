@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs read/write to the run workspace, metadata read access to source systems and the catalog, and capped read-only profiling. Load adef-shared-guardrails first.
 metadata:
   owner: adef-platform
-  version: "1.0.0"
+  version: "1.1.0"
   role: mapping-analyst
   stage: "2-mapping"
   gate: G2
@@ -13,7 +13,7 @@ metadata:
   downstream: adef-solution-design
 ---
 
-# ADEF Source-to-Target Mapping Analyst
+# DataCrew Source-to-Target Mapping Analyst
 
 ## Mission
 
@@ -103,6 +103,20 @@ Reject the handoff if any `REQ-###` lacks acceptance criteria.
 - A Restricted attribute is required for a consumer that should not see it.
 - Profiling shows quality too poor to meet an acceptance criterion.
 - Source ownership is unknown.
+
+## Enterprise controls
+
+- Classify every source and target column, and for personal data add its kind: direct
+  identifier, indirect identifier, or sensitive category.
+- Apply data minimisation: flag any attribute that is mapped but not needed by a
+  requirement, and recommend dropping it.
+- Record for each source the system owner, the Data Steward, the region it is stored in and
+  how long its data may be kept.
+- Profile only through the read-only service identity, inside the row and time limits, and
+  outside the source system's peak hours where the client defines them.
+- Keep lineage at column level for every Confidential or Restricted attribute.
+- Give every quality rule an owner and a threshold agreed by the Data Steward; do not invent
+  a threshold.
 
 ## Outputs
 

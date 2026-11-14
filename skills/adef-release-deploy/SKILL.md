@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs permission to trigger the CI/CD pipeline and read deployment state. Must not hold direct write credentials to shared or production data platforms; all changes go through the pipeline. Load adef-shared-guardrails and adef-stack-binding first.
 metadata:
   owner: adef-platform
-  version: "1.0.0"
+  version: "1.1.0"
   role: release-engineer
   stage: "6-deployment"
   gate: G6a G6b
@@ -13,7 +13,7 @@ metadata:
   downstream: adef-operations-observability adef-data-consumption
 ---
 
-# ADEF Release and Deploy Engineer
+# DataCrew Release and Deploy Engineer
 
 ## Mission
 
@@ -105,6 +105,20 @@ Reject the handoff if the commit to deploy differs from the tested commit.
 - A rollback trigger fires, or rollback itself fails.
 - The release would break a consumer contract not covered at G3.
 - The window will be overrun.
+
+## Enterprise controls
+
+- Attach the client's change record ID to the release plan, and confirm the window is
+  approved and outside every freeze period before requesting G6a or G6b.
+- Deploy only through the pipeline's service identity. No person, and no agent, holds write
+  credentials to shared or production environments.
+- The approver of G6a and G6b is not the person who approved the merge at G4.
+- Take or confirm a restore point before a production change, and rehearse the rollback
+  against it.
+- Where the platform allows, release in phases and verify each phase before the next.
+- Prepare the communication to consumers for approval; do not send it yourself.
+- After the release record the outcome on the change record and list follow-up actions for
+  the post-implementation review.
 
 ## Outputs
 

@@ -18,7 +18,7 @@ def main(argv=None):
     d = sub.add_parser("demo", help="run a full lifecycle headless, auto-approving as the demo approver")
     d.add_argument("--domain", default="utilities", choices=["utilities", "telco", "financial-services", "retail"])
     d.add_argument("--stack", default="example-a")
-    sub.add_parser("suite", help="run guardrail scenarios GT-01..GT-14")
+    sub.add_parser("suite", help="run guardrail scenarios GT-01..GT-18")
     sd = sub.add_parser("source-db", help="build or seed a synthetic source database (SQLite, Oracle, Db2)")
     sd.add_argument("action", choices=["build", "seed", "scripts"])
     sd.add_argument("--domain", default="telco", choices=["utilities", "telco", "financial-services", "retail"])
@@ -33,6 +33,10 @@ def main(argv=None):
     sd.add_argument("--out", default="demo-data")
     dd = sub.add_parser("demo-data", help="generate the synthetic demo data packs (Jira, metadata, data, model, catalog, lineage)")
     dd.add_argument("--out", default="demo-data")
+    sk = sub.add_parser("synthetic-kit", help="generate a production-grade synthetic data kit (zip) for a domain")
+    sk.add_argument("--domain", default="telco")
+    sk.add_argument("--scale", default="medium", choices=["small", "medium", "large"])
+    sk.add_argument("--out", default="synthetic-kits")
     v = sub.add_parser("validate-stack", help="validate a Stack Profile YAML file")
     v.add_argument("file")
     e = sub.add_parser("export", help="export a run's logical model")
@@ -43,6 +47,13 @@ def main(argv=None):
 
     if a.cmd == "serve":
         return serve(a)
+    if a.cmd == "synthetic-kit":
+        from pathlib import Path
+
+        from . import synthetic_kit
+        path = synthetic_kit.write(a.domain, a.scale, Path(a.out))
+        print(f"{path} ({path.stat().st_size // 1024:,} KB)")
+        return 0
     if a.cmd == "source-db":
         import os
         from . import sources

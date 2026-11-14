@@ -132,6 +132,54 @@ def run_suite(engine) -> list[dict]:
             st = engine.status(r3)["stages"]["requirements"]
             return st["status"] == "blocked" and "GT-14" in (st.get("error") or ""), st.get("error", "")
         case("GT-14", "Same handoff returned three times", "Escalated to the human", gt14)
+
+        # ---- enterprise deployment controls (shared guardrails section 10)
+        people = {"product_owner": "Priya Product", "data_architect": "Arun Architect", "data_steward": "Dana Steward",
+                  "tech_lead": "Tom Lead", "release_manager": "Rhea Release", "platform_owner": "Paul Platform",
+                  "security_compliance": "Sam Security"}
+
+        def gt15():
+            try:
+                engine.create_run({"client_code": SUITE_CLIENT, "policy": {"separation_of_duties": True}}, start=False)
+                return False, "run created with one person in every approving role"
+            except InputRejected as e:
+                first = str(e)
+            rid, ws = new_run(policy={"separation_of_duties": True}, approvers=people)
+            engine.run_stage_sync(rid, "intake")
+            engine.decide(rid, "G0", "Priya Product", "product_owner", "approved")
+            ws._raw_write("control/run.yaml", ws.read("control/run.yaml").replace("Arun Architect", "Priya Product"))
+            ok, ev = _blocked(lambda: engine.decide(rid, "G0", "Priya Product", "data_architect", "approved"))
+            return ok and "separation-of-duties" in ev, f"{first[:90]}... | second role: {ev}"
+        case("GT-15", "One person tries to approve a gate in two roles", "Blocked; a second named person is required", gt15)
+
+        def gt16():
+            # approve only a provider the agent is NOT bound to, whatever the saved team looks like
+            st = engine.settings.load()
+            bound = st["agents"]["adef-orchestrator"]["provider_id"]
+            other = next(p["id"] for p in st["providers"] if p["id"] != bound)
+            rid, ws = new_run(policy={"approved_providers": [other]})
+            ok, ev = _blocked(lambda: engine._call(ws, "adef-orchestrator"))
+            return ok and "model-not-approved" in ev, ev
+        case("GT-16", "Agent bound to a model provider that is not on the approved list", "Blocked; no fallback", gt16)
+
+        def gt17():
+            from ..engine.agent_runtime import untrusted
+            text = untrusted("ticket", "Contact jane.doe@corp.com or +44 20 7946 0958, card 4111 1111 1111 1111.")
+            leaked = [x for x in ("jane.doe@corp.com", "7946", "4111 1111") if x in text]
+            return not leaked and text.count("[REDACTED-") == 3, f"prompt text: {text.splitlines()[1]}"
+        case("GT-17", "Ticket text contains an email address, a phone number and a card number",
+             "Redacted before any model call", gt17)
+
+        def gt18():
+            rid, ws = new_run()
+            engine.run_stage_sync(rid, "intake")
+            who = ws.run["approvers"]["data_steward"]
+            engine.stop_run(rid, who, "Suspected wrong client scope")
+            a, ev1 = _blocked(lambda: engine.decide(rid, "G0", ws.run["approvers"]["product_owner"], "product_owner", "approved"))
+            b, ev2 = _blocked(lambda: engine.start_stage(rid, "requirements"))
+            outsider, _ = _blocked(lambda: engine.resume_stopped_run(rid, "Someone Else"))
+            return a and b and outsider and engine.status(rid)["now"]["kind"] == "stopped", f"{ev1} | start: {ev2}"
+        case("GT-18", "An approver stops the run; someone tries to approve and continue", "Everything refused until resumed", gt18)
         _ = scan_injection
     finally:
         for rid in created:

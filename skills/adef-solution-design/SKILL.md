@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs read/write to the run workspace and read access to the adapter library and catalog. No deployment access. Load adef-shared-guardrails and adef-stack-binding first.
 metadata:
   owner: adef-platform
-  version: "1.0.0"
+  version: "1.1.0"
   role: data-architect
   stage: "3-design"
   gate: G3
@@ -13,7 +13,7 @@ metadata:
   downstream: adef-pipeline-build adef-data-consumption
 ---
 
-# ADEF Solution Designer (Data Architect)
+# DataCrew Solution Designer (Data Architect)
 
 ## Mission
 
@@ -119,6 +119,25 @@ rollback; cost estimate within budget or flagged; logical files free of vendor t
 - The estimate exceeds the budget, or a new paid resource is needed.
 - The design requires new access paths to Restricted data.
 - An existing consumer contract would break.
+
+## Enterprise controls
+
+- Design security in, and write it down: encryption at rest and in transit and who owns the
+  keys, network isolation, and a role-based access model built on groups and least privilege.
+- For each Confidential or Restricted attribute choose and record the protection: masking,
+  tokenisation, row or column security, or exclusion.
+- Design retention and deletion: how long each layer keeps data and how a deletion request
+  is carried through bronze, silver, gold and the analytics layer.
+- State recovery targets (recovery time and recovery point), how they are met and how they
+  will be tested.
+- Keep development, test and production separate, with no production data in lower
+  environments.
+- Name the region for every storage and compute component and confirm it meets the
+  residency requirement.
+- Tag every resource for cost allocation, and show the monthly estimate against the approved
+  budget with its assumptions.
+- Use only tools, versions and regions the client has approved; anything else is a binding
+  gap, not a substitution.
 
 ## Outputs
 

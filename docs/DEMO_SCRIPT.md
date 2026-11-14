@@ -128,7 +128,10 @@ Use the **Local lakehouse** stack with the Oracle source for this part (any stac
   catalog payloads and lineage (OpenLineage, column lineage CSV, Mermaid diagram) for each industry.
 - **Download run bundle**: the full audit-ready workspace.
 - **Verify audit logs**: hash-chained logs show intact.
-- **Guardrails** page: **Run suite** executes all 14 guardrail scenarios live.
+- **Guardrails** page: **Run suite** executes all 18 guardrail scenarios live. Show **Enterprise policy**:
+  segregation of duties, approved model providers and no simulated stages. On a run, show **Stop run**.
+- **Integrations → Production-grade synthetic data kit**: generate a kit at medium or large scale and open
+  its README: source data, incremental batches, planted defects with an answer key, and loader scripts.
 
 ## If something looks stuck
 

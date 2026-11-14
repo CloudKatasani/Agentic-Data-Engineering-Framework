@@ -9,7 +9,8 @@ from dataclasses import dataclass, field
 from typing import Any, Callable
 
 from ..config import AGENTS_DIR, SKILLS_DIR, env
-from ..guardrails.scanners import redact_secrets
+from ..guardrails.actions import GuardrailBlocked
+from ..guardrails.scanners import redact_personal, redact_secrets
 from ..llm.base import LLMError, Provider
 from ..llm.router import estimate_cost
 from ..util import extract_json
@@ -39,7 +40,7 @@ def system_prompt(agent: str) -> str:
 
 def untrusted(label: str, payload: Any) -> str:
     body = payload if isinstance(payload, str) else json.dumps(payload, indent=1)
-    return f'<untrusted_data source="{label}">\n{redact_secrets(body)}\n</untrusted_data>'
+    return f'<untrusted_data source="{label}">\n{redact_personal(redact_secrets(body))[0]}\n</untrusted_data>'
 
 
 @dataclass
@@ -84,6 +85,11 @@ class AgentCall:
         self.usage = Usage()
         self.fallback_reason: str | None = None   # set when a configured provider is simulated for a demo
         self.context: str = ""                    # context attached by the team for this stage (untrusted data block)
+        self.stopped: Callable[[], bool] = lambda: False   # emergency stop: checked before and during every call
+
+    def _halt_if_stopped(self) -> None:
+        if self.stopped():
+            raise GuardrailBlocked("run-stopped", "The run was stopped by an approver; no further model calls are made")
 
     @property
     def simulated(self) -> bool:
@@ -92,6 +98,7 @@ class AgentCall:
     def _complete(self, prompt: str, max_tokens: int | None = None) -> str:
         """One model call. Live calls report a heartbeat to the activity feed and have a wall-clock limit, so a
         slow or unreachable model can never leave a stage silently "running"."""
+        self._halt_if_stopped()
         t0 = time.time()
         kw = dict(system=system_prompt(self.agent), prompt=prompt, model=self.binding["model"],
                   max_tokens=int(max_tokens or self.binding.get("max_tokens") or 16000),
@@ -114,6 +121,7 @@ class AgentCall:
                 th.join(HEARTBEAT_SECONDS)
                 if not th.is_alive():
                     break
+                self._halt_if_stopped()
                 waited = int(time.time() - t0)
                 if waited >= limit:
                     raise LLMError(f"no answer from {self.binding['provider']['label']} / {self.binding['model']} "

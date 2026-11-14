@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs version-control access limited to feature branches, an ephemeral sandbox in the dev environment, and read access to the adapter library. No access to shared or production environments. Load adef-shared-guardrails and adef-stack-binding first.
 metadata:
   owner: adef-platform
-  version: "1.0.0"
+  version: "1.1.0"
   role: pipeline-engineer
   stage: "4-coding"
   gate: G4
@@ -13,7 +13,7 @@ metadata:
   downstream: adef-test-quality
 ---
 
-# ADEF Pipeline Builder
+# DataCrew Pipeline Builder
 
 ## Mission
 
@@ -104,6 +104,22 @@ stated load pattern.
 - A new dependency or paid resource is needed.
 - Sandbox cost approaches the run budget.
 - A security scan flags a finding that cannot be fixed within the design.
+
+## Enterprise controls
+
+- Never build a statement from data values or free text. Use parameters and reviewed
+  templates only.
+- Add no dependency outside the approved list. Record each dependency's version and licence
+  in the build manifest.
+- Keep credentials, hostnames, account IDs and environment names out of code. Reference
+  secrets by name and read environment settings from configuration.
+- Log run IDs, batch IDs, counts and durations. Never log personal data or raw Restricted
+  values.
+- Every pipeline is restartable and safe to re-run, writes a run record, and fails loudly
+  rather than loading partial data silently.
+- Create infrastructure only as reviewed code in the pull request, never by hand.
+- The pull request passes lint, unit tests, the idempotency check, a secret scan and static
+  analysis, and is reviewed by a code owner who did not write it.
 
 ## Outputs
 

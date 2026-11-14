@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs read/write to the run workspace and read access to the catalog and glossary. Load adef-shared-guardrails first.
 metadata:
   owner: adef-platform
-  version: "1.0.0"
+  version: "1.1.0"
   role: requirements-analyst
   stage: "1-business-intent-to-requirements"
   gate: G1
@@ -13,7 +13,7 @@ metadata:
   downstream: adef-source-target-mapping
 ---
 
-# ADEF Intent and Requirements Analyst
+# DataCrew Intent and Requirements Analyst
 
 ## Mission
 
@@ -97,6 +97,19 @@ could).
 - A compliance requirement makes the requested outcome impossible as stated.
 - Restricted data is needed and no lawful or approved basis is recorded.
 - The Product Owner is not reachable for blocking questions.
+
+## Enterprise controls
+
+- Capture compliance needs as numbered non-functional requirements with a measure: retention
+  period, deletion on request, region of storage, audit trail, recovery time and recovery
+  point, and availability.
+- For every entity holding personal data record the purpose, the lawful basis and the data
+  owner. If any is unknown, raise an open question for the Data Steward; do not assume.
+- Classify every requirement, and mark the ones that need Restricted data so that later
+  stages plan masking and access before building.
+- Use invented examples in business rules and acceptance criteria. Never paste a real
+  customer, account or employee into a requirement.
+- State who is accountable for each requirement (a role and a named person from the run).
 
 ## Outputs
 
