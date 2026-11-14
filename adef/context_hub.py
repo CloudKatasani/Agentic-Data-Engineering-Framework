@@ -161,7 +161,7 @@ def prompt_block(ws, stage: str) -> tuple[str, list[str]]:
 
 def mark_used(ws, stage: str, used: list[str], artifacts: list[str]) -> list[dict]:
     """After a stage ran: record which items the agent was given and which ones its output cites."""
-    text = " ".join(ws.read(p) for p in artifacts if ws.has(p) and not p.endswith((".zip", ".db")))
+    text = " ".join(ws.read(p) for p in artifacts if ws.has(p) and not p.endswith((".zip", ".db", ".docx")))
     with ws.lock:
         idx = _load(ws)
         for i in idx["items"]:
