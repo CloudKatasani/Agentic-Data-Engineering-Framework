@@ -426,11 +426,43 @@ def run_status(rid: str):
 
 
 @app.delete("/api/runs/{rid}")
-def delete_run(rid: str):
-    import shutil
-    ws = engine().ws(rid)
-    shutil.rmtree(ws.root)
-    return {"ok": True}
+def delete_run(rid: str, by: str = "", mode: str = "archive"):
+    """Remove one run (archived by default). See POST /api/runs-cleanup for several at once."""
+    return _cleanup([rid], by, mode)
+
+
+def _cleanup(run_ids: list[str], by: str, mode: str) -> dict:
+    try:
+        return engine().cleanup_runs(run_ids, by, mode)
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+
+
+@app.post("/api/runs-cleanup")
+def runs_cleanup(body: dict = Body(...)):
+    """Clean up previous runs: archive (zip kept on the server) or delete for good. Recorded with who did it."""
+    ids = body.get("run_ids") or []
+    if not isinstance(ids, list) or not ids:
+        raise HTTPException(400, "Choose at least one run")
+    return _cleanup([str(x) for x in ids], body.get("by", ""), body.get("mode", "archive"))
+
+
+@app.get("/api/runs-archive")
+def runs_archive():
+    """What was cleaned up, by whom, and which archives can still be downloaded."""
+    e = engine()
+    have = {p.name for p in e.archive_dir().glob("*.zip")}
+    return [{**r, "available": r.get("archive") in have} for r in reversed(e.cleanup_log())]
+
+
+@app.get("/api/runs-archive/{name}")
+def runs_archive_file(name: str):
+    if not re.fullmatch(r"RUN-\d{4}-\d+\.zip", name):
+        raise HTTPException(400, "bad archive name")
+    p = engine().archive_dir() / name
+    if not p.is_file():
+        raise HTTPException(404, "archive not found")
+    return FileResponse(p, media_type="application/zip", filename=name)
 
 
 @app.get("/api/runs/{rid}/events")

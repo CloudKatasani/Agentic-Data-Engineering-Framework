@@ -604,7 +604,7 @@ route("dashboard", async () => {
   const llm = new Set(Object.values(SETTINGS.agents).map((a) => providerById(a.provider_id)?.type || "?"));
   main().innerHTML = `
     <div class="spread"><div><h1>Delivery dashboard</h1><div class="sub">An AI delivery team working alongside your people: agents build, test and deploy; named humans approve every gate.</div></div>
-      <div class="row"><a class="btn primary" href="#/new">New run</a></div></div>
+      <div class="row">${runs.length ? '<button class="btn" id="cleanupBtn">Clean up runs</button>' : ""}<button class="btn" id="archiveBtn">Archive</button><a class="btn primary" href="#/new">New run</a></div></div>
     <div class="grid g4">
       <div class="card kpi"><div class="l">Runs</div><div class="v">${runs.length}</div></div>
       <div class="card kpi"><div class="l">Completed</div><div class="v">${runs.filter((r) => r.status === "completed").length}</div></div>
@@ -629,7 +629,48 @@ route("dashboard", async () => {
     ${check(true, "Technology stack", "Six reference stacks: Oracle/Db2 → S3, ADLS, GCS or OneLake (Iceberg/Delta) → Snowflake, Databricks, BigQuery, Redshift or Fabric, plus a Local lakehouse that really runs.", "#/stacks", "Technology stacks")}
   </div>`;
   $$("tr[data-run]").forEach((tr) => tr.addEventListener("click", () => (location.hash = `#/run/${tr.dataset.run}`)));
+  if ($("#cleanupBtn")) $("#cleanupBtn").onclick = () => cleanupDialog(runs);
+  $("#archiveBtn").onclick = archiveDialog;
 });
+// Clean up previous runs: archive (kept as a zip on the server) or delete for good. Always recorded.
+function cleanupDialog(runs) {
+  const old = (r, days) => Date.now() - new Date(r.updated || r.created) > days * 864e5;
+  modal(`<h2>Clean up previous runs</h2>
+    <p class="muted small">Removes runs from the console. <b>Archive</b> first saves the whole run, with its evidence and audit logs, as a zip you can download later. <b>Delete</b> removes it for good. Either way the clean-up is recorded with your name, and run numbers are never reused.</p>
+    <div class="row" style="flex-wrap:wrap"><span class="small muted">Select:</span>
+      <button class="btn small" data-pick="completed">Completed</button><button class="btn small" data-pick="stopped">Stopped</button>
+      <button class="btn small" data-pick="old">Not touched for 7 days</button><button class="btn small" data-pick="all">All</button><button class="btn small" data-pick="none">None</button></div>
+    <div class="table-wrap" style="max-height:38vh;overflow:auto;margin-top:8px"><table class="small"><thead><tr><th></th><th>Run</th><th>Client</th><th>Use case</th><th>Status</th><th>Updated</th></tr></thead><tbody>
+      ${runs.map((r) => `<tr><td><input type="checkbox" data-cu="${esc(r.run_id)}" style="width:auto"></td><td class="mono">${esc(r.run_id)}</td><td>${esc(r.client_code)}</td><td>${esc(r.use_case)}</td><td>${badge(r.status)}</td><td class="muted">${fmtTime(r.updated)}</td></tr>`).join("")}</tbody></table></div>
+    <div class="field-row" style="margin-top:10px"><div><label>Your name (recorded)</label><input id="cuBy" value="${esc(store.get("adef_ctx_person", "") || SETTINGS.approver_defaults.platform_owner || "")}"></div>
+      <div><label>What to do</label><select id="cuMode"><option value="archive">Archive, then remove (recommended)</option><option value="delete">Delete for good</option></select></div></div>
+    <div id="cuOut" style="margin-top:8px"></div>
+    <div class="row" style="margin-top:12px"><button class="btn primary" id="cuGo" disabled>Clean up 0 runs</button><button class="btn" onclick="closeModal()">Close</button></div>`);
+  const boxes = () => $$("[data-cu]");
+  const sync = () => { const n = boxes().filter((b) => b.checked).length; const del = $("#cuMode").value === "delete"; const go = $("#cuGo");
+    go.disabled = !n; go.textContent = `${del ? "Delete" : "Archive"} ${n} run${n === 1 ? "" : "s"}`; go.className = `btn ${del ? "bad" : "primary"}`; };
+  const pick = { completed: (r) => r.status === "completed", stopped: (r) => r.status === "stopped", old: (r) => old(r, 7), all: () => true, none: () => false };
+  $$("[data-pick]").forEach((b) => (b.onclick = () => { boxes().forEach((x, i) => (x.checked = pick[b.dataset.pick](runs[i]))); sync(); }));
+  boxes().forEach((b) => (b.onchange = sync)); $("#cuMode").onchange = sync;
+  $("#cuGo").onclick = async () => {
+    const ids = boxes().filter((b) => b.checked).map((b) => b.dataset.cu); const del = $("#cuMode").value === "delete";
+    if (del && !confirm(`Delete ${ids.length} run${ids.length === 1 ? "" : "s"} for good? Their artifacts, approvals and audit logs cannot be recovered.`)) return;
+    const r = await guard(() => api("POST", "/runs-cleanup", { run_ids: ids, by: $("#cuBy").value, mode: $("#cuMode").value }));
+    toast(`${r.removed.length} run${r.removed.length === 1 ? "" : "s"} ${del ? "deleted" : "archived"}${r.skipped.length ? `, ${r.skipped.length} skipped` : ""}`, r.skipped.length ? "err" : "ok");
+    if (r.skipped.length) { $("#cuOut").innerHTML = `<div class="notice warn">${r.skipped.map((s) => `<b>${esc(s.run_id)}</b>: ${esc(s.reason)}`).join("<br>")}</div>`; boxes().forEach((b) => { if (r.removed.some((x) => x.run_id === b.dataset.cu)) b.closest("tr").remove(); }); sync(); }
+    else closeModal();
+    if (!r.skipped.length) navigate();
+  };
+}
+async function archiveDialog() {
+  const rows = await api("GET", "/runs-archive");
+  modal(`<h2>Cleaned-up runs</h2><p class="muted small">Every clean-up is recorded here. Archived runs can be downloaded as a zip with all artifacts, approvals and audit logs.</p>
+    ${rows.length ? `<div class="table-wrap" style="max-height:55vh;overflow:auto"><table class="small"><thead><tr><th>Run</th><th>Client</th><th>Status</th><th>Cleaned up</th><th>By</th><th>How</th><th></th></tr></thead><tbody>
+      ${rows.map((r) => `<tr><td class="mono">${esc(r.run_id)}</td><td>${esc(r.client_code || "")}</td><td>${esc(r.status || "")}</td><td class="muted">${fmtTime(r.ts)}</td><td>${esc(r.by)}</td><td>${r.mode === "archive" ? badge("pass", "archived") : badge("fail", "deleted")}</td>
+        <td>${r.available ? `<button class="btn small" data-arch="${esc(r.archive)}">Download</button>` : ""}</td></tr>`).join("")}</tbody></table></div>` : '<div class="empty">Nothing has been cleaned up yet.</div>'}
+    <div style="margin-top:12px"><button class="btn" onclick="closeModal()">Close</button></div>`);
+  $$("[data-arch]").forEach((b) => (b.onclick = () => download(`/runs-archive/${b.dataset.arch}`, b.dataset.arch)));
+}
 
 // ------------------------------------------------------------------ new run wizard
 const WZ = { step: 0, data: null };
