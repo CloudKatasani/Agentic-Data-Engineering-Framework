@@ -21,6 +21,8 @@ AGENT_NAMES = [
 
 from .connectors.context_sources import DEFAULT_SETTINGS as CONTEXT_DEFAULTS  # noqa: E402
 
+from .catalog.council import DEFAULT_COUNCIL  # noqa: E402
+
 DEFAULTS: dict[str, Any] = {
     "providers": copy.deepcopy(SEED_PROVIDERS),
     "agents": copy.deepcopy(TEAM_PRESETS["multi-vendor"]["agents"]),
@@ -30,6 +32,8 @@ DEFAULTS: dict[str, Any] = {
     "integrations": copy.deepcopy(CONTEXT_DEFAULTS),   # optional context sources: Confluence, GitHub, ServiceNow
     # enterprise policy, copied into each run when it is created (a run can tighten it, never loosen it)
     "policy": {"separation_of_duties": False, "approved_providers": []},
+    # three independent reviewers that check every stage output before handover (copied into each run)
+    "council": copy.deepcopy(DEFAULT_COUNCIL),
     "stack_profiles": [],
     "approver_defaults": {
         "product_owner": "Demo Presenter", "data_architect": "Demo Presenter",

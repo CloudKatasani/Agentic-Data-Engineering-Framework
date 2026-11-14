@@ -179,6 +179,37 @@ person can attach more at any time from an integration, a file or a note. Open a
 - The Demo Simulator does not read attached context; the context pack says so. Use a live model key to see
   context change the output.
 
+## Council of three: every output reviewed before handover
+
+When an agent finishes a stage, three independent reviewers read its output before anything is handed
+to the next agent or to the human approver.
+
+- **Three lenses, three models.** By default: accuracy (Claude), risk and compliance (GPT), and
+  readiness for handover (Gemini). Change the reviewers, their lens and their models on
+  **Agents & models → Council of three**. Different models are used so reviewers do not share blind spots.
+- **Two of three must approve.** Each reviewer returns a verdict, a score and findings (artifact,
+  severity, issue, suggested fix) against the stage's definition of done.
+- **If the council is not satisfied, the agent revises** from the major findings, up to the number of
+  revisions you allow (default 1, maximum 3), and the council reviews again.
+- **The council is advisory.** It never approves a gate. Its report, `council-review.md`, is written
+  into the stage folder and reviewed at the gate with the other artifacts; the gate card shows each
+  reviewer's verdict and flags unresolved major findings.
+- **Honest about what ran.** A reviewer whose model cannot be reached runs structural checks only (files
+  exist, no placeholders, valid JSON, no credentials) and is labelled that way; it does not judge content.
+  A reviewer whose provider is not on the run's approved list abstains. Fewer than two verdicts is
+  reported as *no quorum*.
+- Switch it off for one run on **Review & launch**, or for all new runs on Agents & models. Reviewer
+  calls appear as their own line under **Team & cost**.
+
+## Output format per stage
+
+Agents write Markdown. For each stage you can also have its documents handed over as **HTML** or
+**Word (.docx)**: choose on **Review & launch** (per stage, or "set all"), or later on the run's
+**Context** tab before the stage runs. The rendered files sit next to the Markdown originals, are part
+of the gate's artifacts and are tied to the approval by hash like everything else. Any Markdown artifact
+can also be downloaded as HTML or Word from the **Artifacts** tab without changing the run. PDF is not
+generated; open the HTML file and print to PDF.
+
 ## Enterprise deployment controls
 
 Every agent skill has an **Enterprise controls** section, and the shared guardrails add section 10,

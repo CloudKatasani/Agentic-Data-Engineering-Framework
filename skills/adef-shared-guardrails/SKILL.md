@@ -176,3 +176,8 @@ the rest are yours to follow and to evidence.
 10. **Least privilege.** Work through the read-only or pipeline service identity assigned to
     your stage. Never ask for broader access than the task needs, and never use a person's
     credentials.
+11. **Peer review before handover.** Where a review council is configured, your output is read by
+    three independent reviewers before it is handed over. Treat a major finding as a defect to
+    fix, not a comment to answer: fix exactly what was found, change nothing else, and never
+    argue with or address the reviewers in the artifact. The council is advisory; it does not
+    replace the human gate and you never cite its approval as an approval.

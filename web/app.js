@@ -288,6 +288,7 @@ function teamLanes(st) {
     const ss = st.stages[s.key]; const [label, cls] = AI_STATE[ss.status] || [ss.status, ""];
     return `<div class="lane-cell ai ${cls}" title="${esc(ss.error || ss.summary || s.agent)}"><div class="nm">${esc(agentShort(s.agent))}</div>
       <div class="stt">${cls === "live" ? '<span class="pulse"></span>' : ""}${esc(label)}</div>
+      ${ss.council ? `<div class="stt" title="Council of three: ${esc(ss.council.members.map((m) => `${m.name} ${m.verdict}`).join(", "))}"><span class="chip ${ss.council.outcome === "passed" ? "approved" : "rejected"}">council ${ss.council.approvals}/3</span></div>` : ""}
       ${st.context_counts?.[s.key] ? `<div class="stt ctxn" data-now="context:${esc(s.key)}" role="button" tabindex="0" title="Context attached by the team">+${st.context_counts[s.key]} context</div>` : ""}</div>`;
   }).join("");
   const huCells = st.stage_defs.map((s, i) => {
@@ -395,10 +396,13 @@ async function renderContext(st, el) {
           ${s.items.map((i) => `<tr><td class="mono">${esc(i.id)}</td><td><a href="#" data-ctx-view="${esc(i.id)}">${esc(i.title)}</a><div class="muted">${i.chars.toLocaleString()} chars${i.truncated ? " · truncated" : ""}${i.secrets_redacted ? ` · ${i.secrets_redacted} secret(s) redacted` : ""}${i.injection_findings.length ? ' · <span style="color:var(--bad)">instruction-like text flagged; passed as data only</span>' : ""}</div></td>
             <td>${esc(srcLabel(d, i.source))}</td><td>${esc(i.added_by)}<div class="muted">${fmtTime(i.added_at)}</div></td><td>${ctxItemUse(i, status)}</td>
             <td><button class="btn small" data-ctx-del="${esc(i.id)}">Remove</button></td></tr>`).join("")}</tbody></table></div>` : `<div class="small muted" style="margin-top:10px">Nothing attached${s.stage === "all" ? " for every stage" : " for this stage"} yet.</div>`}
+        ${def ? `<div class="row small" style="margin-top:10px"><b>Output format</b><select data-stage-fmt="${esc(s.stage)}" style="width:auto;padding:4px 8px">${Object.entries(CATALOG.output_formats).map(([k, l]) => `<option value="${k}" ${(st.output_formats?.[s.stage] || "markdown") === k ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>
+          <span class="muted">${["pending", "running"].includes(status) ? "Used when this stage runs." : "This stage has already run: the new format applies if you re-run it. Any document can also be downloaded in another format from the Artifacts tab."}</span></div>` : ""}
         <div class="row" style="margin-top:10px"><button class="btn small" data-ctx-add="${esc(s.stage)}">Add context for ${esc(stageLabel(s.stage))}</button>
           ${s.items.some((i) => i.pending_rework) && ["awaiting-approval", "rejected", "failed"].includes(status) ? `<button class="btn small primary" data-ctx-rework="${esc(s.stage)}">Re-run ${esc(stageLabel(s.stage))} with the new context</button>` : ""}</div>
       </details>`;
     }).join("")}`;
+  $$("[data-stage-fmt]", el).forEach((x) => (x.onchange = async () => { await guard(() => api("PUT", `/runs/${RUN.id}/stages/${x.dataset.stageFmt}/output-format`, { format: x.value }), `Output format for ${stageLabel(x.dataset.stageFmt)} saved`); refreshRun(false); }));
   $$(".ctx-stage", el).forEach((x) => x.addEventListener("toggle", () => { if (x.open) CTX.open = x.dataset.stage; }));
   $$("[data-ctx-add]", el).forEach((b) => (b.onclick = (e) => { e.preventDefault(); addContextDialog(st, b.dataset.ctxAdd, b.dataset.need || "", b.dataset.src || ""); }));
   $$("[data-ctx-del]", el).forEach((b) => (b.onclick = async () => { await guard(() => api("DELETE", `/runs/${RUN.id}/context/${b.dataset.ctxDel}?by=${encodeURIComponent(ctxPerson(st))}`), "Removed"); renderContext(st, el); }));
@@ -502,6 +506,30 @@ async function renderIntegrationCards(el) {
   });
 }
 
+// The review council: three reviewers, each with a lens and its own model, for runs created from now on.
+function renderCouncilCard(el, ready) {
+  const cn = SETTINGS.council || { enabled: true, max_revisions: 1, members: [] };
+  el.innerHTML = `<div class="spread"><div><h2>Council of three</h2><div class="small muted">Before any stage hands its output to the next agent, three independent reviewers read it against the stage's definition of done. Two approvals pass it on; otherwise the agent revises from their findings. The council is advisory: its report goes to the gate, and a named person still decides. Use three different models so the reviewers do not share blind spots.</div></div>
+      <button class="btn primary" id="cnSave">Save council</button></div>
+    <div class="row" style="margin-top:10px;flex-wrap:wrap"><label class="chk" style="margin:0"><input type="checkbox" id="cnOn" ${cn.enabled ? "checked" : ""}> <span><b>Review every stage output</b></span></label>
+      <span class="small">Revisions the agent may make before the gate</span><select id="cnRev" style="width:auto">${[0, 1, 2, 3].map((n) => `<option ${n === cn.max_revisions ? "selected" : ""}>${n}</option>`).join("")}</select></div>
+    <div class="table-wrap" style="margin-top:10px"><table><thead><tr><th style="width:17%">Reviewer</th><th>Lens (what this reviewer looks for)</th><th style="width:17%">Provider</th><th style="width:22%">Model</th><th>Key</th></tr></thead><tbody>
+      ${cn.members.map((m, i) => `<tr data-cn="${i}"><td><input data-c="name" value="${esc(m.name)}"></td><td><textarea data-c="lens" style="min-height:58px">${esc(m.lens)}</textarea></td>
+        <td><select data-c="provider_id">${SETTINGS.providers.map((p) => `<option value="${esc(p.id)}" ${p.id === m.provider_id ? "selected" : ""}>${esc(p.label)}</option>`).join("")}</select></td>
+        <td><div class="model-box"><input data-c="model" value="${esc(m.model)}">${modelPick(m.provider_id)}</div></td>
+        <td class="cnKey">${m.provider_id === "demo" ? badge("", "offline") : ready[m.provider_id] ? badge("pass", "ready") : badge("awaiting-approval", "no key - structural checks only")}</td></tr>`).join("")}
+    </tbody></table></div>`;
+  $$("tr[data-cn] select[data-c=provider_id]", el).forEach((sel) => (sel.onchange = () => {
+    const tr = sel.closest("tr"); $("select.model-pick", tr).innerHTML = modelPickOpts(sel.value);
+    $("input[data-c=model]", tr).value = modelChoices(sel.value).suggested[0]?.id || "";
+    $(".cnKey", tr).innerHTML = sel.value === "demo" ? badge("", "offline") : ready[sel.value] ? badge("pass", "ready") : badge("awaiting-approval", "no key - structural checks only");
+  }));
+  $("#cnSave").onclick = async () => {
+    const members = $$("tr[data-cn]", el).map((tr) => Object.fromEntries($$("[data-c]", tr).map((x) => [x.dataset.c, x.value])));
+    await guard(() => api("PUT", "/settings/council", { enabled: $("#cnOn").checked, max_revisions: +$("#cnRev").value, members }), "Council saved. It applies to runs created from now on.");
+    await refreshSettings();
+  };
+}
 // Production-grade synthetic data kit, generated on demand at the chosen scale.
 async function renderKitCard(el) {
   const o = await api("GET", "/synthetic-kit/options");
@@ -807,7 +835,12 @@ function wzReview(d) {
     <div class="k">Metadata</div><div>${d.source_metadata ? esc(d.source_metadata.source_file) : "none"}</div><div class="k">Cost cap</div><div>${esc(d.compute_cost_cap)}</div></div>
     <div class="spread" style="margin-top:14px"><h3 style="margin:0">Agent team and models for this run</h3>${n ? `<button class="btn small" id="wzResetTeam">Reset to team defaults (${n} changed)</button>` : ""}</div>
     <p class="small muted">Change the provider, model or effort of any agent for this run only. Use the arrow next to a model to choose from every model known for that provider, or type any model name. The saved team on <a href="#/agents">Agents &amp; models</a> is not changed.</p>
-    <div class="table-wrap"><table id="wzTeam"><thead><tr><th style="width:24%">Agent</th><th>Provider</th><th>Model</th><th>Effort</th><th>Key</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    <div class="table-wrap"><table id="wzTeam"><thead><tr><th style="width:24%">Agent</th><th>Provider</th><th>Model</th><th>Effort</th><th>Key</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <h3 style="margin-top:16px">Review and output</h3>
+    <label class="chk"><input type="checkbox" id="wzCouncil" ${d.council_enabled !== false ? "checked" : ""}> <span><b>Council of three.</b> Three independent reviewers (${(SETTINGS.council?.members || []).map((m) => esc(m.model)).join(", ")}) check every stage's output before it is handed over. Two approvals pass it on; otherwise the agent revises. Their report goes to the gate. Change the reviewers on <a href="#/agents">Agents &amp; models</a>.</span></label>
+    <div style="margin-top:12px"><b>Output format per stage</b><div class="small muted">Agents write Markdown. Choose HTML or Word to have a stage's documents handed over in that format as well. You can change this later on the run's Context tab, before a stage runs.</div>
+      <div class="fmt-grid">${CATALOG.stages.map((st) => `<label><span>${esc(st.label)}</span><select data-fmt="${esc(st.key)}">${Object.entries(CATALOG.output_formats).map(([k, l]) => `<option value="${k}" ${(d.output_formats?.[st.key] || "markdown") === k ? "selected" : ""}>${esc(l.split(" (")[0])}</option>`).join("")}</select></label>`).join("")}</div>
+      <div class="row" style="margin-top:6px"><span class="small muted">Set all to:</span>${Object.entries(CATALOG.output_formats).map(([k, l]) => `<button class="btn small" data-fmt-all="${k}">${esc(l.split(" (")[0])}</button>`).join("")}</div></div>`;
 }
 function bindWizard() {
   const d = WZ.data;
@@ -824,6 +857,9 @@ function bindWizard() {
     collect(); renderWizard();
   }));
   if ($("#wzResetTeam")) $("#wzResetTeam").onclick = () => { d.agent_bindings = {}; collect(); renderWizard(); };
+  if ($("#wzCouncil")) $("#wzCouncil").onchange = (e) => (d.council_enabled = e.target.checked);
+  $$("[data-fmt]").forEach((el) => (el.onchange = () => { d.output_formats = { ...(d.output_formats || {}), [el.dataset.fmt]: el.value }; }));
+  $$("[data-fmt-all]").forEach((b) => (b.onclick = () => { d.output_formats = Object.fromEntries(CATALOG.stages.map((st) => [st.key, b.dataset.fmtAll])); collect(); renderWizard(); }));
   $$("[data-domain]").forEach((el) => el.addEventListener("click", () => {
     d.domain_pack = el.dataset.domain;
     if (SETTINGS.jira.mode === "demo") { d.jql = `project = ${DOMAIN_PROJECT[d.domain_pack]}`; d.jira_issues = []; d.selected_keys = []; }
@@ -857,7 +893,7 @@ async function launch() {
   const body = { source_connection, client_code: d.client_code, domain_pack: d.domain_pack, use_case: d.use_case || undefined,
     request: d.req_source === "jira" ? "" : d.request, documents: d.req_source === "jira" ? "" : d.documents,
     jira_issues: issues, stack_profile: allStacks().find((s) => s.profile_id === d.stack_id),
-    source_metadata: d.source_metadata, approvers: d.approvers, compute_cost_cap: +d.compute_cost_cap, autopilot: d.autopilot, agent_bindings: d.agent_bindings || {} };
+    source_metadata: d.source_metadata, approvers: d.approvers, compute_cost_cap: +d.compute_cost_cap, autopilot: d.autopilot, agent_bindings: d.agent_bindings || {}, council_enabled: d.council_enabled !== false, output_formats: d.output_formats || {} };
   const r = await guard(() => api("POST", "/runs", body), "Run started");
   store.set("adef_pending_metadata", null);
   WZ.data = null;
@@ -980,6 +1016,17 @@ function setVerdict(tr, v) {
   inp.classList.toggle("need", v === "rejected");
   if (v === "rejected") inp.focus();
 }
+function councilRow(st, g, arts) {
+  const stage = st.stage_defs.find((x) => x.gates.includes(g)); const cn = st.stages[stage.key].council;
+  const report = arts.map(([p]) => p).find((p) => p.endsWith("/council-review.md"));
+  if (!cn || !report) return "";
+  const label = { passed: "passed", "not-satisfied": "not satisfied", "no-quorum": "no quorum" }[cn.outcome];
+  return `<div class="k">Council of three</div><div>${badge(cn.outcome === "passed" ? "pass" : "fail", `${label} · ${cn.approvals} of 3 approve`)}
+    ${cn.members.map((m) => `<span class="chip ${m.verdict === "approve" ? "approved" : m.verdict === "revise" ? "rejected" : ""}" title="${esc(m.model)} · ${esc(m.served_by === "live" ? "live model" : m.served_by === "simulated" ? "structural checks only" : "abstained")}">${m.verdict === "approve" ? "✓" : m.verdict === "revise" ? "✗" : "–"} ${esc(m.name)}</span>`).join(" ")}
+    ${cn.rounds > 1 ? `<span class="small muted">after ${cn.rounds - 1} revision${cn.rounds > 2 ? "s" : ""}</span>` : ""}
+    <a href="#" data-open="${esc(report)}">Read the review</a>${cn.outcome === "passed" ? "" : ` <b style="color:var(--bad)">${cn.major_findings} major finding${cn.major_findings === 1 ? "" : "s"} unresolved: read before you decide.</b>`}
+    ${cn.members.some((m) => m.served_by === "simulated") ? '<div class="small muted">Reviewers without a reachable model ran structural checks only and did not judge the content.</div>' : ""}</div>`;
+}
 function gateContext(st, g, arts) {
   const stage = st.stage_defs.find((s) => s.gates.includes(g));
   const pack = arts.map(([p]) => p).find((p) => p.endsWith("/context-pack.md"));
@@ -1022,7 +1069,8 @@ function gateCard(st, g, gd) {
     <div class="k">Options</div><div>${(req.options || []).map(esc).join(" · ")}</div>
     <div class="k">Evidence</div><div>${(req.evidence || []).map((p) => `<a href="#" data-open="${esc(p)}">${esc(p)}</a>`).join("<br>") || "-"}</div>
     <div class="k">Bundle hash</div><div class="hash">${esc(req.artifact_sha256)}</div>
-    <div class="k">Agent context</div><div>${gateContext(st, g, arts)}</div></div>
+    <div class="k">Agent context</div><div>${gateContext(st, g, arts)}</div>
+    ${councilRow(st, g, arts)}</div>
     <div class="spread" style="margin-top:12px"><h3 style="margin:0">Artifacts for review (${arts.length})</h3>${pending ? `<button class="btn small" data-allok="${g}">Approve all</button>` : ""}</div>
     ${pending ? '<div class="small muted">Approve or reject each artifact. Any rejected artifact rejects the gate, and its reason goes back to the agent as rework instructions. Each verdict is bound to the artifact\'s hash.</div>' : ""}
     <div class="table-wrap"><table class="small review-table" id="rv-${g}"><thead><tr><th>Artifact</th><th>Reviews</th>${pending ? "<th>Your verdict</th><th>Reason / note</th>" : ""}</tr></thead><tbody>${artRows}</tbody></table></div>
@@ -1042,11 +1090,18 @@ async function renderArtifacts(el) {
 }
 async function showFile() {
   const path = RUN.file;
+  if (/\.docx$/.test(path)) {
+    $("#viewer").innerHTML = `<div class="spread"><div><b class="mono">${esc(path)}</b><div class="small muted">Word document rendered from ${esc(path.replace(/\.docx$/, ".md"))}</div></div>
+      <button class="btn primary small" id="dlDocx">Download</button></div><hr><div class="empty">Word documents open in Word. The Markdown original next to it shows the same content here.</div>`;
+    $("#dlDocx").onclick = () => download(`/runs/${RUN.id}/download?path=${encodeURIComponent(path)}`, path.split("/").pop());
+    return;
+  }
   const text = await api("GET", `/runs/${RUN.id}/file?path=${encodeURIComponent(path)}`);
   const f = (await api("GET", `/runs/${RUN.id}/files`)).find((x) => x.path === path);
   const editable = /^(0\d-|final\/)/.test(path) && !/\.(jsonl)$/.test(path);
   $("#viewer").innerHTML = `<div class="spread"><div><b class="mono">${esc(path)}</b><div class="hash">sha256 ${esc(f?.sha256 || "")}</div></div>
-    <div class="row">${editable ? '<button class="btn small" id="editBtn">Edit as human</button>' : ""}<button class="btn small" id="rawBtn">Raw</button></div></div><hr><div id="fileBody">${renderFile(path, text)}</div>`;
+    <div class="row">${editable ? '<button class="btn small" id="editBtn">Edit as human</button>' : ""}${/\.md$/.test(path) ? '<button class="btn small" data-as="html">Download as HTML</button><button class="btn small" data-as="docx">Download as Word</button>' : ""}<button class="btn small" id="rawBtn">Raw</button></div></div><hr><div id="fileBody">${renderFile(path, text)}</div>`;
+  $$("#viewer [data-as]").forEach((b) => (b.onclick = () => download(`/runs/${RUN.id}/file-as?path=${encodeURIComponent(path)}&format=${b.dataset.as}`, path.split("/").pop().replace(/\.md$/, b.dataset.as === "docx" ? ".docx" : ".html"))));
   $("#rawBtn").onclick = () => ($("#fileBody").innerHTML = `<pre class="code">${esc(text)}</pre>`);
   if ($("#editBtn")) $("#editBtn").onclick = () => {
     $("#fileBody").innerHTML = `<div class="notice warn">Editing an approved artifact invalidates its approval (hash-bound). The gate must then be re-requested.</div>
@@ -1103,6 +1158,7 @@ async function renderAudit(el) {
 }
 function renderMetrics(st, el) {
   const rows = CATALOG.agents.map((a) => { const u = st.usage[a.name]; const b = st.run.agent_bindings?.[a.name] || {}; return [a.name, `${b.provider_id || "?"} / ${b.model || "?"}`, (u?.models || ["-"]).join(", ") + (u?.fallback ? ` - ${u.fallback}` : ""), u?.calls ?? 0, u?.tokens ?? 0, u ? `$${u.llm_cost_usd.toFixed(4)}` : "-"]; });
+  if (st.usage.council) { const u = st.usage.council; rows.push(["council of three (reviewers)", (st.run.council?.members || []).map((m) => m.model).join(", "), u.models.length ? u.models.join(", ") : "structural checks only (no model reached)", u.calls, u.tokens, `$${u.llm_cost_usd.toFixed(4)}`]); }
   const tot = Object.values(st.usage).reduce((a, u) => ({ t: a.t + u.tokens, c: a.c + u.llm_cost_usd }), { t: 0, c: 0 });
   el.innerHTML = `${teamCard(st)}<div class="grid g3" style="margin-top:16px"><div class="card kpi"><div class="l">LLM tokens</div><div class="v">${tot.t.toLocaleString()}</div></div><div class="card kpi"><div class="l">LLM cost (list price)</div><div class="v">$${tot.c.toFixed(3)}</div></div><div class="card kpi"><div class="l">Guardrail blocks</div><div class="v">${st.metrics.guardrail_blocks || 0}</div></div></div>
     <div class="card"><h2>Models and cost for this run</h2><div class="table-wrap"><table><thead><tr><th>Agent</th><th>Bound to</th><th>Served by</th><th>Calls</th><th>Tokens</th><th>Cost</th></tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td class="${i < 3 ? "mono small" : ""}">${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
@@ -1155,6 +1211,7 @@ route("agents", async () => {
       <span class="small muted" id="presetDesc"></span><button class="btn" id="applyPreset">Apply preset</button></div>
       <label style="display:flex;gap:8px;align-items:center;color:var(--text);font-weight:400;margin-top:10px"><input type="checkbox" id="simToggle" style="width:auto" ${rt.simulate_unavailable_providers !== false ? "checked" : ""}>
       Demo fallback: if an agent's provider has no key, can't be reached or rejects the key, run that stage on the Demo Simulator and label it as simulated. Turn this off for real client work.</label></div>
+    <div class="card" id="councilCard"></div>
     <div class="card tight"><div class="row"><b>Apply to all agents:</b><select id="allProv" style="width:auto">${provOpts(SETTINGS.agents["adef-orchestrator"].provider_id)}</select><div class="model-box" style="width:300px"><input id="allModel" list="dl-all" placeholder="model">${modelPick(SETTINGS.agents["adef-orchestrator"].provider_id)}</div><datalist id="dl-all"></datalist><select id="allEffort" style="width:auto">${CATALOG.effort_levels.map((e) => `<option ${e === "medium" ? "selected" : ""}>${e}</option>`).join("")}</select><button class="btn" id="applyAll">Apply</button></div></div>
     <div class="card"><div class="table-wrap"><table><thead><tr><th style="width:38%">Agent</th><th>Provider</th><th>Model</th><th>Effort</th><th>Max tokens</th><th>Key</th><th></th></tr></thead><tbody>
     ${CATALOG.agents.map((a) => { const b = SETTINGS.agents[a.name]; return `<tr data-agent="${esc(a.name)}"><td>${agentProfile(a)}</td>
@@ -1186,6 +1243,7 @@ route("agents", async () => {
     $("input[data-k=model]", tr).value = m; $("select[data-k=effort]", tr).value = $("#allEffort").value;
   });
   const gather = () => Object.fromEntries($$("tr[data-agent]").map((tr) => [tr.dataset.agent, Object.fromEntries($$("[data-k]", tr).map((x) => [x.dataset.k, x.value]))]));
+  renderCouncilCard($("#councilCard"), ready);
   $("#saveAgents").onclick = async () => { await guard(() => api("PUT", "/settings/agents", gather()), "Agent bindings saved"); await refreshSettings(); };
   $$("[data-test]").forEach((b) => (b.onclick = async () => {
     const tr = b.closest("tr"); const pid = $("select[data-k=provider_id]", tr).value; const model = $("input[data-k=model]", tr).value;

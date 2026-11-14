@@ -29,6 +29,7 @@ from ..workspace import handoff as ho
 from ..workspace.run import GATE_ROLES, ROLE_LABELS, RunWorkspace
 from . import agents_back as back
 from . import agents_front as front
+from . import council, formats
 from .agent_runtime import AgentCall, Usage
 from .context import StageCtx, StageOutput
 from .scenarios import for_domain
@@ -220,7 +221,9 @@ class Engine:
                                          if k != "password"},
                    "agent_bindings": {a: {k: v for k, v in binding_for(a, team, overrides.get(a)).items()
                                           if k in ("provider_id", "model", "effort")} for a in team["agents"]},
-                   "agent_overrides": sorted(overrides), "policy": policy}
+                   "agent_overrides": sorted(overrides), "policy": policy,
+                   "council": {**team.get("council", council.DEFAULT_COUNCIL),
+                               **({"enabled": bool(p["council_enabled"])} if "council_enabled" in p else {})}}
         ws = RunWorkspace(run_id)
         ws.create(run_def, profile, load_pack_text(domain))
         ws._raw_write("00-intake/inputs/request.md", request or sc["request"])
@@ -230,7 +233,12 @@ class Engine:
             ws._raw_write("00-intake/inputs/source-metadata.json", json.dumps(p["source_metadata"], indent=2))
         if p.get("documents"):
             ws._raw_write("00-intake/inputs/documents.md", p["documents"])
+        wanted = {k: v for k, v in (p.get("output_formats") or {}).items() if v and v != "markdown"}
+        bad = [f"{k}={v}" for k, v in wanted.items() if k not in STAGE_KEYS or v not in formats.FORMATS]
+        if bad:
+            raise InputRejected(f"Unknown stage or output format: {', '.join(bad)}")
         st = {"run_id": run_id, "status": "active", "created": now_iso(), "updated": now_iso(), "current": "intake",
+              "output_formats": wanted,
               "stages": {s["key"]: {"status": "pending", "attempts": 0, "returns": 0} for s in STAGES},
               "gates": {}, "usage": {}, "metrics": {"guardrail_blocks": 0}}
         self._save(ws, st)
@@ -375,6 +383,7 @@ class Engine:
             ctx.call = call
             out = runner(ctx)
         self._refuse_if_stopped(self._state(ws))     # stopped while the agent worked: nothing is handed over
+        out, reviews = self._council(ws, s, ctx, runner, out, call)
         if ctx_ids:
             # the record of what the agent was given goes to the gate with the stage's own artifacts
             used = context_hub.mark_used(ws, key, ctx_ids, out.artifacts)
@@ -383,6 +392,7 @@ class Engine:
                       allow_tech=True)
             if pack not in out.artifacts:
                 out.artifacts.append(pack)
+        self._render_formats(ws, key, s, ctx, out)
         usage = call.usage.as_dict()
         if call.fallback_reason:
             usage["models"] = [f"simulated (bound to {call.binding['provider']['type']}:{call.binding['model']})"]
@@ -392,7 +402,14 @@ class Engine:
             usage["models"] = ["no model call needed (rule-based stage)"]
         self._update(ws, lambda x: (x["usage"].__setitem__(s["agent"], self._merge_usage(x["usage"].get(s["agent"]), usage)),
                                     x["stages"][key].update(attempts=x["stages"][key].get("attempts", 0) + 1, finished=now_iso(),
-                                                            summary=out.summary, artifacts=out.artifacts)))
+                                                            summary=out.summary, artifacts=out.artifacts,
+                                                            council=council.summary(reviews) if reviews else None)))
+        if reviews:
+            cu = {"fallback": None, "calls": 0, "input_tokens": 0, "output_tokens": 0, "tokens": 0, "llm_cost_usd": 0.0,
+                  "seconds": 0.0, "models": []}
+            for r in reviews:
+                cu = self._merge_usage(cu, {**r["usage"], "fallback": None})
+            self._update(ws, lambda x: x["usage"].__setitem__("council", self._merge_usage(x["usage"].get("council"), cu)))
         if not out.request_gate:
             self._envelope(ws, s["agent"], "human", s["envelope_stage"], "ready", None, out, usage=usage)
             self._update(ws, lambda x: (x["stages"][key].update(status="done"), x.update(status="completed", current=None)))
@@ -401,6 +418,64 @@ class Engine:
         gate = s["gates"][0]
         self._envelope(ws, s["agent"], s["next_agent"], s["envelope_stage"], "needs-approval", gate, out, usage=usage)
         self._request(ws, key, gate, out)
+
+    def _council(self, ws, s: dict, ctx, runner, out, call):
+        """Three independent reviewers read the stage output before it is handed over. Two approvals pass it on;
+        otherwise the agent revises with the findings (a limited number of times). The report goes to the gate."""
+        cfg = ws.run.get("council") or {}
+        if not cfg.get("enabled") or len(cfg.get("members") or []) < 3:
+            return out, []
+        stopped = lambda: self._state(ws).get("status") == "stopped"  # noqa: E731
+        max_rev = max(0, min(3, int(cfg.get("max_revisions", 1))))
+        reviews: list[dict] = []
+        for rnd in range(1, max_rev + 2):
+            self.event(ws, f"Council of three is reviewing the {s['label']} output (round {rnd})", "stage")
+            rep = council.review(self, ws, s, out, cfg, rnd, stopped)
+            reviews.append(rep)
+            votes = ", ".join(f"{m['name']}: {m['verdict']}" for m in rep["members"])
+            self.event(ws, f"Council on {s['label']}: {rep['approvals']} of 3 approve ({votes})",
+                       "gate" if rep["outcome"] == "passed" else "warn")
+            if rep["outcome"] == "passed" or rnd > max_rev or call.simulated or not rep["feedback"]:
+                break
+            self.event(ws, f"{s['agent']} is revising the {s['label']} output from the council's findings", "stage")
+            ctx.feedback = ((ctx.feedback + "\n\n") if ctx.feedback else "") + rep["feedback"]
+            out = runner(ctx)
+            self._refuse_if_stopped(self._state(ws))
+        rel = f"{s['folder']}/council-review.md"
+        ctx.write(rel, council.report_md(s, reviews), allow_tech=True)
+        if rel not in out.artifacts:
+            out.artifacts.append(rel)
+        return out, reviews
+
+    def _render_formats(self, ws, key: str, s: dict, ctx, out) -> None:
+        """Hand the stage's documents over in the format chosen for this stage, next to the Markdown originals."""
+        fmt = (self._state(ws).get("output_formats") or {}).get(key, "markdown")
+        if fmt == "markdown" or fmt not in formats.FORMATS:
+            return
+        ext, made = formats.FORMATS[fmt]["ext"], 0
+        for src in [a for a in out.artifacts if a.endswith(".md") and ws.has(a)]:
+            target = f"{src[:-3]}.{ext}"
+            content = formats.render(ws.read(src), fmt, f"{s['label']} - {src.split('/')[-1][:-3]} ({ws.run_id})")
+            if isinstance(content, bytes):
+                digest = ws._raw_write(target, content)
+                ws.log_action({"agent": s["agent"], "action": "write_artifact", "class": "A1", "target": target,
+                               "phase": "done", "sha256": digest, "rendered_from": src})
+            else:
+                ctx.write(target, content, allow_tech=True)
+            if target not in out.artifacts:
+                out.artifacts.append(target)
+            made += 1
+        if made:
+            self.event(ws, f"{s['label']}: {made} document(s) also written as {formats.FORMATS[fmt]['label']}", "agent")
+
+    def set_output_format(self, run_id: str, key: str, fmt: str) -> dict:
+        """Choose the document format for one stage. Applies the next time that stage runs."""
+        if key not in STAGE_KEYS or fmt not in formats.FORMATS:
+            raise ValueError(f"Unknown stage or output format; formats are {', '.join(formats.FORMATS)}")
+        ws = self.ws(run_id)
+        st = self._update(ws, lambda x: x.setdefault("output_formats", {}).__setitem__(key, fmt))
+        self.event(ws, f"Output format for {stage(key)['label']} set to {formats.FORMATS[fmt]['label']}", "info")
+        return st["output_formats"]
 
     @staticmethod
     def _merge_usage(a: dict | None, b: dict) -> dict:

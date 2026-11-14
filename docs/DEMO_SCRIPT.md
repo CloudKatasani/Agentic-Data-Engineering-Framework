@@ -100,6 +100,10 @@ people attach it from where it already lives."
 - **Show drift protection:** after approving G1, open `01-requirements/requirements.md`, click
   **Edit as human**, change one line, and save. The G1 approval turns *stale* and the gate must be
   re-requested.
+- **Council of three:** before each gate opens, three reviewers on three different models check the
+  agent's output; the gate card shows their verdicts and **Read the review** opens the findings. The
+  lane shows `council 3/3` under the agent. "The agents check each other before a person spends time."
+- **Output format:** on Review & launch set a stage to Word; at its gate, open the `.docx` artifact.
 - **Per-artifact review:** every gate lists its artifacts with **Approve** / **Reject** on each one
   (or **Approve all**). Each verdict is bound to that artifact's hash. One **Submit review** button
   covers every role the named person holds.

@@ -86,6 +86,11 @@ def _agent_defs() -> list[dict]:
     return out
 
 
+def _formats() -> dict:
+    from ..engine.formats import FORMATS
+    return FORMATS
+
+
 @app.get("/api/health")
 def health():
     # the display name is configurable so the console can carry a client-facing or programme name
@@ -103,6 +108,7 @@ def catalog():
             "presets": stacks.PRESETS, "domain_packs": list_packs(), "exporters": exports.list_exporters(),
             "dialects": list(exports.ph.DIALECT_LABELS.items()), "stages": STAGES, "gate_labels": GATE_LABELS,
             "gate_roles": GATE_ROLES, "role_labels": ROLE_LABELS, "agents": _agent_defs(),
+            "output_formats": {k: v["label"] for k, v in _formats().items()},
             "action_table": [{"action": a, "class": c, "gate": g, "per_action": p} for a, (c, g, p) in ACTION_TABLE.items()]}
 
 
@@ -484,6 +490,59 @@ def run_file(rid: str, path: str):
     if not p.is_file():
         raise HTTPException(404, "no such file")
     return Response(p.read_text(errors="replace"), media_type="text/plain; charset=utf-8")
+
+
+@app.get("/api/runs/{rid}/download")
+def run_file_download(rid: str, path: str):
+    """Download an artifact as it is stored (needed for Word documents)."""
+    ws = engine().ws(rid)
+    p = ws.path(path)
+    if not p.is_file():
+        raise HTTPException(404, "no such file")
+    return FileResponse(p, filename=p.name)
+
+
+@app.get("/api/runs/{rid}/file-as")
+def run_file_as(rid: str, path: str, format: str = "html"):
+    """Download any Markdown artifact converted to another format, without changing the run."""
+    from ..engine import formats
+    ws = engine().ws(rid)
+    p = ws.path(path)
+    if not p.is_file() or not path.endswith(".md"):
+        raise HTTPException(404, "no such Markdown artifact")
+    try:
+        content = formats.render(p.read_text(errors="replace"), format, f"{p.stem} ({rid})")
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+    f = formats.FORMATS[format]
+    return Response(content if isinstance(content, bytes) else content.encode(), media_type=f["media"],
+                    headers={"Content-Disposition": f'attachment; filename="{p.stem}.{f["ext"]}"'})
+
+
+@app.put("/api/runs/{rid}/stages/{key}/output-format")
+def stage_output_format(rid: str, key: str, body: dict = Body(...)):
+    try:
+        return engine().set_output_format(rid, key, body.get("format", ""))
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+
+
+@app.put("/api/settings/council")
+def put_council(body: dict = Body(...)):
+    """The three reviewers that check every stage output before handover, for runs created from now on."""
+    members = body.get("members") or []
+    known = {p["id"] for p in settings.load()["providers"]}
+    if len(members) != 3:
+        raise HTTPException(400, "The council has exactly three reviewers")
+    clean = []
+    for m in members:
+        if m.get("provider_id") not in known or not str(m.get("model") or "").strip() or not str(m.get("lens") or "").strip():
+            raise HTTPException(400, "Each reviewer needs a known provider, a model and a lens")
+        clean.append({"name": str(m.get("name") or "Reviewer").strip()[:60], "provider_id": m["provider_id"],
+                      "model": str(m["model"]).strip(), "lens": str(m["lens"]).strip()[:500]})
+    return settings.update("council", {"enabled": bool(body.get("enabled", True)),
+                                       "max_revisions": max(0, min(3, int(body.get("max_revisions", 1)))),
+                                       "members": clean})["council"]
 
 
 @app.put("/api/runs/{rid}/file")

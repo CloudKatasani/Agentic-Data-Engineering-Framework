@@ -86,6 +86,7 @@ class AgentCall:
         self.fallback_reason: str | None = None   # set when a configured provider is simulated for a demo
         self.context: str = ""                    # context attached by the team for this stage (untrusted data block)
         self.stopped: Callable[[], bool] = lambda: False   # emergency stop: checked before and during every call
+        self.system_override: str | None = None            # council reviewers use their own system prompt
 
     def _halt_if_stopped(self) -> None:
         if self.stopped():
@@ -100,7 +101,7 @@ class AgentCall:
         slow or unreachable model can never leave a stage silently "running"."""
         self._halt_if_stopped()
         t0 = time.time()
-        kw = dict(system=system_prompt(self.agent), prompt=prompt, model=self.binding["model"],
+        kw = dict(system=self.system_override or system_prompt(self.agent), prompt=prompt, model=self.binding["model"],
                   max_tokens=int(max_tokens or self.binding.get("max_tokens") or 16000),
                   effort=self.binding.get("effort") or "medium")
         if self.simulated:

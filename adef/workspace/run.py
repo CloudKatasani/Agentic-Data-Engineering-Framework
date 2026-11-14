@@ -108,7 +108,7 @@ class RunWorkspace:
         return sha256_bytes(data)
 
     def read(self, rel: str) -> str:
-        return self.path(rel).read_text()
+        return self.path(rel).read_text(errors="replace")
 
     def read_yaml(self, rel: str) -> Any:
         return yaml.safe_load(self.read(rel))
