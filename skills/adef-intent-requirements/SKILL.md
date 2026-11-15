@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs read/write to the run workspace and read access to the catalog and glossary. Load adef-shared-guardrails first.
 metadata:
   owner: adef-platform
-  version: "1.1.0"
+  version: "1.2.0"
   role: requirements-analyst
   stage: "1-business-intent-to-requirements"
   gate: G1
@@ -40,6 +40,16 @@ test, without saying how it will be built.
 | Access to the catalog (metadata only) | if available |
 
 Reject the handoff if the brief lacks a named Product Owner or a stated business outcome.
+
+## Context this stage needs
+
+| Needed | Usually found in | If it is missing |
+|---|---|---|
+| User stories with acceptance criteria | Jira | Derive requirements from the brief and mark each acceptance criterion `assumption` for the Product Owner |
+| Business glossary and KPI definitions | Confluence, an uploaded glossary | A measure with no agreed definition is a blocking open question for the Data Steward |
+| Business rules and workshop decisions | Confluence, notes | State the rule as an open question with the example you need; do not write a plausible rule |
+
+Cite the source of every requirement: a Jira key, a `CTX` ID or the intake brief.
 
 ## Tasks
 
@@ -111,6 +121,15 @@ could).
   customer, account or employee into a requirement.
 - State who is accountable for each requirement (a role and a named person from the run).
 
+## Self-review before handover
+
+- *Accuracy.* Every requirement cites its source. Every measure has an agreed definition
+  or a blocking open question. No requirement restates another.
+- *Risk.* Every data need is classified. Every Domain Pack control is an `NFR-###` or is
+  marked not applicable with a reason. No real person or account appears in an example.
+- *Handover.* The mapping analyst can tell from each requirement which attributes,
+  grain and history are needed. Acceptance criteria use numbers a test can check.
+
 ## Outputs
 
 | File | Required content |
@@ -128,6 +147,20 @@ could).
 - Zero blocking open questions. Zero technology terms.
 - Every Domain Pack control appears as an `NFR-###` or is marked not applicable with a reason.
 - G1 approval recorded against the document hashes.
+
+## Worked example
+
+Good:
+> `REQ-003` (must, source `jira:UTIL-4`) For each billing month, show billed and metered
+> consumption per account so that Revenue Assurance can find accounts billed below metered use.
+> Acceptance: Given an account metered at 500 units and billed for 450 in March, when the
+> month is closed, then the shortfall shown for March is 50 units.
+
+Rejected:
+> The solution should load consumption data nightly into the warehouse and be fast.
+
+Why: it says how, not what; no consumer or question; "fast" has no number; nothing a
+test can check.
 
 ## Common failure modes
 

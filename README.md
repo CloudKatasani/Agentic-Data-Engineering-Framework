@@ -347,6 +347,35 @@ Generated code targets dbt, Spark SQL pipelines, Dataform or portable SQL, plus 
 Workflows, ADF, Snowflake tasks or Dagster, CI for GitHub Actions, GitLab, Azure Pipelines or Jenkins,
 and Terraform. The choice follows the Stack Profile.
 
+## How the agent skills are written
+
+Each agent's instructions are its definition in `agents/` plus every skill it declares in `skills/`
+(shared guardrails first, then its stage skill, then stack binding where declared). All skills are at
+version 1.2.0 and every stage skill has the same sections, in the same order:
+
+| Section | Purpose |
+|---|---|
+| Mission, Use when, Do not use for, Inputs | Scope and entry conditions |
+| Context this stage needs | What the agent needs beyond upstream work, where it usually lives, and what to do when it is missing |
+| Tasks, Decision rules, Do, Do not, Escalate | How the work is done and where it stops |
+| Enterprise controls | Controls for client environments |
+| Self-review before handover | Stage checks under the three council lenses: accuracy, risk, handover |
+| Outputs, Definition of done | What is handed over; the review council judges against the definition of done |
+| Worked example | One accepted and one rejected example, with the reason |
+| Common failure modes | Known ways the stage goes wrong and what prevents each |
+
+The shared guardrails add three rules that apply to every agent:
+
+- **Grounding (section 11).** A client fact comes from an approved upstream artifact, attached context
+  (`CTX-###`), the Domain Pack or Stack Profile, or evidence the agent gathered. General knowledge is for
+  method only. A missing fact becomes an assumption or an open question, never an invention.
+- **Identifiers, confidence and labels (section 12).** IDs are permanent across rework. `high`, `medium`
+  and `low` confidence have fixed meanings. Every statement is a fact, an assumption or an open question.
+- **Review and rework (section 13).** Self-review before handover; on returned work fix exactly what was
+  reported, keep IDs, and say what changed.
+
+`tests/test_skills.py` keeps this structure, the versions and what each agent receives under test.
+
 ## Guardrails: rule → mechanism
 
 | Rule | Mechanism (code) |

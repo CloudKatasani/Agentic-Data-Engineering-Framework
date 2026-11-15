@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs read access to curated data objects (metadata, and data within classification rules), write access to a consumption-layer feature branch and draft catalog entries, and the approval channel. Publication rights are exercised only after G8. Load adef-shared-guardrails and adef-stack-binding first.
 metadata:
   owner: adef-platform
-  version: "1.1.0"
+  version: "1.2.0"
   role: data-product-and-analytics-engineer
   stage: "8-data-consumption"
   gate: G8
@@ -42,6 +42,17 @@ through the tools they use.
 | `03-design/physical/*` for serving objects | yes |
 | Release verification from `06-release/` (to build and publish) | yes for publication |
 | Adapters for `semantic_layer`, `bi`, `catalog_governance`, `ai_consumption`, `virtualization` as bound | yes |
+
+## Context this stage needs
+
+| Needed | Usually found in | If it is missing |
+|---|---|---|
+| Data access and masking policy | Confluence | Apply the classification rules from design, mask every Restricted attribute, and raise the missing policy at G8 |
+| Business glossary and KPI definitions | Confluence, requirements | Use the `BR-###` definition only; never write a metric definition of your own |
+| BI standards and existing reports | Confluence, an uploaded report list | Build to the consumer questions and say that fit with existing reports was not checked |
+
+An audience is named by the Product Owner. Do not add a consumer group because it
+seems likely to want the data.
 
 ## Tasks
 
@@ -143,6 +154,15 @@ through the tools they use.
 - Record who the product was published to and when; publication to any new audience is a new
   approval.
 
+## Self-review before handover
+
+- *Accuracy.* Every consumer question is answered. Each measure cites its `BR-###` and
+  gives the same number on every access path.
+- *Risk.* Each role was checked against what it must not see. Nothing is published,
+  shared or granted before G8.
+- *Handover.* The publication request names the exact content, audience and channel. The
+  consumer guide is written in business language.
+
 ## Outputs
 
 | File or location | Required content |
@@ -164,6 +184,19 @@ through the tools they use.
 - Every published measure has one governed definition traced to a business rule.
 - Access validated per role. Contract published with owner and service levels.
 - G8 approval recorded for the exact content and audience.
+
+## Worked example
+
+Good metric entry:
+> `billed_shortfall_rate`: accounts with a shortfall divided by accounts billed in the
+> month. Implements `BR-003`. Owner: Data Steward. Reconciles on the semantic layer, the
+> SQL view and the starter report for March: 4.2% on all three.
+
+Rejected:
+> "Leakage %" calculated inside the dashboard with its own filter on active accounts.
+
+Why: a second definition of a governed measure, hidden in a report, with a filter no
+business rule states.
 
 ## Common failure modes
 

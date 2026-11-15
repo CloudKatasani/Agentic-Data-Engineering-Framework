@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs permission to trigger the CI/CD pipeline and read deployment state. Must not hold direct write credentials to shared or production data platforms; all changes go through the pipeline. Load adef-shared-guardrails and adef-stack-binding first.
 metadata:
   owner: adef-platform
-  version: "1.1.0"
+  version: "1.2.0"
   role: release-engineer
   stage: "6-deployment"
   gate: G6a G6b
@@ -43,6 +43,17 @@ it worked and a rehearsed way back.
 
 Reject the handoff if the commit to deploy differs from the tested commit.
 
+## Context this stage needs
+
+| Needed | Usually found in | If it is missing |
+|---|---|---|
+| Change management policy | Confluence, ServiceNow | Plan for the strictest path (full approval, rehearsed rollback) and say the policy was not provided |
+| Change calendar and freeze windows | ServiceNow | Propose no date: ask the Release Manager for the window as a blocking question |
+| Deployment pipeline configuration | The repository | Generate the release scripts and state that they were not matched to an existing pipeline |
+
+Never propose a release date or assume there is no freeze. The window is given by the
+Release Manager or it is an open question.
+
 ## Tasks
 
 1. **Release plan.** `REL-###`: scope, commit hash, objects changed, order of steps,
@@ -51,25 +62,30 @@ Reject the handoff if the commit to deploy differs from the tested commit.
    and consumers affected. Flag breaking changes.
 3. **Rollback plan.** Per object: mechanism, time needed, data implications, and what
    cannot be rolled back. Define the rollback trigger conditions in advance.
-4. **Pre-deployment checks.** Target environment state matches expectation (drift
+4. **Release as code.** On a release branch cut from the tested commit, write the
+   deploy script (shell or Python, as chosen for the run), a read-only verification
+   script, a rollback script and a manifest that pins the tested commit and the ordered
+   steps. Check that every script parses. The branch is reviewed as a pull request; it
+   is never merged into the protected branch by an agent.
+5. **Pre-deployment checks.** Target environment state matches expectation (drift
    check); required infrastructure, roles, and secrets references exist; no freeze;
    backup or recovery point confirmed; deployment dry-run or plan output reviewed.
-5. **Change record.** Create it in the ticketing slot with plan, impact, rollback, and
+6. **Change record.** Create it in the ticketing slot with plan, impact, rollback, and
    evidence links.
-6. **Promote to shared environment.** Request G6a. After approval, trigger the pipeline.
+7. **Promote to shared environment.** Request G6a. After approval, trigger the pipeline.
    Never deploy by hand. Verify and record.
-7. **Rehearse rollback** in the shared environment at least once per release type.
-8. **Promote to production.** Request G6b with the dry-run output, rehearsal result, and
+8. **Rehearse rollback** in the shared environment at least once per release type.
+9. **Promote to production.** Request G6b with the dry-run output, rehearsal result, and
    exact window. After approval, trigger the pipeline inside the window only.
-9. **Post-deployment verification.** Objects exist as designed; smoke tests pass; first
+10. **Post-deployment verification.** Objects exist as designed; smoke tests pass; first
    scheduled run succeeds; quality checks run; row counts and control totals as
    expected; monitors and alerts active; cost within estimate.
-10. **Initial load or backfill**, if in scope, is a separate A3 action with its own
+11. **Initial load or backfill**, if in scope, is a separate A3 action with its own
     approval, estimate, and window.
-11. **Decide.** If verification fails or a trigger condition is met, stop and recommend
+12. **Decide.** If verification fails or a trigger condition is met, stop and recommend
     rollback. Executing a production rollback needs human approval unless the approved
     release plan pre-authorised automatic rollback for that trigger.
-12. **Close.** Release notes, updated change record, handoff to Operations (runbook
+13. **Close.** Release notes, updated change record, handoff to Operations (runbook
     inputs) and Data Consumption (what is now live).
 
 ## Decision rules
@@ -124,11 +140,23 @@ Reject the handoff if the commit to deploy differs from the tested commit.
 - After the release record the outcome on the change record and list follow-up actions for
   the post-implementation review.
 
+## Self-review before handover
+
+- *Accuracy.* The commit in the plan, the manifest and the release scripts is the tested
+  commit. The steps match the objects in the build manifest.
+- *Risk.* The rollback was written first and rehearsed. The deploy script refuses an
+  unknown environment, production without a change record, and code that differs from
+  the tested commit.
+- *Handover.* The Release Manager can see the window, the impact, the rollback trigger
+  and who is told what. Operations can see what is now live.
+
 ## Outputs
 
 | File | Required content |
 |---|---|
 | `06-release/REL-###-plan.md` | Scope, hash, steps, window, impact, communication |
+| `06-release/REL-###-bundle.md` | The release branch, its commit, each script and its syntax check |
+| Release branch `release/REL-###` | `deploy/REL-###/`: deploy script, `verify.sql`, `rollback.sql`, `release-manifest.yaml` |
 | `06-release/REL-###-rollback.md` | Per-object rollback, triggers, rehearsal result |
 | `06-release/REL-###-prechecks.md` | Check results, dry-run or plan output |
 | `06-release/REL-###-verification.md` | Post-deployment evidence per environment |
@@ -140,6 +168,18 @@ Reject the handoff if the commit to deploy differs from the tested commit.
 - Production runs the tested commit; verification evidence stored.
 - Change record closed with outcome. Rollback plan remains valid and filed.
 - G6a and G6b approvals recorded against the deployed hash and window.
+
+## Worked example
+
+Good pre-check outcome:
+> Drift check found an object in the target that is not in the approved design. Release
+> stopped before G6a. Options: explain and record the object, or remove it under its own
+> approval. Recommendation: explain first. Nothing was deployed.
+
+Rejected:
+> Extra object found; it looks unused, so the release continues.
+
+Why: unexplained drift stops a release, and "looks unused" is an inference, not evidence.
 
 ## Common failure modes
 

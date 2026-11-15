@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs read access to the repository and all upstream artifacts, an isolated test sandbox, and the ability to run the stack's test tooling. Must run as a separate agent from adef-pipeline-build. Load adef-shared-guardrails and adef-stack-binding first.
 metadata:
   owner: adef-platform
-  version: "1.1.0"
+  version: "1.2.0"
   role: quality-engineer
   stage: "5-testing"
   gate: G5
@@ -49,6 +49,17 @@ business-rule examples, mapping rows, and trusted reconciliation numbers.
 
 Reject the handoff if the manifest's commit hash does not match the branch head.
 
+## Context this stage needs
+
+| Needed | Usually found in | If it is missing |
+|---|---|---|
+| Test strategy and data quality thresholds | Confluence | Test against the `DQ-###` thresholds from mapping and say that no client strategy was applied |
+| Known defects and past incidents | Jira, ServiceNow | State that regression coverage is limited to this run's requirements |
+| A trusted figure to reconcile against | An uploaded report, a note from the Product Owner | Reconcile source to target only, and list the missing trusted figure as an untested item |
+
+A threshold or a tolerance is agreed by a person. If none was given, the test reports
+the measured value and asks for the threshold; it does not choose one.
+
 ## Tasks
 
 1. **Plan.** Build `05-test/test-plan.md`: a coverage matrix of every `REQ`, `BR`, `NFR`,
@@ -66,7 +77,11 @@ Reject the handoff if the manifest's commit hash does not match the branch head.
    point, incremental correctness across three cycles, history correctness, late and
    duplicate handling, empty-source handling.
 7. **Reconciliation.** Source-to-target counts and control totals; where a trusted
-   existing number exists, reconcile to it within the stated tolerance.
+   existing number exists, reconcile to it within the stated tolerance. Rehearse the
+   three pipelines end to end against the run's source database and reconcile each
+   governed metric between the gold layer and the analytics layer. A defect in the
+   source data itself (an orphan, a duplicate, a value out of range) is a finding for
+   the Data Steward, reported separately from defects in the build.
 8. **Non-functional checks.** Runtime and cost on a representative synthetic volume
    against the `NFR` numbers and the design estimate. Extrapolate transparently.
 9. **Security and access checks.** Role-based access behaves as designed; masking and
@@ -135,6 +150,15 @@ Reject the handoff if the manifest's commit hash does not match the branch head.
   edited after the run.
 - A waiver is requested from, and recorded against, a named approver with an expiry date.
 
+## Self-review before handover
+
+- *Accuracy.* Expected results come from requirements and business-rule examples, never
+  from the code. Every result carries the commit hash it was run on.
+- *Risk.* Each test was seen to fail once. Masking and access were tested with a role
+  that must be refused. No production or Restricted data was used.
+- *Handover.* The evidence pack states plainly what passed, what failed and what was
+  not tested, so the Tech Lead and Product Owner can decide G5 from it alone.
+
 ## Outputs
 
 | File | Required content |
@@ -151,6 +175,20 @@ Reject the handoff if the manifest's commit hash does not match the branch head.
 - Evidence pack complete and reproducible from the recorded commands.
 - Exit criteria met, or exceptions explicitly approved.
 - G5 approval recorded against the tested commit hash.
+
+## Worked example
+
+Good:
+> `TC-031` covers `BR-002`. Expected shortfall 50, taken from the rule's worked example.
+> Seeded a billed value of 500 first: the test failed as it should. Restored the data: it
+> passes on commit `a1b2c3d`. Evidence: `05-test/results/…json`.
+
+Rejected:
+> `TC-031` passes: the output of the transformation equals the output of the same
+> transformation.
+
+Why: the expected value comes from the code under test, the test was never seen to
+fail, and no commit is recorded.
 
 ## Common failure modes
 
