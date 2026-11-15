@@ -3,6 +3,13 @@
 > **Naming.** This pack was first written as ADPE ("Autonomous Data Platform Engineering"). It was
 > renamed to ADEF to match the project name; agent and skill IDs changed from `adpe-*` to `adef-*`.
 > `adpe-framework-spec-pack.zip` is the original upload, kept unchanged for reference.
+> The product built from this pack is shown to users as *DataCrew- BuildWithAI*; the
+> framework, agent and skill identifiers keep the name ADEF.
+
+> **Status.** `BUILD_SPEC.md` is at version 2.0 and describes the product as built: what is
+> built, partly built and not built, the capabilities added since version 1.0, and the
+> known limits. The skills are at version 1.2.0. In the repository the agent files live in
+> `agents/` and the skills in `skills/` at the top level.
 
 A platform-agnostic, approval-gated team of nine AI agents that automates the data
 engineering lifecycle:
@@ -53,12 +60,16 @@ Every stage skill uses the same sections, so they are easy to compare and audit:
 | Mission | What this agent is for, in one or two sentences |
 | Use when / Do not use for | Scope boundary with neighbouring agents |
 | Inputs | What must exist before it starts, and when to reject the handoff |
+| Context this stage needs | What the agent needs beyond upstream work, where it usually lives, and what to do when it is missing |
 | Tasks | Numbered procedure |
 | Decision rules | How to choose when there is a choice |
 | Do / Do not | Positive and negative instructions |
 | Escalate to the human when | Approval and escalation triggers |
+| Enterprise controls | Controls for client environments |
+| Self-review before handover | Stage checks under the review council's three lenses |
 | Outputs | Files and their required content |
-| Definition of done | Success criteria |
+| Definition of done | Success criteria; the review council judges against it |
+| Worked example | One accepted and one rejected example, with the reason |
 | Common failure modes | What goes wrong and how it is prevented |
 
 ## Three design ideas to keep hold of
@@ -82,16 +93,18 @@ Every stage skill uses the same sections, so they are easy to compare and audit:
 - Validate with the reference validator (`skills-ref validate ./skills/<name>`) when you
   install the pack.
 - The `agents/` files use a sub-agent definition layout (`name`, `description`, `model`,
-  `skills`, then the prompt). Adjust the frontmatter keys to your runtime; the prompt
-  body is runtime-neutral. Set the model to Claude Fable 5.2 (`claude-fable-5-2`) where
-  your runtime does not inherit it.
-- Tool names in the example Stack Profiles are illustrations. No adapter content is
-  included: adapters must be written and conformance-tested for your launch stack
-  (backlog Epic E3).
+  `skills`, then the prompt, plus a published profile: `title`, `expects`, `produces`,
+  `does`, `does_not`). Adjust the frontmatter keys to your runtime; the prompt body is
+  runtime-neutral. In this product each agent's model provider and model are chosen in the
+  console, per agent and per run.
+- Tool names in the Stack Profiles are illustrations. No separate adapter library is
+  included: code generation for the reference stacks is built into the product, and
+  deployment to a client platform is still open (see `BUILD_SPEC.md`, section 7, open
+  backlog, and section 20, known limits).
 - The Domain Packs are starters. Their control lists are not legal or compliance advice
   and need review by the client's Security and Compliance owner before use.
 
 ## START HERE FIRST
 
-Open `BUILD_SPEC.md` and go to the last section, **START HERE FIRST**: five questions
-to answer, then the first five backlog tasks.
+Open `BUILD_SPEC.md` and go to the last section, **START HERE FIRST**: start the product,
+run the guardrail suite, complete one run, then answer six questions for a real run.
