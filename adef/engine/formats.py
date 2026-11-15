@@ -236,7 +236,7 @@ def to_docx(md: str, title: str) -> bytes:
         '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>',
         "docProps/core.xml": '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" '
-        f'xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>{_x(title)}</dc:title><dc:creator>DataCrew AI</dc:creator></cp:coreProperties>',
+        f'xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>{_x(title)}</dc:title><dc:creator>DataCrew- BuildWithAI</dc:creator></cp:coreProperties>',
         "word/styles.xml": styles, "word/document.xml": document,
     }
     buf = io.BytesIO()

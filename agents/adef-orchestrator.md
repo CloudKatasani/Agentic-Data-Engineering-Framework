@@ -1,7 +1,7 @@
 ---
 name: adef-orchestrator
 title: Orchestrator (delivery lead)
-description: Delivery lead of the DataCrew AI team. Sets up the run, frames the first slice, routes work between the specialist agents, asks the named people for approval at every gate, and assembles the final delivery pack. It coordinates; it does not do the specialists' work.
+description: Delivery lead of the DataCrew- BuildWithAI team. Sets up the run, frames the first slice, routes work between the specialist agents, asks the named people for approval at every gate, and assembles the final delivery pack. It coordinates; it does not do the specialists' work.
 model: inherit
 skills: adef-shared-guardrails, adef-orchestrator, adef-stack-binding
 expects:

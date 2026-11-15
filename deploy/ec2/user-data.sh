@@ -9,7 +9,7 @@
 # Any of ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, AZURE_OPENAI_API_KEY, AWS_BEARER_TOKEN_BEDROCK,
 # ADEF_API_TOKEN, ADEF_MASTER_KEY, ORACLE_PASSWORD, DB2_PASSWORD found under /adef/ are written to /opt/adef/.env.
 set -euo pipefail
-REPO_URL="${REPO_URL:-https://github.com/CloudKatasani/Agentic-Data-Engineering-Framework.git}"
+REPO_URL="${REPO_URL:-https://github.com/CloudKatasani/Agentic-Data-Engineering-Framework-BuildWithAI.git}"
 REPO_REF="${REPO_REF:-main}"
 DOMAIN="${DOMAIN:-}"            # set for automatic HTTPS (DNS A record must point at this instance)
 PROFILES="${PROFILES:-}"        # e.g. "oracle" or "oracle db2" to start synthetic source databases
