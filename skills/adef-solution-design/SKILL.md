@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs read/write to the run workspace and read access to the adapter library and catalog. No deployment access. Load adef-shared-guardrails and adef-stack-binding first.
 metadata:
   owner: adef-platform
-  version: "1.1.0"
+  version: "1.2.0"
   role: data-architect
   stage: "3-design"
   gate: G3
@@ -43,6 +43,17 @@ survive a change of technology with the logical half untouched.
 | Adapters for every bound slot | yes |
 
 Reject the handoff if any target attribute lacks a mapping or a recorded gap.
+
+## Context this stage needs
+
+| Needed | Usually found in | If it is missing |
+|---|---|---|
+| Architecture and naming standards | Confluence, the repository | Use the adapter defaults and record an ADR that says no client standard was provided |
+| Existing models and conformed dimensions | The repository, an uploaded model | State that reuse could not be checked; raise it as a risk at G3 |
+| Cost guardrails and capacity limits | Confluence, a note from the Platform Owner | Estimate against the run budget only and flag that platform limits are unknown |
+
+Prices, quotas and limits are client facts. Take them from the adapter cost model or
+attached context, and show the source next to each number.
 
 ## Tasks
 
@@ -139,6 +150,15 @@ rollback; cost estimate within budget or flagged; logical files free of vendor t
 - Use only tools, versions and regions the client has approved; anything else is a binding
   gap, not a substitution.
 
+## Self-review before handover
+
+- *Accuracy.* Every `REQ`, `BR`, `NFR`, `MAP` and `DQ` ID is in the traceability table.
+  The physical design changes nothing the logical design decided.
+- *Risk.* Every Restricted attribute has a named control. Every object has a rollback.
+  The cost estimate shows its arithmetic, its growth assumption and its source.
+- *Handover.* A builder could start any work package without asking a question. Nothing
+  says "to be decided during build".
+
 ## Outputs
 
 | File | Required content |
@@ -161,6 +181,22 @@ rollback; cost estimate within budget or flagged; logical files free of vendor t
 - Zero untraced requirements. Zero unreported binding gaps.
 - Every significant choice has an ADR. Cost estimate present and reconciled to budget.
 - G3 approval recorded.
+
+## Worked example
+
+Good decision record:
+> `ADR-002` History for the account dimension. Context: `REQ-004` needs the segment an
+> account had when it was billed. Options: keep current values only (cheapest, fails
+> `REQ-004`); keep full version history (meets it, more storage); snapshot monthly (meets
+> it at month grain only). Decision: full version history. Consequences: larger
+> dimension, every fact joins on the version valid at the event date. Reversal: rebuild
+> from the raw layer, about one day.
+
+Rejected:
+> We will keep history on all dimensions because it is best practice.
+
+Why: no requirement served, no options, no cost, no reversal; and it adds history
+nobody asked for.
 
 ## Common failure modes
 

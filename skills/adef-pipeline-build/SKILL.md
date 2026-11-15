@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs version-control access limited to feature branches, an ephemeral sandbox in the dev environment, and read access to the adapter library. No access to shared or production environments. Load adef-shared-guardrails and adef-stack-binding first.
 metadata:
   owner: adef-platform
-  version: "1.1.0"
+  version: "1.2.0"
   role: pipeline-engineer
   stage: "4-coding"
   gate: G4
@@ -43,6 +43,18 @@ implements the design exactly, and nothing else.
 Reject the handoff if a work package has no acceptance criteria or an object has no
 stated load pattern.
 
+## Context this stage needs
+
+| Needed | Usually found in | If it is missing |
+|---|---|---|
+| Coding standards and SQL style guide | The repository (`docs/`, `CONTRIBUTING.md`) | Follow the adapter pattern and list "no client style guide provided" in the build plan |
+| CI checks and branch rules | The repository (`.github/`, CODEOWNERS) | Generate the standard checks and state that they were not matched to an existing pipeline |
+| Pipeline templates and reusable components | The repository | Build from adapter patterns; do not invent a shared library |
+
+When the branch starts from the client's repository, their files are theirs: never
+overwrite an existing file. Report each collision in the build plan for a person to
+resolve.
+
 ## Tasks
 
 1. **Plan.** For each work package list the files to create or change, the adapter
@@ -51,8 +63,13 @@ stated load pattern.
    Name it `adef/<run_id>/<package-id>`.
 3. **Generate schema definitions** from the physical model, using adapter type maps and
    naming rules. Use only additive, re-runnable definitions.
-4. **Generate ingestion and transformation logic** from mapping rows. One mapping row
-   must be findable in code: put the `MAP-###` and `BR-###` IDs in comments or metadata.
+4. **Generate ingestion and transformation logic** from mapping rows, as the three
+   pipelines of the design: `01_ingest` (source to bronze, incremental on the change
+   watermark), `02_curate` (bronze to silver to gold) and `03_publish` (gold to the
+   analytics layer, with masked views). One mapping row must be findable in code: put
+   the `MAP-###` and `BR-###` IDs in comments or metadata. Write the curate pipeline in
+   the code output chosen for the run (the stack default, or PySpark jobs); the choice
+   changes the language, never the logic, the objects or where they run.
 5. **Generate orchestration definitions**: dependencies, schedule, parameters, retries,
    timeouts, alert hooks, per the pipeline design.
 6. **Generate data quality checks** from `DQ-###` rules with their thresholds and
@@ -121,13 +138,22 @@ stated load pattern.
 - The pull request passes lint, unit tests, the idempotency check, a secret scan and static
   analysis, and is reviewed by a code owner who did not write it.
 
+## Self-review before handover
+
+- *Accuracy.* Every `MAP`, `BR` and `DQ` ID in the work package is findable in the code.
+  The code does what the design says and nothing more.
+- *Risk.* No credential, hostname or environment name in code. Every load is safe to
+  re-run and was run twice. No statement is built from data values.
+- *Handover.* The pull request is reviewable in thirty minutes. The manifest lists the
+  commit, the files, the languages and the checks, including any that failed.
+
 ## Outputs
 
 | Location | Required content |
 |---|---|
-| Feature branch | Schema, ingestion, transformation, orchestration, quality checks, config, unit tests, object docs |
+| Feature branch | A code base, not documents: the three pipelines (`pipelines/01_ingest`, `02_curate`, `03_publish`) in the chosen code output, a runner for the analytics engine's command-line client, orchestration, quality checks, infrastructure, CI configuration and the helper scripts the CI runs |
 | `04-build/build-plan.md` | Files, patterns, tests per work package |
-| `04-build/build-manifest.yaml` | Branch, commit hash, objects, files, implemented `MAP`/`BR`/`DQ` IDs |
+| `04-build/build-manifest.yaml` | Branch, base and head commit, code output, languages, objects, files, implemented `MAP`/`BR`/`DQ` IDs, check results, and any existing client file that was kept instead of overwritten |
 | `04-build/local-results.md` | Lint, dry-run, unit test, idempotency results |
 | Pull request | Linked manifest and results |
 | Handoff envelope to `adef-test-quality`, status `ready` (G4 requested after tests pass) |
@@ -138,6 +164,20 @@ stated load pattern.
 - Lint clean, dry-run clean, unit tests pass, second run changes nothing.
 - No literal secrets or environment constants (scanner passes).
 - Pull request open with evidence attached. Sandbox torn down.
+
+## Worked example
+
+Good:
+> A merge on the business key, headed with `MAP-014, BR-002`, that gives the same row
+> counts and checksums when run twice, with a unit test built from the worked example in
+> `BR-002` (500 metered, 450 billed, shortfall 50).
+
+Rejected:
+> An append with no key, the schema name written into the statement, and a test that
+> compares the output with itself.
+
+Why: a re-run duplicates rows, the code only works in one environment, and the test
+cannot fail.
 
 ## Common failure modes
 

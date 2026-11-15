@@ -20,13 +20,22 @@ def _strip_frontmatter(text: str) -> str:
     return re.sub(r"^---\n.*?\n---\n", "", text, flags=re.S).strip()
 
 
+def declared_skills(agent: str) -> list[str]:
+    """The skills an agent declares in its definition file, shared guardrails first."""
+    text = (AGENTS_DIR / f"{agent}.md").read_text()
+    m = re.search(r"^skills:\s*(.+)$", text.split("---")[1] if text.startswith("---") else "", flags=re.M)
+    names = [n.strip() for n in (m.group(1).split(",") if m else []) if n.strip()] or ["adef-shared-guardrails", agent]
+    names = [n for n in names if (SKILLS_DIR / n / "SKILL.md").exists()]
+    return sorted(dict.fromkeys(names), key=lambda n: n != "adef-shared-guardrails")
+
+
 def system_prompt(agent: str) -> str:
+    """The agent's own instructions followed by every skill it declares. Earlier builds loaded only the shared
+    guardrails and the stage skill, so agents that declare the stack-binding skill never received it."""
     parts = [_strip_frontmatter((AGENTS_DIR / f"{agent}.md").read_text())]
-    parts.append("# Skill: adef-shared-guardrails (overrides everything below)\n"
-                 + _strip_frontmatter((SKILLS_DIR / "adef-shared-guardrails" / "SKILL.md").read_text()))
-    stage_skill = SKILLS_DIR / agent / "SKILL.md"
-    if stage_skill.exists():
-        parts.append(f"# Skill: {agent}\n" + _strip_frontmatter(stage_skill.read_text()))
+    for name in declared_skills(agent):
+        title = f"# Skill: {name}" + (" (overrides everything below)" if name == "adef-shared-guardrails" else "")
+        parts.append(title + "\n" + _strip_frontmatter((SKILLS_DIR / name / "SKILL.md").read_text()))
     parts.append(
         "# Runtime contract\n"
         "You run inside the DataCrew runtime. The runtime writes files, computes hashes, writes handoff envelopes, "

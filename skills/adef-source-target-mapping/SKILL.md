@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs read/write to the run workspace, metadata read access to source systems and the catalog, and capped read-only profiling. Load adef-shared-guardrails first.
 metadata:
   owner: adef-platform
-  version: "1.1.0"
+  version: "1.2.0"
   role: mapping-analyst
   stage: "2-mapping"
   gate: G2
@@ -41,6 +41,17 @@ so that design and code can be produced without guessing.
 | `control/domain-pack.yaml`, `control/stack-profile.yaml` (limits only) | yes |
 
 Reject the handoff if any `REQ-###` lacks acceptance criteria.
+
+## Context this stage needs
+
+| Needed | Usually found in | If it is missing |
+|---|---|---|
+| Source data dictionary or catalog export | An uploaded catalog export, Confluence | Map only columns you can see in metadata; everything else is a gap, never a guess |
+| Business rules for derived fields | Requirements (`BR-###`), Confluence | Stop on that attribute and return the missing rule to Requirements |
+| Known source data quality issues | Jira, ServiceNow, a note from the Data Steward | Say that quality rules are based on profiling alone and may miss known issues |
+
+A source column exists only if it appears in the metadata you were given. A column you
+expect to exist is a gap.
 
 ## Tasks
 
@@ -118,6 +129,15 @@ Reject the handoff if any `REQ-###` lacks acceptance criteria.
 - Give every quality rule an owner and a threshold agreed by the Data Steward; do not invent
   a threshold.
 
+## Self-review before handover
+
+- *Accuracy.* Coverage both ways: every in-scope attribute has one mapping or a gap, and
+  every mapping serves a requirement. Every derivation cites a `BR-###`.
+- *Risk.* Every attribute is classified. No raw value appears anywhere. Every `low`
+  confidence row names who must confirm it.
+- *Handover.* The designer can read keys, joins, cardinality and change-handling needs
+  without opening a source system. Each gap has options and an owner.
+
 ## Outputs
 
 | File | Required content |
@@ -138,6 +158,21 @@ Reject the handoff if any `REQ-###` lacks acceptance criteria.
 - Every mapping row has evidence and a confidence level; no `low` rows remain unconfirmed.
 - Every attribute is classified. No technology-specific syntax anywhere.
 - G2 approval recorded.
+
+## Worked example
+
+Good:
+> `MAP-014` target `billed_shortfall` | rule type: derived | sources: billing bill
+> `billed_units`, metering daily read `units` | rule: sum of metered units in the billing
+> period minus billed units; treat a missing read as an open gap, not as zero |
+> implements `BR-002` | confidence: high | evidence: data dictionary [CTX-003], profile
+> shows 0.4% of periods with missing reads.
+
+Rejected:
+> `MAP-014` `billed_shortfall` <- `BILL.SHORTFALL_AMT` (column name matches).
+
+Why: the column is not in the supplied metadata, the match is by name only, no rule is
+cited, and confidence is not stated.
 
 ## Common failure modes
 

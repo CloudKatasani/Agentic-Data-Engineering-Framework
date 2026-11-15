@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Runtime-neutral. Needs read access to the run workspace and to the adapter library. Load adef-shared-guardrails first.
 metadata:
   owner: adef-platform
-  version: "1.1.0"
+  version: "1.2.0"
   scope: shared
   used-by: orchestrator design build test release operations consumption
 ---
@@ -104,6 +104,21 @@ different stack.
   personal account) and where its audit logs go.
 - A capability the stack lacks is recorded as a binding gap with options. Never substitute
   an unapproved tool or a manual step.
+
+## Code output and the stack
+
+The code output chosen for Build and Release must be one the bound tools support. It
+selects the language the code is written in (for example scripts or jobs for the
+transformation slot, and the analytics engine's own SQL for publishing); it never moves
+a transformation to a different engine or adds a tool. A choice the stack cannot run is
+a binding gap.
+
+## Self-review before handover
+
+- Every slot is bound to a tool, version and region the client approved, or is a gap.
+- Nothing in a logical artifact names a tool. Nothing in any artifact holds a secret or
+  an environment constant.
+- Each gap has options and an owner; none was closed by substitution.
 
 ## Outputs
 

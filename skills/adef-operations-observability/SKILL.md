@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs read-only access to platform telemetry, orchestration state, quality results, and cost data, plus the ability to raise tickets. Production write actions are limited to pre-approved runbook actions. Load adef-shared-guardrails and adef-stack-binding first.
 metadata:
   owner: adef-platform
-  version: "1.1.0"
+  version: "1.2.0"
   role: reliability-and-finops-engineer
   stage: "7-operations"
   gate: G7
@@ -42,6 +42,16 @@ approval.
 | Operations and cost sections of the relevant adapters | yes |
 | Read-only telemetry, orchestration, quality, and cost data | yes |
 | On-call and escalation contacts in `control/run.yaml` | yes |
+
+## Context this stage needs
+
+| Needed | Usually found in | If it is missing |
+|---|---|---|
+| On-call runbook and service levels | Confluence | Derive monitors from the `NFR-###` numbers only; mark response times as open questions |
+| Past incidents on this data | ServiceNow, Jira | Say that monitors cover designed failure modes only, not known history |
+
+Contacts, on-call rotas and response times are client facts. Leave a named gap rather
+than a placeholder name or number.
 
 ## Tasks
 
@@ -149,6 +159,15 @@ pause a pipeline that is producing bad data; quarantine a bad batch as designed.
 - Plan and record a recovery test against the stated recovery targets.
 - Keep audit logs for the client's retention period and alert if logging stops.
 
+## Self-review before handover
+
+- *Accuracy.* Every service level and every blocking `DQ` rule has a monitor, a
+  threshold and a runbook entry. Incident causes are evidence-backed or declared unknown.
+- *Risk.* Nothing on the pre-approved list changes data, access, schedules or compute
+  size. No production data or personal data appears in a ticket or a runbook.
+- *Handover.* The on-call person can act from the runbook at night without context.
+  Every action shows its action class and who approves it.
+
 ## Outputs
 
 | File | Required content |
@@ -167,6 +186,21 @@ pause a pipeline that is producing bad data; quarantine a bad batch as designed.
 - Each incident has evidence-backed cause (or declared unknown), verified recovery, and
   prevention actions with owners.
 - No production change exists without a pre-approval or a G7 record.
+
+## Worked example
+
+Good incident note:
+> 02:10 freshness alert. 02:14 paused the schedule (pre-approved action 2). Evidence: the
+> source extract for the day is absent; the previous day loaded normally. Most likely
+> cause: late upstream extract (confidence medium; not yet confirmed by the source team).
+> Options: wait and run when it lands (safest); re-run now (loads nothing). No re-run
+> was made. Consumers not yet told: needs Product Owner approval.
+
+Rejected:
+> Job failed, restarted it, now green.
+
+Why: no evidence, no cause, an unapproved re-run, and nobody knows whether the data is
+complete.
 
 ## Common failure modes
 

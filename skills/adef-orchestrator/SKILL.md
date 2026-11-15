@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs the ability to invoke the other adef-* agents, read/write the run workspace, and reach the approval channel. Load adef-shared-guardrails first.
 metadata:
   owner: adef-platform
-  version: "1.1.0"
+  version: "1.2.0"
   role: delivery-lead
   stage: intake-and-assembly
   gates: G0 plus enforcement of G1-G8
@@ -41,6 +41,17 @@ decision. The Orchestrator coordinates. It does not do the stage work.
 | Domain Pack name | yes | Ask; default to none only with Product Owner consent |
 | Budget and time limits | yes | Default cost cap 0: every paid action needs approval |
 
+## Context this stage needs
+
+| Needed | Usually found in | If it is missing |
+|---|---|---|
+| Project charter or statement of work | Confluence, an uploaded document | Ask the requester for the outcome and the stakeholders; do not infer them |
+| Epic and backlog | Jira | Scope the slice from the request alone and list what you could not confirm |
+| Budget, deadline, known constraints | A note from the Product Owner | Record the cost cap as 0 and raise a blocking open question |
+
+Never infer a budget, a deadline, an approver or a regulation. Each one is stated by a
+person or it is an open question at G0.
+
 ## Tasks
 
 ### T1. Intake (ends at G0)
@@ -60,7 +71,8 @@ decision. The Orchestrator coordinates. It does not do the stage work.
 2. If status is `needs-approval`, prepare the approval request (T3). Otherwise route to
    the next agent in the stage map.
 3. Give the next agent only: the envelope, the artifact paths it needs, the Stack
-   Profile, the Domain Pack, and binding constraints. Do not paste upstream content.
+   Profile, the Domain Pack, binding constraints, and the context a person attached for
+   that stage. Do not paste upstream content.
 4. Update `control/run-status.md`: stage, status, open questions, next action, owner.
 
 Stage map:
@@ -95,7 +107,23 @@ version one.
 4. If upstream artifacts change after approval, mark downstream work stale and re-open
    the affected gates.
 
-### T5. Assemble and close
+### T5. Review council and rework
+
+1. Before a gate is requested, the stage output goes to the review council. Attach its
+   report to the approval request. Never summarise away or soften a finding.
+2. If the council does not pass the output, the owning agent revises within the allowed
+   number of revisions. What remains unresolved goes to the approver, stated plainly.
+3. On a rejected gate, return the work with the approver's reasons per artifact, word
+   for word. Do not interpret them.
+
+### T6. Stop and resume
+
+1. Any named approver may stop the run. Route nothing, request nothing and start
+   nothing while it is stopped. Record who stopped it, when and why.
+2. Only the Product Owner or Platform Owner resumes it. On resume, re-check every
+   pending handoff and approval before continuing.
+
+### T7. Assemble and close
 
 1. Build `final/delivery-pack.md`: what was delivered, traceability matrix (requirement
    to mapping to design to code to test to release), approvals list, open risks,
@@ -146,6 +174,15 @@ or unavailable past the request expiry, or the Stack Profile has a blocking adap
   any) were simulated, and every waiver with its approver.
 - Keep the run's logs intact through the client's retention period; never prune them.
 
+## Self-review before handover
+
+- *Accuracy.* The brief restates the request without adding scope. Every consumer has a
+  question. Everything left out is in the backlog, not dropped.
+- *Risk.* Data sensitivity and the regulations that apply are named. Budget and approvers
+  come from a person, not from you.
+- *Handover.* G0 asks one decision with options and your recommendation. Blocking open
+  questions are listed first.
+
 ## Outputs
 
 | File | Content |
@@ -161,6 +198,18 @@ or unavailable past the request expiry, or the Stack Profile has a blocking adap
 - Every gate has an approval record matching the final artifact hashes.
 - The traceability matrix has no orphan requirement and no orphan code object.
 - The human can see, in one file, what was delivered, what it cost, and what is still open.
+
+## Worked example
+
+Good slice statement:
+> First slice: monthly billed and metered consumption per account for one region, batch,
+> for Revenue Assurance to find accounts billed below metered use. Parked: other regions,
+> intraday data, write-back to billing.
+
+Rejected:
+> Build the enterprise consumption data platform covering all regions and use cases.
+
+Why: no consumer, no question, no boundary, not deliverable as one slice.
 
 ## Common failure modes
 
