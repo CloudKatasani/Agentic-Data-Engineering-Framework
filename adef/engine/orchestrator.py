@@ -233,10 +233,12 @@ class Engine:
             ws._raw_write("00-intake/inputs/source-metadata.json", json.dumps(p["source_metadata"], indent=2))
         if p.get("documents"):
             ws._raw_write("00-intake/inputs/documents.md", p["documents"])
-        wanted = {k: v for k, v in (p.get("output_formats") or {}).items() if v and v != "markdown"}
-        bad = [f"{k}={v}" for k, v in wanted.items() if k not in STAGE_KEYS or v not in formats.FORMATS]
+        wanted = {k: v for k, v in (p.get("output_formats") or {}).items() if v and k in STAGE_KEYS
+                  and v != formats.output_options(k, profile)["default"]}
+        bad = [f"{k}={v}" for k, v in (p.get("output_formats") or {}).items()
+               if v and (k not in STAGE_KEYS or v not in formats.output_options(k, profile)["options"])]
         if bad:
-            raise InputRejected(f"Unknown stage or output format: {', '.join(bad)}")
+            raise InputRejected(f"Unknown stage or output choice: {', '.join(bad)}")
         st = {"run_id": run_id, "status": "active", "created": now_iso(), "updated": now_iso(), "current": "intake",
               "output_formats": wanted,
               "stages": {s["key"]: {"status": "pending", "attempts": 0, "returns": 0} for s in STAGES},
@@ -468,13 +470,47 @@ class Engine:
         if made:
             self.event(ws, f"{s['label']}: {made} document(s) also written as {formats.FORMATS[fmt]['label']}", "agent")
 
-    def set_output_format(self, run_id: str, key: str, fmt: str) -> dict:
-        """Choose the document format for one stage. Applies the next time that stage runs."""
-        if key not in STAGE_KEYS or fmt not in formats.FORMATS:
-            raise ValueError(f"Unknown stage or output format; formats are {', '.join(formats.FORMATS)}")
+    # ------------------------------------------------------------------ code repository
+    def push_repo(self, run_id: str, by: str) -> dict:
+        """Push the run's feature and release branches to the configured Git repository, at a named person's request.
+        The protected branch is never pushed and nothing is forced: main changes only through a pull request there."""
+        from ..guardrails.actions import ActionGuard
+        from .gitrepo import PROTECTED, Repo, scrub
         ws = self.ws(run_id)
+        self._refuse_if_stopped(self._state(ws))
+        holders = ws.run.get("approvers") or {}
+        if by not in (holders.get("tech_lead"), holders.get("release_manager"), holders.get("platform_owner")):
+            raise GuardrailBlocked("named-approver-only",
+                                   "Only the run's Tech Lead, Release Manager or Platform Owner can push code to the Git repository")
+        remote = back.git_remote(self.settings.load())
+        if not remote:
+            raise ValueError("No Git repository is configured. Add one under Integrations → Code repository.")
+        root = ws.root / "repo"
+        if not (root / ".git").exists():
+            raise ValueError("There is no code yet: the Build stage creates the repository.")
+        repo = Repo(root)
+        refs = [b for b in repo.branches() if b not in PROTECTED]
+        if not refs:
+            raise ValueError("There is no feature or release branch to push")
+        target = scrub(remote[0])
+        out = ActionGuard(ws).execute("human", "push_branch_remote", f"{target} <- {', '.join(refs)}",
+                                      lambda: repo.push(remote[0], refs, remote[1]), justification=f"requested by {by}")
+        rec = {"at": now_iso(), "by": by, "remote": target, "branches": refs, "commits": {b: repo.head(b) for b in refs}}
+        self._update(ws, lambda x: x.setdefault("pushes", []).append(rec))
+        self.event(ws, f"{by} pushed {', '.join(refs)} to {target}. Open a pull request there to merge.", "action")
+        return {**rec, "output": out}
+
+    def set_output_format(self, run_id: str, key: str, fmt: str) -> dict:
+        """Choose what one stage hands over: a document format, or for Build and Release the code output.
+        Applies the next time that stage runs."""
+        if key not in STAGE_KEYS:
+            raise ValueError("Unknown stage")
+        ws = self.ws(run_id)
+        opts = formats.output_options(key, ws.stack)["options"]
+        if fmt not in opts:
+            raise ValueError(f"{stage(key)['label']} can produce: {', '.join(opts)}")
         st = self._update(ws, lambda x: x.setdefault("output_formats", {}).__setitem__(key, fmt))
-        self.event(ws, f"Output format for {stage(key)['label']} set to {formats.FORMATS[fmt]['label']}", "info")
+        self.event(ws, f"Output for {stage(key)['label']} set to: {opts[fmt]}", "info")
         return st["output_formats"]
 
     @staticmethod
@@ -819,7 +855,8 @@ class Engine:
         run = ws.run
         return {**st, "gates_detail": gates, "run": run, "stack": ws.stack, "stage_defs": STAGES, "gate_labels": GATE_LABELS,
                 "role_labels": ROLE_LABELS, "now": self._now(ws, st, gates), "team": self._team(ws, st),
-                "context_counts": {k: sum(1 for i in context_hub.items(ws) if i["stage"] in (k, "all")) for k in STAGE_KEYS}}
+                "context_counts": {k: sum(1 for i in context_hub.items(ws) if i["stage"] in (k, "all")) for k in STAGE_KEYS},
+                "output_options": {k: formats.output_options(k, ws.stack) for k in STAGE_KEYS}}
 
     def metrics(self, ws) -> dict:
         st = self._state(ws)

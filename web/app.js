@@ -365,6 +365,13 @@ function teamCard(st) {
 const CTX = { data: null, open: null };
 const srcLabel = (d, id) => d.sources[id]?.label || d.manual[id] || id;
 const stageLabel = (k) => (k === "all" ? "Every stage" : CATALOG.stages.find((s) => s.key === k)?.label || k);
+function ctxOutputRow(st, key, status) {
+  const o = st.output_options[key]; const code = o.kind === "code"; const cur = st.output_formats?.[key] || o.default;
+  if (Object.keys(o.options).length < 2) return `<div class="row small" style="margin-top:10px"><b>${code ? "Code output" : "Output format"}</b><span>${esc(Object.values(o.options)[0])}</span></div>`;
+  const later = code ? "This stage has already run: the new choice applies if you re-run it." : "This stage has already run: the new format applies if you re-run it. Any document can also be downloaded in another format from the Artifacts tab.";
+  return `<div class="row small" style="margin-top:10px;flex-wrap:wrap"><b>${code ? "Code output" : "Output format"}</b><select data-stage-fmt="${esc(key)}" style="width:auto;max-width:100%;padding:4px 8px">${Object.entries(o.options).map(([k, l]) => `<option value="${k}" ${cur === k ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>
+    <span class="muted">${["pending", "running"].includes(status) ? "Used when this stage runs." : later}</span></div>`;
+}
 function ctxItemUse(i, stageStatus) {
   if (i.pending_rework) return badge("awaiting-approval", "not used yet · rework the stage to apply");
   if (!i.last_used) return badge("", stageStatus === "running" ? "in use" : "ready for the agent");
@@ -396,13 +403,12 @@ async function renderContext(st, el) {
           ${s.items.map((i) => `<tr><td class="mono">${esc(i.id)}</td><td><a href="#" data-ctx-view="${esc(i.id)}">${esc(i.title)}</a><div class="muted">${i.chars.toLocaleString()} chars${i.truncated ? " · truncated" : ""}${i.secrets_redacted ? ` · ${i.secrets_redacted} secret(s) redacted` : ""}${i.injection_findings.length ? ' · <span style="color:var(--bad)">instruction-like text flagged; passed as data only</span>' : ""}</div></td>
             <td>${esc(srcLabel(d, i.source))}</td><td>${esc(i.added_by)}<div class="muted">${fmtTime(i.added_at)}</div></td><td>${ctxItemUse(i, status)}</td>
             <td><button class="btn small" data-ctx-del="${esc(i.id)}">Remove</button></td></tr>`).join("")}</tbody></table></div>` : `<div class="small muted" style="margin-top:10px">Nothing attached${s.stage === "all" ? " for every stage" : " for this stage"} yet.</div>`}
-        ${def ? `<div class="row small" style="margin-top:10px"><b>Output format</b><select data-stage-fmt="${esc(s.stage)}" style="width:auto;padding:4px 8px">${Object.entries(CATALOG.output_formats).map(([k, l]) => `<option value="${k}" ${(st.output_formats?.[s.stage] || "markdown") === k ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>
-          <span class="muted">${["pending", "running"].includes(status) ? "Used when this stage runs." : "This stage has already run: the new format applies if you re-run it. Any document can also be downloaded in another format from the Artifacts tab."}</span></div>` : ""}
+        ${def ? ctxOutputRow(st, s.stage, status) : ""}
         <div class="row" style="margin-top:10px"><button class="btn small" data-ctx-add="${esc(s.stage)}">Add context for ${esc(stageLabel(s.stage))}</button>
           ${s.items.some((i) => i.pending_rework) && ["awaiting-approval", "rejected", "failed"].includes(status) ? `<button class="btn small primary" data-ctx-rework="${esc(s.stage)}">Re-run ${esc(stageLabel(s.stage))} with the new context</button>` : ""}</div>
       </details>`;
     }).join("")}`;
-  $$("[data-stage-fmt]", el).forEach((x) => (x.onchange = async () => { await guard(() => api("PUT", `/runs/${RUN.id}/stages/${x.dataset.stageFmt}/output-format`, { format: x.value }), `Output format for ${stageLabel(x.dataset.stageFmt)} saved`); refreshRun(false); }));
+  $$("[data-stage-fmt]", el).forEach((x) => (x.onchange = async () => { await guard(() => api("PUT", `/runs/${RUN.id}/stages/${x.dataset.stageFmt}/output-format`, { format: x.value }), `Output for ${stageLabel(x.dataset.stageFmt)} saved`); refreshRun(false); }));
   $$(".ctx-stage", el).forEach((x) => x.addEventListener("toggle", () => { if (x.open) CTX.open = x.dataset.stage; }));
   $$("[data-ctx-add]", el).forEach((b) => (b.onclick = (e) => { e.preventDefault(); addContextDialog(st, b.dataset.ctxAdd, b.dataset.need || "", b.dataset.src || ""); }));
   $$("[data-ctx-del]", el).forEach((b) => (b.onclick = async () => { await guard(() => api("DELETE", `/runs/${RUN.id}/context/${b.dataset.ctxDel}?by=${encodeURIComponent(ctxPerson(st))}`), "Removed"); renderContext(st, el); }));
@@ -528,6 +534,28 @@ function renderCouncilCard(el, ready) {
     const members = $$("tr[data-cn]", el).map((tr) => Object.fromEntries($$("[data-c]", tr).map((x) => [x.dataset.c, x.value])));
     await guard(() => api("PUT", "/settings/council", { enabled: $("#cnOn").checked, max_revisions: +$("#cnRev").value, members }), "Council saved. It applies to runs created from now on.");
     await refreshSettings();
+  };
+}
+// The client's code repository: Build starts its branch from its main branch, and branches are pushed there.
+async function renderGitCard(el) {
+  await refreshSettings();
+  const g = SETTINGS.git_remote || {}; const secrets = await api("GET", "/secrets");
+  el.innerHTML = `<h2>Code repository (Git)</h2><div class="small muted">Where the Build and Release code goes. With a repository set before the Build stage, the feature branch starts from its <span class="mono">main</span> branch, and none of your existing files are overwritten. From a run's Code tab the Tech Lead, Release Manager or Platform Owner can push the feature and release branches; <span class="mono">main</span> is never pushed, so merging stays a pull request in your Git system. Works with GitHub, GitLab, Bitbucket and Azure DevOps over HTTPS.</div>
+    <div class="field-row" style="margin-top:8px"><div><label>Repository URL (https)</label><input id="gUrl" value="${esc(g.url || "")}" placeholder="https://github.com/your-org/data-platform.git"></div>
+      <div><label>User name for the token</label><input id="gUser" value="${esc(g.username || "x-access-token")}" placeholder="x-access-token"></div></div>
+    <div class="field-row"><div><label>Access token</label><select id="gTok"><option value="${esc(g.token_ref || "")}">${g.token_ref ? `Keep ${esc(g.token_ref)}` : "Not set"}</option>${secrets.filter((x) => `secret:${x.name}` !== g.token_ref).map((x) => `<option value="secret:${esc(x.name)}">secret:${esc(x.name)}</option>`).join("")}</select></div>
+      <div><label>…or paste a new token (stored encrypted)</label><input id="gNew" type="password" autocomplete="off" placeholder="needs read and write access to repository contents"></div></div>
+    <div class="row" style="margin-top:10px"><button class="btn primary small" id="gSave">Save</button><button class="btn small" id="gTest">Test connection</button><span class="small" id="gOut"></span></div>`;
+  const save = async () => {
+    let ref = $("#gTok").value;
+    if ($("#gNew").value) { await api("POST", "/secrets", { name: "git-token", value: $("#gNew").value, description: "Git repository token" }); ref = "secret:git-token"; }
+    await api("PUT", "/settings/git-remote", { url: $("#gUrl").value, username: $("#gUser").value, token_ref: ref });
+  };
+  $("#gSave").onclick = async () => { await guard(save, "Code repository saved"); renderGitCard(el); };
+  $("#gTest").onclick = async () => {
+    $("#gOut").textContent = "Testing…";
+    try { await save(); const r = await api("POST", "/git-remote/test"); $("#gOut").innerHTML = r.ok ? `${badge("pass", "connected")} ${esc(r.detail)}` : `${badge("fail", "failed")} ${esc(r.error)}`; }
+    catch (e) { $("#gOut").innerHTML = `${badge("fail", "failed")} ${esc(e.message)}`; }
   };
 }
 // Production-grade synthetic data kit, generated on demand at the chosen scale.
@@ -838,9 +866,20 @@ function wzReview(d) {
     <div class="table-wrap"><table id="wzTeam"><thead><tr><th style="width:24%">Agent</th><th>Provider</th><th>Model</th><th>Effort</th><th>Key</th></tr></thead><tbody>${rows}</tbody></table></div>
     <h3 style="margin-top:16px">Review and output</h3>
     <label class="chk"><input type="checkbox" id="wzCouncil" ${d.council_enabled !== false ? "checked" : ""}> <span><b>Council of three.</b> Three independent reviewers (${(SETTINGS.council?.members || []).map((m) => esc(m.model)).join(", ")}) check every stage's output before it is handed over. Two approvals pass it on; otherwise the agent revises. Their report goes to the gate. Change the reviewers on <a href="#/agents">Agents &amp; models</a>.</span></label>
-    <div style="margin-top:12px"><b>Output format per stage</b><div class="small muted">Agents write Markdown. Choose HTML or Word to have a stage's documents handed over in that format as well. You can change this later on the run's Context tab, before a stage runs.</div>
-      <div class="fmt-grid">${CATALOG.stages.map((st) => `<label><span>${esc(st.label)}</span><select data-fmt="${esc(st.key)}">${Object.entries(CATALOG.output_formats).map(([k, l]) => `<option value="${k}" ${(d.output_formats?.[st.key] || "markdown") === k ? "selected" : ""}>${esc(l.split(" (")[0])}</option>`).join("")}</select></label>`).join("")}</div>
-      <div class="row" style="margin-top:6px"><span class="small muted">Set all to:</span>${Object.entries(CATALOG.output_formats).map(([k, l]) => `<button class="btn small" data-fmt-all="${k}">${esc(l.split(" (")[0])}</button>`).join("")}</div></div>`;
+    ${wzOutputs(d)}`;
+}
+// What each stage hands over: a document format, or for Build and Release the code output for this stack.
+function wzOutputs(d) {
+  const opts = WZ.outOpts?.[d.stack_id];
+  if (!opts) return '<div class="small muted" style="margin-top:12px">Loading output choices for this stack…</div>';
+  const docs = CATALOG.stages.filter((st) => opts[st.key].kind === "documents");
+  const code = CATALOG.stages.filter((st) => opts[st.key].kind === "code");
+  const sel = (st, short) => `<select data-fmt="${esc(st.key)}">${Object.entries(opts[st.key].options).map(([k, l]) => `<option value="${k}" ${(d.output_formats?.[st.key] || opts[st.key].default) === k ? "selected" : ""}>${esc(short ? l.split(" (")[0] : l)}</option>`).join("")}</select>`;
+  return `<div style="margin-top:12px"><b>Code output for Build and Release</b><div class="small muted">These stages hand over a code base in a git repository, not documents. Choose how the code is written for this stack. The branches can be pushed to your Git repository from the run's Code tab.</div>
+      ${code.map((st) => `<div class="code-out"><span><b>${esc(st.label)}</b><div class="small muted">${st.key === "build" ? "Pipeline code on a feature branch" : "Deploy, verify and rollback scripts on a release branch"}</div></span>${sel(st, false)}</div>`).join("")}</div>
+    <div style="margin-top:14px"><b>Document format for the other stages</b><div class="small muted">Agents write Markdown. Choose HTML or Word to have a stage's documents handed over in that format as well. You can change this later on the run's Context tab, before a stage runs.</div>
+      <div class="fmt-grid">${docs.map((st) => `<label><span>${esc(st.label)}</span>${sel(st, true)}</label>`).join("")}</div>
+      <div class="row" style="margin-top:6px"><span class="small muted">Set all documents to:</span>${Object.entries(CATALOG.output_formats).map(([k, l]) => `<button class="btn small" data-fmt-all="${k}">${esc(l.split(" (")[0])}</button>`).join("")}</div></div>`;
 }
 function bindWizard() {
   const d = WZ.data;
@@ -859,7 +898,15 @@ function bindWizard() {
   if ($("#wzResetTeam")) $("#wzResetTeam").onclick = () => { d.agent_bindings = {}; collect(); renderWizard(); };
   if ($("#wzCouncil")) $("#wzCouncil").onchange = (e) => (d.council_enabled = e.target.checked);
   $$("[data-fmt]").forEach((el) => (el.onchange = () => { d.output_formats = { ...(d.output_formats || {}), [el.dataset.fmt]: el.value }; }));
-  $$("[data-fmt-all]").forEach((b) => (b.onclick = () => { d.output_formats = Object.fromEntries(CATALOG.stages.map((st) => [st.key, b.dataset.fmtAll])); collect(); renderWizard(); }));
+  $$("[data-fmt-all]").forEach((b) => (b.onclick = () => { const o = WZ.outOpts[d.stack_id]; d.output_formats = { ...(d.output_formats || {}), ...Object.fromEntries(CATALOG.stages.filter((st) => o[st.key].kind === "documents").map((st) => [st.key, b.dataset.fmtAll])) }; collect(); renderWizard(); }));
+  if ($("#wzTeam") && !WZ.outOpts?.[d.stack_id]) {
+    api("POST", "/output-options", { stack_profile: allStacks().find((x) => x.profile_id === d.stack_id) }).then((o) => {
+      WZ.outOpts = { ...(WZ.outOpts || {}), [d.stack_id]: o };
+      // a code output chosen for another stack may not exist on this one
+      d.output_formats = Object.fromEntries(Object.entries(d.output_formats || {}).filter(([k, v]) => o[k]?.options[v]));
+      if ($("#wzTeam")) { collect(); renderWizard(); }
+    });
+  }
   $$("[data-domain]").forEach((el) => el.addEventListener("click", () => {
     d.domain_pack = el.dataset.domain;
     if (SETTINGS.jira.mode === "demo") { d.jql = `project = ${DOMAIN_PROJECT[d.domain_pack]}`; d.jira_issues = []; d.selected_keys = []; }
@@ -1131,14 +1178,34 @@ async function renderRunModel(el) {
 }
 const dialectFor = (p) => ({ snowflake: "snowflake", databricks: "databricks", bigquery: "bigquery", redshift: "redshift", synapse: "tsql", fabric: "tsql", postgres: "postgres" }[p.slots?.compute_engine?.tool] || "ansi");
 async function renderCode(el) {
-  const r = await api("GET", `/runs/${RUN.id}/repo`);
-  if (!r.files.length) { el.innerHTML = '<div class="empty">Code appears after the Build stage (feature branch → pull request → G4 merge).</div>'; return; }
-  el.innerHTML = `<div class="card tight"><b>Git history</b><pre class="code" style="max-height:160px;margin-top:8px">${esc(r.log)}</pre></div>
+  const q = RUN.codeRef ? `?ref=${encodeURIComponent(RUN.codeRef)}` : "";
+  let r;
+  try { r = await api("GET", `/runs/${RUN.id}/repo${q}`); } catch { RUN.codeRef = null; r = await api("GET", `/runs/${RUN.id}/repo`); }
+  if (!r.files.length) { el.innerHTML = '<div class="empty">Code appears after the Build stage (feature branch → pull request → G4 merge). The Release stage adds a release branch with the deploy scripts.</div>'; return; }
+  const st = RUN.status; const pushable = r.branches.filter((b) => b !== "main");
+  const who = [...new Set(["tech_lead", "release_manager", "platform_owner"].map((k) => st.run.approvers[k]).filter(Boolean))];
+  const kind = (b) => (b === "main" ? "protected" : b.startsWith("release/") ? "release scripts" : "pipeline code");
+  el.innerHTML = `<div class="card tight"><div class="spread"><div class="row" style="flex-wrap:wrap"><b>Branch</b>
+        <select id="codeRef" style="width:auto">${r.branches.map((b) => `<option value="${esc(b)}" ${b === r.ref ? "selected" : ""}>${esc(b)} (${kind(b)})</option>`).join("")}</select>
+        <span class="small muted">${r.files.length} files · ${Object.entries(r.languages).map(([l, n]) => `${n} ${esc(l)}`).join(" · ")}</span></div>
+      <button class="btn small" id="codeZip">Download this branch (.zip)</button></div></div>
+    <div class="card tight" style="margin-top:12px"><div class="spread"><div><b>Git repository</b>
+        <div class="small muted">${r.remote.configured ? `Remote: <span class="mono">${esc(r.remote.url)}</span>. Pushing sends ${pushable.length ? pushable.map((b) => `<span class="mono">${esc(b)}</span>`).join(" and ") : "the feature and release branches"}; <span class="mono">main</span> is never pushed and nothing is forced. Open a pull request there to merge.` : 'No Git repository is configured. Add one under <a href="#/integrations">Integrations → Code repository</a> to push these branches. Set it before the Build stage and the branch starts from your repository\'s main branch.'}</div></div>
+      ${r.remote.configured && pushable.length ? `<div class="row"><select id="pushBy" style="width:auto" title="Tech Lead, Release Manager or Platform Owner">${who.map((n) => `<option>${esc(n)}</option>`).join("")}</select><button class="btn primary small" id="pushBtn">Push to Git</button></div>` : ""}</div>
+      ${r.pushes.length ? `<div class="table-wrap" style="margin-top:8px"><table class="small"><thead><tr><th>Pushed</th><th>By</th><th>Branches</th><th>To</th></tr></thead><tbody>${r.pushes.slice().reverse().map((x) => `<tr><td class="muted">${fmtTime(x.at)}</td><td>${esc(x.by)}</td><td class="mono">${x.branches.map((b) => `${esc(b)} @ ${short(x.commits[b], 10)}`).join("<br>")}</td><td class="mono">${esc(x.remote)}</td></tr>`).join("")}</tbody></table></div>` : ""}</div>
+    <div class="card tight" style="margin-top:12px"><b>Git history</b><pre class="code" style="max-height:170px;margin-top:8px">${esc(r.log)}</pre></div>
     <div class="files" style="margin-top:14px"><div class="tree">${r.files.map((f) => `<div class="f" data-rf="${esc(f)}">${esc(f)}</div>`).join("")}</div><div class="viewer card" id="codeView"><div class="empty">Select a file</div></div></div>`;
+  $("#codeRef").onchange = (e) => { RUN.codeRef = e.target.value; renderCode(el); };
+  $("#codeZip").onclick = () => download(`/runs/${RUN.id}/repo/archive.zip?ref=${encodeURIComponent(r.ref)}`, `${RUN.id}-${r.ref.replace(/\//g, "-")}.zip`);
+  if ($("#pushBtn")) $("#pushBtn").onclick = async () => {
+    const b = $("#pushBtn"); b.disabled = true; b.textContent = "Pushing…";
+    try { const x = await guard(() => api("POST", `/runs/${RUN.id}/repo/push`, { by: $("#pushBy").value })); toast(`Pushed ${x.branches.join(", ")}`, "ok"); }
+    finally { renderCode(el); }
+  };
   $$("[data-rf]").forEach((f) => (f.onclick = async () => {
     $$("[data-rf]").forEach((x) => x.classList.toggle("active", x === f));
-    const t = await api("GET", `/runs/${RUN.id}/repo/file?path=${encodeURIComponent(f.dataset.rf)}`);
-    $("#codeView").innerHTML = `<b class="mono">${esc(f.dataset.rf)}</b><hr><pre class="code">${esc(t)}</pre>`;
+    const t = await api("GET", `/runs/${RUN.id}/repo/file?path=${encodeURIComponent(f.dataset.rf)}&ref=${encodeURIComponent(r.ref)}`);
+    $("#codeView").innerHTML = `<b class="mono">${esc(f.dataset.rf)}</b> <span class="small muted">on ${esc(r.ref)}</span><hr><pre class="code">${esc(t)}</pre>`;
   }));
 }
 async function renderHandoffs(el) {
@@ -1408,12 +1475,14 @@ route("integrations", async () => {
         <div id="mOut" style="margin-top:12px"></div>
       </div>
     </div>
+    <div class="card" id="gitCard"></div>
     <div class="card" id="kitCard"></div>
     <div class="card"><div class="spread"><div><h2>Demo data packs</h2><div class="small muted">Synthetic, deterministic files per industry: Jira exports, source catalog and DDL, source data, data model exports, catalog payloads and lineage. Regenerate with <code>python -m adef demo-data</code>.</div></div>
       <select id="ddDomain" style="width:auto">${CATALOG.domain_packs.map((p) => `<option value="${esc(p.pack_id)}">${esc(p.pack_id)}</option>`).join("")}</select></div>
       <div id="ddOut" style="margin-top:12px"></div></div>`;
   renderIntegrationCards($("#integCards"));
   renderKitCard($("#kitCard"));
+  renderGitCard($("#gitCard"));
   const demo = await api("GET", "/demo-files");
   const kitDomains = new Set(demo.filter((f) => f.folder === "client-demo-kit").map((f) => f.domain));
   $$("#ddDomain option").forEach((o) => { if (kitDomains.has(o.value)) o.textContent = `${o.value} (client demo kit)`; });

@@ -20,7 +20,8 @@ SECRET_PATTERNS: list[tuple[str, re.Pattern]] = [
     ("private-key", re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH |)PRIVATE KEY-----")),
     ("jwt", re.compile(r"\beyJ[A-Za-z0-9_\-]{10,}\.eyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}")),
     ("connection-string-password", re.compile(
-        r"(?i)\b(?:password|pwd|passwd)\s*[=:]\s*['\"]?(?!\$\{|<|\*{3}|secret:|env:)[^\s'\";]{4,}")),
+        r"(?i)\b(?:password|pwd|passwd)\s*[=:]\s*['\"]?(?!\$\{|<|\*{3}|secret:|env:|[A-Za-z_][\w.]*\(|os\.environ|args\.|None\b)"
+        r"[^\s'\";]{4,}")),   # a value read from a function, the environment or an argument is code, not a secret
     ("url-credentials", re.compile(r"\b[a-z][a-z0-9+.\-]*://[^/\s:@]+:[^/\s:@]{3,}@[^\s]+", re.I)),
     ("generic-api-key-assignment", re.compile(
         r"(?i)\b(?:api[_-]?key|secret[_-]?key|access[_-]?token|auth[_-]?token|client[_-]?secret)\s*[=:]\s*['\"]?"

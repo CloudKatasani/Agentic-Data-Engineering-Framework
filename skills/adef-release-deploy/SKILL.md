@@ -108,6 +108,10 @@ Reject the handoff if the commit to deploy differs from the tested commit.
 
 ## Enterprise controls
 
+- Hand over the release as code: an ordered deploy script, a read-only verification script, a rollback
+  script and a manifest that pins the tested commit, on a release branch cut from that commit. The
+  deploy script must refuse code that differs from the tested commit and refuse production without
+  the change record ID.
 - Attach the client's change record ID to the release plan, and confirm the window is
   approved and outside every freeze period before requesting G6a or G6b.
 - Deploy only through the pipeline's service identity. No person, and no agent, holds write

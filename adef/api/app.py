@@ -786,29 +786,116 @@ def run_export(rid: str, fmt: str, dialect: str | None = None):
                     headers={"Content-Disposition": f'attachment; filename="{fn}"'})
 
 
-@app.get("/api/runs/{rid}/repo")
-def run_repo(rid: str):
+def _repo(rid: str, ref: str | None = None):
+    """The run's repository and a validated branch name (default: the newest feature or release branch, else main)."""
+    from ..engine.gitrepo import Repo
     ws = engine().ws(rid)
     root = ws.root / "repo"
-    if not root.exists():
-        return {"files": [], "log": ""}
-    files = sorted(str(p.relative_to(root)) for p in root.rglob("*") if p.is_file() and ".git/" not in str(p.relative_to(root)) + "/"
-                   and not str(p.relative_to(root)).startswith(".git"))
-    from ..engine.gitrepo import Repo
+    if not (root / ".git").exists():
+        return ws, None, None, []
+    repo = Repo(root)
+    branches = repo.branches()
+    if ref and ref not in branches:
+        raise HTTPException(404, "no such branch")
+    return ws, repo, ref or "main", branches
+
+
+@app.get("/api/runs/{rid}/repo")
+def run_repo(rid: str, ref: str | None = None):
+    """Files of one branch, the branch list, history, languages and the push record."""
+    from ..engine import formats
+    from ..engine.gitrepo import scrub
+    ws, repo, ref, branches = _repo(rid, ref)
+    remote = settings.load().get("git_remote") or {}
+    base = {"remote": {"url": scrub(remote.get("url", "")), "configured": bool(remote.get("url"))}}
+    if not repo:
+        return {"files": [], "log": "", "branches": [], "ref": None, "languages": {}, "pushes": [], **base}
+    files = repo.files(ref)
     try:
-        log = Repo(root).git("log", "--oneline", "--graph", "--all", "-n", "20")
+        log = repo.git("log", "--oneline", "--graph", "--all", "--decorate", "-n", "25")
     except RuntimeError:
         log = ""
-    return {"files": files, "log": log}
+    st = engine()._state(ws)
+    return {"files": files, "log": log, "branches": branches, "ref": ref, "languages": formats.languages(files),
+            "pushes": st.get("pushes", []), "heads": {b: repo.head(b) for b in branches}, **base}
 
 
 @app.get("/api/runs/{rid}/repo/file")
-def run_repo_file(rid: str, path: str):
-    ws = engine().ws(rid)
-    p = ws.path(f"repo/{path}")
-    if not p.is_file() or "/.git/" in str(p):
+def run_repo_file(rid: str, path: str, ref: str | None = None):
+    import subprocess
+    _, repo, ref, _ = _repo(rid, ref)
+    if not repo or path not in repo.files(ref):
         raise HTTPException(404, "no such file")
-    return Response(p.read_text(errors="replace"), media_type="text/plain; charset=utf-8")
+    try:
+        return Response(repo.show(ref, path), media_type="text/plain; charset=utf-8")
+    except subprocess.CalledProcessError as e:
+        raise HTTPException(404, "no such file") from e
+
+
+@app.get("/api/runs/{rid}/repo/archive.zip")
+def run_repo_archive(rid: str, ref: str | None = None):
+    """Download one branch of the code base as a zip (the files as committed, without git history)."""
+    _, repo, ref, _ = _repo(rid, ref)
+    if not repo:
+        raise HTTPException(404, "no code yet")
+    name = f"{rid}-{ref.replace('/', '-')}.zip"
+    return Response(repo.archive(ref), media_type="application/zip", headers={"Content-Disposition": f'attachment; filename="{name}"'})
+
+
+@app.post("/api/runs/{rid}/repo/push")
+def run_repo_push(rid: str, body: dict = Body(...)):
+    """Push the feature and release branches to the configured Git repository. Never main, never forced."""
+    try:
+        return engine().push_repo(rid, body.get("by", ""))
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+    except RuntimeError as e:
+        raise HTTPException(502, str(e)) from e
+
+
+@app.put("/api/settings/git-remote")
+def put_git_remote(cfg: dict = Body(...)):
+    """The client's code repository. HTTPS only; the token is a vault reference, never a literal."""
+    url, ref = str(cfg.get("url") or "").strip(), str(cfg.get("token_ref") or "").strip()
+    local_ok = config_env("ALLOW_LOCAL_GIT_REMOTE") == "1"
+    if url and not (url.startswith("https://") or (local_ok and url.startswith("file://"))):
+        raise HTTPException(400, "The repository URL must start with https://")
+    if "@" in url.split("//", 1)[-1].split("/", 1)[0]:
+        raise HTTPException(400, "Do not put a user name or token in the URL; store the token in the vault")
+    if ref and not ref.startswith(("secret:", "env:")):
+        raise HTTPException(400, "token_ref must be secret:<vault name> or env:<VAR>")
+    return settings.update("git_remote", {"url": url, "username": str(cfg.get("username") or "x-access-token").strip(),
+                                          "token_ref": ref})["git_remote"]
+
+
+@app.post("/api/git-remote/test")
+def git_remote_test():
+    """Check that the repository can be reached with the stored token (lists its branches, changes nothing)."""
+    import subprocess
+
+    from ..engine.agents_back import git_remote
+    from ..engine.gitrepo import scrub
+    remote = git_remote(settings.load())
+    if not remote:
+        return {"ok": False, "error": "No repository URL is set"}
+    try:
+        r = subprocess.run(["git", "ls-remote", "--heads", remote[0]], env=remote[1], capture_output=True, text=True, timeout=45)
+    except subprocess.TimeoutExpired:
+        return {"ok": False, "error": "Timed out reaching the repository"}
+    if r.returncode != 0:
+        return {"ok": False, "error": scrub(r.stderr.strip()[-300:])}
+    heads = [line.split("refs/heads/")[-1] for line in r.stdout.splitlines() if "refs/heads/" in line]
+    return {"ok": True, "detail": f"{len(heads)} branch(es)" + (f": {', '.join(heads[:6])}" if heads else " (empty repository)")}
+
+
+@app.post("/api/output-options")
+def output_options(body: dict = Body(...)):
+    """What each stage can be asked to hand over for a given stack (used before a run exists)."""
+    from ..engine import formats
+    profile = body.get("stack_profile") or {}
+    if isinstance(profile, str):
+        profile = engine().stack_by_id(profile)
+    return {s["key"]: formats.output_options(s["key"], profile) for s in STAGES}
 
 
 @app.get("/api/runs/{rid}/bundle.zip")

@@ -34,6 +34,8 @@ DEFAULTS: dict[str, Any] = {
     "policy": {"separation_of_duties": False, "approved_providers": []},
     # three independent reviewers that check every stage output before handover (copied into each run)
     "council": copy.deepcopy(DEFAULT_COUNCIL),
+    # the client's code repository: Build bases its branch on its main branch; branches are pushed there on request
+    "git_remote": {"url": "", "username": "x-access-token", "token_ref": ""},
     "stack_profiles": [],
     "approver_defaults": {
         "product_owner": "Demo Presenter", "data_architect": "Demo Presenter",
