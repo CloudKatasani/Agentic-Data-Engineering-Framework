@@ -15,9 +15,10 @@ from ..modeling import exports
 from ..modeling import physical as ph
 from ..util import dump_yaml, md_table, now_iso, today
 from .agents_front import _csv
+from . import formats, release_bundle
 from .codegen import CodeGen
 from .context import StageCtx, StageOutput
-from .gitrepo import Repo
+from .gitrepo import Repo, network_env
 from .sandbox import Sandbox, tname
 
 SIM_NOTE = ("> Target platform: **simulated** - this environment has no connection to the client cloud, so promotion "
@@ -90,13 +91,36 @@ def _narrative(ctx: StageCtx, prompt: str) -> str:
         return ""
 
 
+def _code_output(ws, stage_key: str) -> str:
+    """The code output chosen for Build or Release, falling back to the stack default."""
+    opts = formats.output_options(stage_key, ws.stack)
+    chosen = (json.loads(ws.read("control/state.json")).get("output_formats") or {}).get(stage_key)
+    return chosen if chosen in opts["options"] else opts["default"]
+
+
+def git_remote(settings: dict):
+    """(url, environment) for the configured code repository, or None. The token is resolved from the vault here."""
+    from ..secrets_store import SecretNotFound, SecretStore
+    cfg = (settings or {}).get("git_remote") or {}
+    if not cfg.get("url"):
+        return None
+    token = None
+    if cfg.get("token_ref"):
+        try:
+            token = SecretStore().resolve(cfg["token_ref"])
+        except SecretNotFound:
+            token = None
+    return cfg["url"], network_env(token, cfg.get("username") or "x-access-token")
+
+
 # =========================================================================== 4 BUILD
 def build(ctx: StageCtx) -> StageOutput:
     ws, prof = ctx.ws, ctx.ws.stack
     model, mp = _model(ws), _mapping(ws)
     guard = ActionGuard(ws)
+    code_output = _code_output(ws, "build")
     gen = CodeGen(model, mp["mappings"], mp.get("dq_rules", []), prof, ws.run_id,
-                  entity_filters=mp.get("entity_filters") or {}, sources=mp.get("sources") or [])
+                  entity_filters=mp.get("entity_filters") or {}, sources=mp.get("sources") or [], code_output=code_output)
     out = gen.generate()
     files = out["files"]
     # local checks before anything leaves the sandbox
@@ -119,15 +143,22 @@ def build(ctx: StageCtx) -> StageOutput:
         elif path.endswith((".sql", ".sqlx")):
             ok = content.count("(") == content.count(")")
             lint.append((path, "pass" if ok else "fail", "balanced parentheses" if ok else "unbalanced parentheses"))
+        elif path.endswith(".sh"):
+            lint.append((path, *_bash_check(content)))
     sb = Sandbox(model, mp.get("dq_rules", []))
     sb.build()
     unit = [sb.run_rule(r) for r in mp.get("dq_rules", [])]
     idem = [sb.idempotency(e) for e in model["entities"]]
     repo = Repo(ws.root / "repo")
-    repo.init()
+    remote = git_remote(ctx.settings)
+    based_on_remote = guard.execute(ctx.agent, "read_remote_repository", "main", lambda: repo.init(remote)) if remote else repo.init()
+    based_on_remote = bool(based_on_remote) if remote else False
     branch = f"adef/{ws.run_id}/WP-001"
     guard.execute(ctx.agent, "create_branch", branch, lambda: repo.branch(branch))
-    repo.write_files(files)
+    kept = repo.write_files(files, keep_existing=based_on_remote)
+    if kept:
+        out["gaps"].append(f"{len(kept)} generated file(s) were not written because the repository already has its own: "
+                           + ", ".join(kept[:8]))
     base = repo.head("main")
     commit = guard.execute(ctx.agent, "commit_feature_branch", branch,
                            lambda: repo.commit(f"{ws.run_id} WP-001: {model['name']}\n\nImplements "
@@ -142,12 +173,20 @@ def build(ctx: StageCtx) -> StageOutput:
     idem_fail = [i for i in idem if i["status"] != "pass"]
     manifest = {"run_id": ws.run_id, "package": "WP-001", "branch": branch, "base_commit": base, "commit": commit,
                 "stack_profile": prof["profile_id"], "transformation": stacks.tool(prof, "transformation"),
+                "code_output": code_output, "code_output_label": formats.output_options("build", prof)["options"][code_output],
+                "languages": formats.languages(files), "based_on_remote_main": based_on_remote, "kept_existing_files": kept,
                 "dialect": ph.dialect_for(prof), "objects": out["objects"], "files": sorted(files),
                 "implemented_ids": out["implemented"], "binding_gaps": out["gaps"],
                 "checks": {"lint": "pass" if not lint_fail else "fail", "unit_tests": "pass" if not unit_fail else "fail",
                            "idempotency": "pass" if not idem_fail else "fail"}}
     ctx.write("04-build/build-manifest.yaml", dump_yaml(manifest))
     plan = ["# Build plan - WP-001", "", f"Branch `{branch}` from `main@{base[:10]}`; commit `{commit[:10]}`.", "",
+            f"Code output: **{manifest['code_output_label']}**. "
+            + ", ".join(f"{n} {lang} file(s)" for lang, n in manifest["languages"].items()) + ".", "",
+            ("The branch starts from the main branch of the configured Git repository, so it can be pushed and opened "
+             "as a pull request there." if based_on_remote else
+             "The repository is local to this run. Configure a Git repository under Integrations before the Build "
+             "stage to base the branch on its main branch."), "",
             md_table(["File", "Purpose"], [[f, f.split("/")[0]] for f in sorted(files)]), "",
             "## Patterns", "", "- History type 2 per ADR-001; incremental merge per ADR-002; masking per ADR-003.", "",
             "## Binding gaps", ""] + ([f"- {g}" for g in out["gaps"]] or ["None."])
@@ -180,6 +219,16 @@ def build(ctx: StageCtx) -> StageOutput:
         inputs_used=["03-design/logical/logical-model.json", "02-mapping/mapping.json", "03-design/physical/work-packages.md"],
         evidence=["04-build/local-results.md", "04-build/build-manifest.yaml"], constraints=[f"branch {branch}"],
         confidence=("high" if ok and not out["gaps"] else "medium", "checks executed in sandbox"))
+
+
+def _bash_check(content: str) -> tuple[str, str]:
+    """Syntax-check a shell script with `bash -n` when bash is available."""
+    import shutil
+    import subprocess
+    if not shutil.which("bash"):
+        return "pass", "not checked (bash not installed here)"
+    r = subprocess.run(["bash", "-n"], input=content, capture_output=True, text=True, timeout=20)
+    return ("pass", "shell syntax ok") if r.returncode == 0 else ("fail", f"shell: {r.stderr.strip()[:160]}")
 
 
 def after_g4(ws, log) -> dict:
@@ -359,8 +408,51 @@ def release(ctx: StageCtx) -> StageOutput:
     sb = Sandbox(model, _mapping(ws).get("dq_rules", []))
     sb.build()
     rb = [sb.rollback_rehearsal(e) for e in model["entities"]]
-    objects = ws.read_yaml("04-build/build-manifest.yaml")["objects"]
+    build_manifest = ws.read_yaml("04-build/build-manifest.yaml")
+    objects = build_manifest["objects"]
     note = LOCAL_NOTE if stacks.is_local(ws.stack) else SIM_NOTE
+    # the release as code: deploy, verify and rollback scripts on a release branch cut from the tested commit
+    style = _code_output(ws, "release")
+    bundle = release_bundle.build("REL-001", ws.run_id, model, ws.stack, build_manifest, deploy, style)
+    checks = []
+    for path, content in bundle.items():
+        if path.endswith(".py"):
+            try:
+                ast.parse(content)
+                checks.append((path, "pass", "Python parses"))
+            except SyntaxError as e:
+                checks.append((path, "fail", f"Python: {e}"))
+        elif path.endswith(".sh"):
+            checks.append((path, *_bash_check(content)))
+        elif path.endswith((".yaml", ".yml")):
+            try:
+                yaml.safe_load(content)
+                checks.append((path, "pass", "YAML parses"))
+            except yaml.YAMLError as e:
+                checks.append((path, "fail", f"YAML: {e}"))
+        elif scan_secrets(content):
+            checks.append((path, "fail", "secret-like content"))
+    rel_branch = "release/REL-001"
+    guard.execute(ctx.agent, "create_branch", rel_branch, lambda: repo.branch(rel_branch))
+    repo.write_files(bundle)
+    rel_commit = guard.execute(ctx.agent, "commit_feature_branch", rel_branch,
+                               lambda: repo.commit(f"{ws.run_id} REL-001: release bundle for {model['name']}\n\n"
+                                                   f"Deploys tested commit {deploy}."))
+    repo.git("checkout", "-q", "main")
+    bundle_ok = all(c[1] == "pass" for c in checks)
+    entry = "deploy.sh" if style == "cli" else "deploy.py"
+    ctx.write("06-release/REL-001-bundle.md", f"# REL-001 release bundle (code)\n\n"
+              f"Branch `{rel_branch}`, commit `{rel_commit}`, cut from the tested commit `{deploy}`. "
+              f"Style: **{formats.output_options('release', ws.stack)['options'][style]}**.\n\n"
+              + md_table(["File", "Check", "Detail"], [[f"`{c[0]}`", c[1], c[2]] for c in checks]) + "\n\n"
+              + md_table(["File", "Purpose"], [[f"`{p}`", {"release-manifest.yaml": "Pins the tested commit, objects and ordered steps",
+                                                             entry: "Deploys to test or prod; refuses code that differs from the tested commit",
+                                                             "verify.sql": "Read-only post-deployment checks",
+                                                             "rollback.sql": "Removes the objects this release adds (needs its own approval)",
+                                                             "README.md": "How the bundle is used"}.get(p.split("/")[-1], "")]
+                                                 for p in sorted(bundle)])
+              + "\n\nThe scripts are run by the CI/CD pipeline identity after G6a (test) and G6b (prod). The branch can be "
+                "pushed to the Git repository from the run's Code tab and reviewed as a pull request.\n")
     ctx.write("06-release/REL-001-plan.md", f"# REL-001 release plan\n\n{note}\n\n- Scope: {', '.join(objects)}\n"
               f"- Commit: `{deploy}` (equals tested commit: {hash_ok})\n- Steps: G6a deploy to `test` via pipeline -> verify -> "
               "rehearse rollback -> G6b deploy to `prod` -> verify -> hand to Operations\n- Window: next standard change window\n"
@@ -373,14 +465,17 @@ def release(ctx: StageCtx) -> StageOutput:
         ["G5 approved for the tested commit", "pass" if ws.gate_passed("G5") else "FAIL"],
         ["Deployed commit == tested commit", f"pass ({deploy[:12]})" if hash_ok else "FAIL"],
         ["Rollback rehearsed", "pass" if all(r["status"] == "pass" for r in rb) else "FAIL"],
+        [f"Release scripts parse ({len(checks)} files on {rel_branch})", "pass" if bundle_ok else "FAIL"],
         ["Secrets by reference only", "pass"], ["Agent identity has no prod write grant", "pass (agent_max_class prod = A0)"]]) + "\n")
     notes = _narrative(ctx, f"Write concise release notes for consumers and operators for release REL-001 of {model['name']} "
                             f"(objects: {objects}). Include known issues if any. Markdown.")
     ctx.write("06-release/REL-001-notes.md", "# REL-001 release notes\n\n" + (notes or
               f"First release of `{model['name']}`: " + ", ".join(objects) + ".\n\nKnown issues: none recorded."))
     return StageOutput(
-        artifacts=["06-release/REL-001-plan.md", "06-release/REL-001-rollback.md", "06-release/REL-001-prechecks.md", "06-release/REL-001-notes.md"],
-        summary=f"Release REL-001 for commit {deploy[:10]} planned; tested commit matches; rollback rehearsed. Requesting G6a.",
+        artifacts=["06-release/REL-001-plan.md", "06-release/REL-001-bundle.md", "06-release/REL-001-rollback.md",
+                   "06-release/REL-001-prechecks.md", "06-release/REL-001-notes.md"],
+        summary=f"Release REL-001 for commit {deploy[:10]} planned; tested commit matches; rollback rehearsed; "
+                f"{len(bundle)} release scripts on {rel_branch} ({rel_commit[:10]}). Requesting G6a.",
         gate_meta={"risk": "Shared environment change (A2).", "cost": "Within approved estimate.",
                    "rollback": "Rehearsed per REL-001-rollback.md", "options": ["Approve promotion to test", "Reject"]},
         evidence=["06-release/REL-001-prechecks.md", "06-release/REL-001-rollback.md"],

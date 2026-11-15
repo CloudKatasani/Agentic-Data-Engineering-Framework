@@ -201,14 +201,36 @@ to the next agent or to the human approver.
 - Switch it off for one run on **Review & launch**, or for all new runs on Agents & models. Reviewer
   calls appear as their own line under **Team & cost**.
 
-## Output format per stage
+## What each stage hands over: documents or code
 
-Agents write Markdown. For each stage you can also have its documents handed over as **HTML** or
-**Word (.docx)**: choose on **Review & launch** (per stage, or "set all"), or later on the run's
-**Context** tab before the stage runs. The rendered files sit next to the Markdown originals, are part
-of the gate's artifacts and are tied to the approval by hash like everything else. Any Markdown artifact
-can also be downloaded as HTML or Word from the **Artifacts** tab without changing the run. PDF is not
-generated; open the HTML file and print to PDF.
+**Build and Release hand over a code base, not documents.** Their output choice is how the code is
+written, and the options depend on the technology stack:
+
+| Stage | Choice | What you get |
+|---|---|---|
+| Build | Stack default | PySpark ingest (`pipelines/01_ingest/*.py`), curate in the stack's transformation language (Spark SQL scripts on most stacks), and the analytics engine's SQL for publish (SnowSQL on Snowflake, BigQuery SQL, Redshift SQL, T-SQL) with a runner script for that engine's command-line client |
+| Build | PySpark jobs | The curate pipeline as PySpark modules (`bronze_to_silver.py`, `silver_to_gold.py`, `run_curate.py`) instead of `.sql` scripts; ingest and publish as above. Offered on Spark lakehouses |
+| Release | Shell + SQL | `deploy/REL-001/deploy.sh`, `verify.sql`, `rollback.sql` and `release-manifest.yaml`, driving the platform's own CLI |
+| Release | Python | The same steps as `deploy.py` |
+
+- The repository also carries orchestration, CI, infrastructure, quality rules, and two helper scripts
+  the CI really runs: `scripts/check_sql.py` and `scripts/verify_release_hash.py`.
+- **Release as code.** The Release stage commits its scripts to a `release/REL-001` branch cut from the
+  tested commit. The deploy script refuses an unknown environment, refuses production without a change
+  record (`CHANGE_RECORD_ID`), and refuses to run if the pipeline code differs from the tested commit.
+- **Code tab.** Browse any branch, see the language mix, download a branch as a zip, and push.
+- **Push to Git.** Set the repository under **Integrations → Code repository (Git)** (HTTPS; the token
+  goes in the vault). When it is set before the Build stage, the feature branch starts from that
+  repository's `main`, so it opens as a normal pull request, and files you already have (your CI
+  workflow, your README) are kept, not overwritten. From the Code tab the Tech Lead, Release Manager or
+  Platform Owner pushes the feature and release branches. `main` is never pushed and nothing is forced:
+  merging stays a pull request in your Git system. Every push is in the action log.
+
+**The other stages hand over documents.** Agents write Markdown; per stage you can also have the
+documents as **HTML** or **Word (.docx)**: choose on **Review & launch**, or later on the run's
+**Context** tab before the stage runs. Rendered files sit next to the Markdown originals, are part of the
+gate's artifacts and are tied to the approval by hash. Any Markdown artifact can also be downloaded as
+HTML or Word from the **Artifacts** tab. PDF is not generated; open the HTML file and print to PDF.
 
 ## Enterprise deployment controls
 

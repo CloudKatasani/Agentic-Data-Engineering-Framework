@@ -18,6 +18,8 @@ ACTION_TABLE: dict[str, tuple[str, str | None, bool]] = {
     "commit_feature_branch": ("A1", None, False),
     "run_sandbox_tests": ("A1", None, False),
     "open_pull_request": ("A2", None, False),
+    "read_remote_repository": ("A0", None, False),
+    "push_branch_remote": ("A2", None, False),       # feature and release branches only, by a named person
     "merge_protected_branch": ("A2", "G4", False),
     "deploy_shared": ("A2", "G6a", False),
     "deploy_production": ("A3", "G6b", True),

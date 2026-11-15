@@ -12,6 +12,8 @@ import io
 import re
 import zipfile
 
+from ..catalog.stacks import tool
+
 FORMATS: dict[str, dict] = {
     "markdown": {"label": "Markdown", "ext": "md", "media": "text/markdown"},
     "html": {"label": "HTML (opens in any browser, prints to PDF)", "ext": "html", "media": "text/html"},
@@ -19,6 +21,42 @@ FORMATS: dict[str, dict] = {
              "media": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"},
 }
 BINARY_EXT = (".docx", ".zip", ".db", ".png", ".jpg", ".pdf", ".parquet")
+
+# Build and Release produce a code base, not documents: their choice is how the code is written.
+CODE_STAGES = ("build", "release")
+ENGINE_SQL = {"snowflake": "SnowSQL", "bigquery": "BigQuery SQL", "redshift": "Redshift SQL", "databricks": "Databricks SQL",
+              "fabric": "T-SQL", "synapse": "T-SQL", "duckdb-local": "DuckDB SQL"}
+CURATE = {"spark-sql": "Spark SQL scripts", "spark-sql-pipelines": "declarative Spark SQL pipelines", "duckdb-sql": "DuckDB SQL",
+          "dbt-core": "dbt models", "dbt-cloud": "dbt models", "dataform": "Dataform SQLX", "native-sql": "SQL scripts"}
+
+
+def output_options(stage_key: str, profile: dict) -> dict:
+    """What a stage can be asked to hand over: document formats, or for Build and Release the code output."""
+    if stage_key == "build":
+        engine, trans, lake = tool(profile, "compute_engine"), tool(profile, "transformation"), tool(profile, "lakehouse_compute")
+        publish = ENGINE_SQL.get(engine, "SQL")
+        if lake == "duckdb-local":
+            return {"kind": "code", "default": "stack", "options": {"stack": "Python runner + DuckDB SQL (runs on this machine)"}}
+        opts = {"stack": f"PySpark ingest, {CURATE.get(trans, trans)} for curate, {publish} publish (stack default)"}
+        if trans in ("spark-sql", "spark-sql-pipelines"):
+            opts["pyspark"] = f"PySpark jobs for ingest and curate (.py), {publish} publish"
+        return {"kind": "code", "default": "stack", "options": opts}
+    if stage_key == "release":
+        from .release_bundle import STYLES, style_label
+        return {"kind": "code", "default": "cli", "options": {k: style_label(k, profile) for k in STYLES}}
+    return {"kind": "documents", "default": "markdown", "options": {k: v["label"] for k, v in FORMATS.items()}}
+
+
+def languages(files) -> dict[str, int]:
+    """Count the files of a generated repository by language, for the build manifest and the console."""
+    names = {".py": "Python / PySpark", ".sql": "SQL", ".sqlx": "Dataform SQLX", ".sh": "Shell", ".yml": "YAML", ".yaml": "YAML",
+             ".tf": "Terraform", ".json": "JSON", ".md": "Markdown"}
+    out: dict[str, int] = {}
+    for f in files:
+        ext = "." + f.rsplit(".", 1)[-1] if "." in f.split("/")[-1] else ""
+        key = names.get(ext, "Other")
+        out[key] = out.get(key, 0) + 1
+    return dict(sorted(out.items(), key=lambda kv: -kv[1]))
 
 
 # ----------------------------------------------------------------------------- parse

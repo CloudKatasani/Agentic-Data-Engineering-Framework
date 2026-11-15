@@ -9,7 +9,7 @@ expects:
 - The mapping and data quality rules
 - Coding standards, CI checks and pipeline templates from the repository
 produces:
-- Pipeline code for ingest, curate and publish on a feature branch
+- A code base on a feature branch: PySpark ingest, Spark SQL or PySpark curate, and the analytics engine's SQL (for example SnowSQL) for publish
 - Unit tests, an idempotency check and local results
 - A build manifest and a pull request (gate G4 to merge)
 does:

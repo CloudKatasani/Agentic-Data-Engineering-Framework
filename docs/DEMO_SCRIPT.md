@@ -104,6 +104,10 @@ people attach it from where it already lives."
   agent's output; the gate card shows their verdicts and **Read the review** opens the findings. The
   lane shows `council 3/3` under the agent. "The agents check each other before a person spends time."
 - **Output format:** on Review & launch set a stage to Word; at its gate, open the `.docx` artifact.
+- **Code, not documents, for Build and Release:** on Review & launch choose *PySpark jobs* for Build and a
+  deploy style for Release. After Build, open the **Code** tab: switch branches, show the PySpark, Spark SQL
+  and SnowSQL files, then **Push to Git** and open the pull request in the client's repository. After
+  Release, show the `release/REL-001` branch with `deploy.sh`, `verify.sql` and `rollback.sql`.
 - **Per-artifact review:** every gate lists its artifacts with **Approve** / **Reject** on each one
   (or **Approve all**). Each verdict is bound to that artifact's hash. One **Submit review** button
   covers every role the named person holds.

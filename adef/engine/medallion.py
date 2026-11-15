@@ -35,8 +35,10 @@ def lake_name(table: str) -> str:
 
 
 class MedallionGen:
-    def __init__(self, model: dict, mapping: dict, profile: dict, run_id: str, gold_sql: dict[str, str]):
+    def __init__(self, model: dict, mapping: dict, profile: dict, run_id: str, gold_sql: dict[str, str],
+                 curate_style: str = "sql"):
         self.model, self.mapping, self.p, self.run_id = model, mapping, profile, run_id
+        self.curate_style = curate_style              # "sql": Spark SQL scripts; "pyspark": PySpark jobs
         self.gold_sql = gold_sql                      # entity table -> SELECT (silver refs) from codegen
         self.fmt = tool(profile, "table_format")
         self.src = tool(profile, "source_database")
@@ -243,7 +245,7 @@ if __name__ == "__main__":
                     f") n ON {on}",
                     "WHEN MATCHED AND n._ingested_at > s._ingested_at THEN UPDATE SET *",
                     "WHEN NOT MATCHED THEN INSERT *;", ""]
-        self.files["pipelines/02_curate/01_bronze_to_silver.sql"] = "\n".join(out)
+        silver_sql = "\n".join(out)
         gold = [f"-- Pipeline 2b - silver -> gold ({u}): the approved dimensional model, run {self.run_id}.",
                 "-- The SELECT bodies are generated from the approved mapping (MAP/BR IDs inline) and were executed",
                 "-- by the local lakehouse rehearsal against the synthetic source before this code was proposed.", ""]
@@ -267,7 +269,73 @@ if __name__ == "__main__":
             else:
                 gold += [f"MERGE INTO {target} g USING (\n{body}\n) n ON g.{pk} = n.{pk}",
                          "WHEN MATCHED THEN UPDATE SET *", "WHEN NOT MATCHED THEN INSERT *;", ""]
-        self.files["pipelines/02_curate/02_silver_to_gold.sql"] = "\n".join(gold)
+        gold_sql = "\n".join(gold)
+        if self.curate_style == "pyspark":
+            self.files["pipelines/02_curate/bronze_to_silver.py"] = self._pyspark_job(
+                "Pipeline 2a - bronze to silver", "bronze_to_silver", silver_sql)
+            self.files["pipelines/02_curate/silver_to_gold.py"] = self._pyspark_job(
+                "Pipeline 2b - silver to gold", "silver_to_gold", gold_sql)
+            self.files["pipelines/02_curate/__init__.py"] = ""
+            self.files["pipelines/02_curate/run_curate.py"] = (
+                f'"""Runs pipeline 2 (curate) for {self.model["name"]}: bronze to silver, then silver to gold."""\n'
+                "import importlib.util\nimport pathlib\nimport sys\n\nfrom pyspark.sql import SparkSession\n\n\n"
+                "def _load(name):\n    path = pathlib.Path(__file__).with_name(f\"{name}.py\")\n"
+                "    spec = importlib.util.spec_from_file_location(name, path)\n    module = importlib.util.module_from_spec(spec)\n"
+                "    spec.loader.exec_module(module)\n    return module\n\n\n"
+                "def main(only=None):\n"
+                f"    spark = SparkSession.builder.appName(\"{self.run_id}-curate\").getOrCreate()\n"
+                "    for step in (\"bronze_to_silver\", \"silver_to_gold\"):\n"
+                "        _load(step).run(spark, only)\n\n\n"
+                "if __name__ == \"__main__\":\n    main(sys.argv[1:] or None)\n")
+        else:
+            self.files["pipelines/02_curate/01_bronze_to_silver.sql"] = silver_sql
+            self.files["pipelines/02_curate/02_silver_to_gold.sql"] = gold_sql
+
+    def _pyspark_job(self, title: str, name: str, sql: str) -> str:
+        """One PySpark module: every statement of the pipeline as a named step, run in order and safe to re-run."""
+        steps: list[tuple[str, str]] = []
+        for chunk in re.split(r";[ \t]*(?:\n|$)", sql):
+            body = "\n".join(line for line in chunk.strip().splitlines())
+            code = [line for line in body.splitlines() if line.strip() and not line.strip().startswith("--")]
+            if not code:
+                continue
+            m = re.search(r"(?:CREATE TABLE IF NOT EXISTS|MERGE INTO|INSERT INTO)\s+([\w.]+)", body)
+            verb = "create" if "CREATE TABLE" in code[0] else "merge" if "MERGE INTO" in code[0] else "insert"
+            steps.append((f"{verb}:{m.group(1) if m else len(steps)}", body))
+        items = ",\n".join(f'    ("{n}", """\n{s}\n""")' for n, s in steps)
+        return (f'"""{title} ({self.using()}), run {self.run_id}.\n\n'
+                "Generated from the approved mapping. Every statement is idempotent (CREATE IF NOT EXISTS, MERGE on the\n"
+                'business key), so a failed run can be re-run safely. Run on the lakehouse Spark runtime.\n"""\n'
+                "import sys\n\nfrom pyspark.sql import SparkSession\n\n"
+                f"STEPS = [\n{items},\n]\n\n\n"
+                "def run(spark, only=None):\n"
+                '    """Run every step, or only those whose name contains one of the given table names."""\n'
+                "    for name, statement in STEPS:\n"
+                "        if only and not any(o in name for o in only):\n            continue\n"
+                "        print(f\"[{__name__}] {name}\")\n        spark.sql(statement)\n\n\n"
+                "if __name__ == \"__main__\":\n"
+                f"    run(SparkSession.builder.appName(\"{self.run_id}-{name}\").getOrCreate(), sys.argv[1:] or None)\n")
+
+    def _publish_runner(self) -> None:
+        """A runner for pipeline 3 that uses the analytics engine's own command-line client. No credentials in the file."""
+        cli = {"snowflake": ("SnowSQL", 'snowsql --connection "${SNOWSQL_CONNECTION:?set the named SnowSQL connection}" '
+                             '-o exit_on_error=true -o friendly=false -f "$f"'),
+               "bigquery": ("bq", 'bq query --use_legacy_sql=false --project_id "${BQ_PROJECT:?set the project}" < "$f"'),
+               "redshift": ("psql", 'psql "${REDSHIFT_DSN:?set a DSN that uses IAM or pgpass, never a password}" -v ON_ERROR_STOP=1 -f "$f"'),
+               "databricks": ("Databricks SQL CLI", 'dbsqlcli -e "$f"'),
+               "fabric": ("sqlcmd", 'sqlcmd -S "${SQL_ENDPOINT:?set the SQL endpoint}" -d "${SQL_DATABASE:?set the database}" -G -b -i "$f"'),
+               "synapse": ("sqlcmd", 'sqlcmd -S "${SQL_ENDPOINT:?set the SQL endpoint}" -d "${SQL_DATABASE:?set the database}" -G -b -i "$f"'),
+               }.get(self.engine)
+        if not cli:
+            return
+        self.files["pipelines/03_publish/run_publish.sh"] = (
+            "#!/usr/bin/env bash\n"
+            f"# Pipeline 3 - publish gold to {self.engine} with {cli[0]}, run {self.run_id}.\n"
+            "# Authentication comes from the client's own configuration (named connection, IAM or SSO).\n"
+            "# This script holds no credentials. It is run by the release pipeline identity, not by a person.\n"
+            "set -euo pipefail\n"
+            'cd "$(dirname "$0")"\n'
+            'for f in publish.sql; do\n  echo "running $f"\n  ' + cli[1] + "\ndone\n")
 
     def _spark_cast(self, col: str, ltype: str) -> str:
         phys = ph.phys_type(ltype, "databricks")
@@ -335,10 +403,14 @@ if __name__ == "__main__":
         else:
             self.gaps.append(f"compute_engine `{self.engine}` has no publish template")
         self.files["pipelines/03_publish/publish.sql"] = "\n".join(out) + "\n"
+        self._publish_runner()
 
     # ---------------------------------------------------------------- orchestration of the three pipelines
     def orchestrate(self):
         dag = re.sub(r"\W+", "_", self.model["name"]).strip("_")
+        py = self.curate_style == "pyspark"
+        silver_file = "pipelines/02_curate/bronze_to_silver.py" if py else "pipelines/02_curate/01_bronze_to_silver.sql"
+        gold_file = "pipelines/02_curate/silver_to_gold.py" if py else "pipelines/02_curate/02_silver_to_gold.sql"
         if self.orch == "airflow":
             submit = {"aws-glue": "GlueJobOperator", "emr-spark": "EmrServerlessStartJobOperator",
                       "dataproc": "DataprocSubmitJobOperator"}.get(self.lake, "SparkSubmitOperator")
@@ -359,8 +431,8 @@ with DAG(
     tags=["adef", "{self.run_id}", "medallion"],
 ) as dag:
     ingest = EmptyOperator(task_id="p1_ingest_bronze")      # replace with {submit}(pipelines/01_ingest/ingest_jdbc.py)
-    silver = EmptyOperator(task_id="p2a_bronze_to_silver")  # replace with {submit}(pipelines/02_curate/01_bronze_to_silver.sql)
-    gold = EmptyOperator(task_id="p2b_silver_to_gold")      # replace with {submit}(pipelines/02_curate/02_silver_to_gold.sql)
+    silver = EmptyOperator(task_id="p2a_bronze_to_silver")  # replace with {submit}({silver_file})
+    gold = EmptyOperator(task_id="p2b_silver_to_gold")      # replace with {submit}({gold_file})
     quality = EmptyOperator(task_id="quality_gate")         # quality/ rules; a critical failure stops publish
     publish = EmptyOperator(task_id="p3_publish_{self.engine.replace('-', '_')}")
     ingest >> silver >> gold >> quality >> publish
@@ -371,9 +443,9 @@ with DAG(
                 "schedule": {"quartz_cron_expression": "0 0 2 * * ?", "timezone_id": "UTC"},
                 "tasks": [{"task_key": "p1_ingest_bronze", "spark_python_task": {"python_file": "pipelines/01_ingest/ingest_jdbc.py"}},
                           {"task_key": "p2_curate", "depends_on": [{"task_key": "p1_ingest_bronze"}],
-                           "sql_task": {"file": {"path": "pipelines/02_curate/01_bronze_to_silver.sql"}}},
+                           **({"spark_python_task": {"python_file": silver_file}} if py else {"sql_task": {"file": {"path": silver_file}}})},
                           {"task_key": "p2_gold", "depends_on": [{"task_key": "p2_curate"}],
-                           "sql_task": {"file": {"path": "pipelines/02_curate/02_silver_to_gold.sql"}}},
+                           **({"spark_python_task": {"python_file": gold_file}} if py else {"sql_task": {"file": {"path": gold_file}}})},
                           {"task_key": "p3_publish", "depends_on": [{"task_key": "p2_gold"}],
                            "sql_task": {"file": {"path": "pipelines/03_publish/publish.sql"}}}]}}}})
         elif self.orch == "azure-data-factory":
@@ -393,7 +465,8 @@ with DAG(
         return (f"# Medallion pipelines - {self.model['name']}\n\n"
                 f"| # | Pipeline | From | To | Runs on |\n|---|---|---|---|---|\n"
                 f"| 1 | Ingest | `{self.src}` source database | bronze `{self.fmt}` in `{self.catalog}` (`{self.root}`) | {self.ing} / {self.lake} |\n"
-                f"| 2 | Curate | bronze | silver, gold (`{self.fmt}`) | {tool(self.p, 'transformation')} on {self.lake} |\n"
+                f"| 2 | Curate | bronze | silver, gold (`{self.fmt}`) | "
+                f"{'PySpark jobs' if self.curate_style == 'pyspark' else tool(self.p, 'transformation')} on {self.lake} |\n"
                 f"| 3 | Publish | gold | `{self.engine}` serving layer | {'zero-copy' if self.fmt in ZERO_COPY_FORMATS.get(self.engine, set()) else 'copy'} |\n\n"
                 "Incremental extraction uses the source `LAST_UPDATED_TS` watermark. Every step is idempotent "
                 "(partition overwrite per batch, MERGE on business keys), so a failed run can be re-run safely.\n")

@@ -10,6 +10,7 @@ expects:
 - The deployment pipeline configuration
 produces:
 - Release plan, pre-checks and a rollback plan written first
+- Release scripts as code on a release branch: deploy script (shell or Python), verify.sql, rollback.sql and a manifest pinning the tested commit
 - Deployment to the shared environment (gate G6a), then production (gate G6b)
 - Post-deployment verification and release notes
 does:
