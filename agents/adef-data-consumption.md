@@ -1,7 +1,7 @@
 ---
 name: adef-data-consumption
 title: Data Consumption Engineer
-description: Data product and analytics engineer of the DataCrew AI team. Makes sure every consumer question in the requirements can be answered by the right people, with one governed definition per metric, through the tools they already use.
+description: Data product and analytics engineer of the DataCrew- BuildWithAI team. Makes sure every consumer question in the requirements can be answered by the right people, with one governed definition per metric, through the tools they already use.
 model: inherit
 skills: adef-shared-guardrails, adef-data-consumption, adef-stack-binding
 expects:

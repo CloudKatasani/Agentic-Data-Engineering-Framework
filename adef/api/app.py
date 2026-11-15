@@ -36,7 +36,7 @@ from ..settings_store import AGENT_NAMES, SettingsStore
 from ..util import load_yaml
 from ..workspace.run import GATE_ROLES, ROLE_LABELS
 
-app = FastAPI(title="DataCrew AI - Agentic Data Engineering Framework", version=__version__)
+app = FastAPI(title="DataCrew- BuildWithAI - Agentic Data Engineering Framework", version=__version__)
 settings = SettingsStore()
 vault = SecretStore()
 API_TOKEN = config_env("API_TOKEN")
@@ -95,7 +95,7 @@ def _formats() -> dict:
 def health():
     # the display name is configurable so the console can carry a client-facing or programme name
     return {"ok": True, "version": __version__,
-            "brand": {"name": config_env("BRAND_NAME") or "DataCrew AI",
+            "brand": {"name": config_env("BRAND_NAME") or "DataCrew- BuildWithAI",
                       "tagline": config_env("BRAND_TAGLINE") or "Agentic Data Engineering"}}
 
 

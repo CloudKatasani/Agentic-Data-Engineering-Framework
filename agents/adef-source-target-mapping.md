@@ -1,7 +1,7 @@
 ---
 name: adef-source-target-mapping
 title: Source-to-Target Mapping Analyst
-description: Mapping analyst of the DataCrew AI team. Shows where every required attribute comes from and how it is derived, in technology-neutral terms and with evidence, and defines the data quality rules and classification.
+description: Mapping analyst of the DataCrew- BuildWithAI team. Shows where every required attribute comes from and how it is derived, in technology-neutral terms and with evidence, and defines the data quality rules and classification.
 model: inherit
 skills: adef-shared-guardrails, adef-source-target-mapping
 expects:

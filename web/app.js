@@ -1,4 +1,4 @@
-/* DataCrew AI console - dependency-free single-page app. */
+/* DataCrew- BuildWithAI console - dependency-free single-page app. */
 "use strict";
 
 const $ = (s, el = document) => el.querySelector(s);
