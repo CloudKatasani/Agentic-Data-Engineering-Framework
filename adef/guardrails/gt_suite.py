@@ -1,4 +1,4 @@
-"""Guardrail scenario suite GT-01..GT-14 (BUILD_SPEC 8.3). Every scenario is executed
+"""Guardrail scenario suite GT-01..GT-18 (BUILD_SPEC 8.3). Every scenario is executed
 against the real enforcement code paths, not asserted."""
 from __future__ import annotations
 
