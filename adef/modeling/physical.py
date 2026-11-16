@@ -4,7 +4,7 @@ from __future__ import annotations
 from ..catalog.stacks import dialect as stack_dialect
 from .logical import parse_type
 
-TYPE_MAP = {
+_BASE = {
     "snowflake": {"string": "VARCHAR({n})", "string_": "VARCHAR", "integer": "NUMBER(38,0)", "bigint": "NUMBER(38,0)",
                   "decimal": "NUMBER({p},{s})", "boolean": "BOOLEAN", "date": "DATE", "timestamp": "TIMESTAMP_NTZ"},
     "databricks": {"string": "STRING", "string_": "STRING", "integer": "INT", "bigint": "BIGINT",
@@ -13,6 +13,8 @@ TYPE_MAP = {
                  "decimal": "NUMERIC({p},{s})", "boolean": "BOOL", "date": "DATE", "timestamp": "TIMESTAMP"},
     "redshift": {"string": "VARCHAR({n})", "string_": "VARCHAR(256)", "integer": "INTEGER", "bigint": "BIGINT",
                  "decimal": "DECIMAL({p},{s})", "boolean": "BOOLEAN", "date": "DATE", "timestamp": "TIMESTAMP"},
+    "trino": {"string": "VARCHAR({n})", "string_": "VARCHAR", "integer": "INTEGER", "bigint": "BIGINT",
+              "decimal": "DECIMAL({p},{s})", "boolean": "BOOLEAN", "date": "DATE", "timestamp": "TIMESTAMP(6)"},
     "postgres": {"string": "VARCHAR({n})", "string_": "TEXT", "integer": "INTEGER", "bigint": "BIGINT",
                  "decimal": "NUMERIC({p},{s})", "boolean": "BOOLEAN", "date": "DATE", "timestamp": "TIMESTAMP"},
     "tsql": {"string": "VARCHAR({n})", "string_": "VARCHAR(4000)", "integer": "INT", "bigint": "BIGINT",
@@ -28,8 +30,32 @@ TYPE_MAP = {
     "sqlite": {"string": "TEXT", "string_": "TEXT", "integer": "INTEGER", "bigint": "INTEGER",
                "decimal": "REAL", "boolean": "INTEGER", "date": "TEXT", "timestamp": "TEXT"},
 }
+# Types beyond flat relational data. Where an engine has no native type, the value is kept as text
+# (JSON text, WKT for location) so nothing is lost; the design notes say so.
+#               timestamp_tz                 time       json             array             binary           uuid                geography
+_EXTENDED = {
+    "snowflake": ("TIMESTAMP_TZ",             "TIME",    "VARIANT",       "ARRAY",          "BINARY",        "VARCHAR(36)",      "GEOGRAPHY"),
+    "databricks": ("TIMESTAMP",               "STRING",  "VARIANT",       "ARRAY<STRING>",  "BINARY",        "STRING",           "STRING"),
+    "bigquery": ("TIMESTAMP",                 "TIME",    "JSON",          "ARRAY<STRING>",  "BYTES",         "STRING",           "GEOGRAPHY"),
+    "redshift": ("TIMESTAMPTZ",               "TIME",    "SUPER",         "SUPER",          "VARBYTE",       "VARCHAR(36)",      "GEOGRAPHY"),
+    "trino": ("TIMESTAMP(6) WITH TIME ZONE",  "TIME(6)", "VARCHAR",       "ARRAY(VARCHAR)", "VARBINARY",     "UUID",             "VARCHAR"),
+    "postgres": ("TIMESTAMPTZ",               "TIME",    "JSONB",         "JSONB",          "BYTEA",         "UUID",             "TEXT"),
+    "tsql": ("DATETIMEOFFSET(6)",             "TIME(6)", "NVARCHAR(MAX)", "NVARCHAR(MAX)",  "VARBINARY(MAX)", "UNIQUEIDENTIFIER", "NVARCHAR(MAX)"),
+    "ansi": ("TIMESTAMP WITH TIME ZONE",      "TIME",    "VARCHAR(4000)", "VARCHAR(4000)",  "VARBINARY(4000)", "CHAR(36)",        "VARCHAR(4000)"),
+    "duckdb": ("TIMESTAMPTZ",                 "TIME",    "JSON",          "VARCHAR[]",      "BLOB",          "UUID",             "VARCHAR"),
+    "oracle": ("TIMESTAMP WITH TIME ZONE",    "VARCHAR2(18)", "CLOB",     "CLOB",           "BLOB",          "VARCHAR2(36)",     "CLOB"),
+    "db2": ("TIMESTAMP",                      "TIME",    "CLOB",          "CLOB",           "BLOB",          "CHAR(36)",         "CLOB"),
+    "sqlite": ("TEXT",                        "TEXT",    "TEXT",          "TEXT",           "BLOB",          "TEXT",             "TEXT"),
+}
+_EXT_NAMES = ("timestamp_tz", "time", "json", "array", "binary", "uuid", "geography")
+TYPE_MAP = {d: {**m, **dict(zip(_EXT_NAMES, _EXTENDED[d]))} for d, m in _BASE.items()}
+# Kept as text on this dialect (no native type): the physical design must say how it is validated.
+KEPT_AS_TEXT = {d: [n for n, t in zip(_EXT_NAMES, _EXTENDED[d])
+                    if n in ("json", "array", "geography", "time") and t.split("(")[0] in
+                    ("STRING", "VARCHAR", "VARCHAR2", "NVARCHAR", "TEXT", "CLOB")] for d in _BASE}
 DIALECT_LABELS = {"snowflake": "Snowflake", "databricks": "Databricks (Delta)", "bigquery": "BigQuery",
-                  "redshift": "Redshift", "postgres": "PostgreSQL", "tsql": "SQL Server / Synapse / Fabric",
+                  "redshift": "Redshift", "trino": "Trino / Athena / Starburst", "postgres": "PostgreSQL",
+                  "tsql": "SQL Server / Synapse / Fabric",
                   "duckdb": "DuckDB", "ansi": "ANSI SQL"}
 
 

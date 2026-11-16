@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs permission to trigger the CI/CD pipeline and read deployment state. Must not hold direct write credentials to shared or production data platforms; all changes go through the pipeline. Load adef-shared-guardrails and adef-stack-binding first.
 metadata:
   owner: adef-platform
-  version: "1.3.0"
+  version: "1.4.0"
   role: release-engineer
   stage: "6-deployment"
   gate: G6a G6b

@@ -45,7 +45,7 @@ def _columns(e: dict) -> list[tuple[str, str]]:
     for a in e["attributes"]:
         base, _ = parse_type(a["type"])
         cols.append((a["name"], {"string": "TEXT", "integer": "INTEGER", "bigint": "INTEGER", "decimal": "REAL",
-                                 "boolean": "INTEGER", "date": "TEXT", "timestamp": "TEXT"}[base]))
+                                 "boolean": "INTEGER", "date": "TEXT", "timestamp": "TEXT"}.get(base, "TEXT")))
     return cols
 
 
@@ -291,6 +291,8 @@ class Sandbox:
     def masking(self, e: dict, restricted: list[str]) -> dict:
         t = tname(e)
         sel = ", ".join(f"'***' AS {a['name']}" if a["name"] in restricted else a["name"] for a in e["attributes"])
+        if e.get("history") == "type2":
+            sel += ", valid_from, valid_to, is_current"
         self.db.execute(f"CREATE VIEW IF NOT EXISTS v_consumer_{t} AS SELECT {sel} FROM {t}")
         leaks = 0
         for c in restricted:

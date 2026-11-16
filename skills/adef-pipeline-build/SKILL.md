@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs version-control access limited to feature branches, an ephemeral sandbox in the dev environment, and read access to the adapter library. No access to shared or production environments. Load adef-shared-guardrails and adef-stack-binding first.
 metadata:
   owner: adef-platform
-  version: "1.3.0"
+  version: "1.4.0"
   role: pipeline-engineer
   stage: "4-coding"
   gate: G4
@@ -64,8 +64,9 @@ resolve.
 3. **Generate schema definitions** from the physical model, using adapter type maps and
    naming rules. Use only additive, re-runnable definitions.
 4. **Generate ingestion and transformation logic** from mapping rows, as the three
-   pipelines of the design: `01_ingest` (source to bronze, incremental on the change
-   watermark), `02_curate` (bronze to silver to gold) and `03_publish` (gold to the
+   pipelines of the design: `01_ingest` (source to bronze, following the source pattern
+   of the Stack Profile: batch extract, change data capture, files, application API or
+   event stream; see the capability-slots reference for what each must guarantee), `02_curate` (bronze to silver to gold) and `03_publish` (gold to the
    analytics layer, with masked views). One mapping row must be findable in code: put
    the `MAP-###` and `BR-###` IDs in comments or metadata. Write the curate pipeline in
    the code output chosen for the run (the stack default, or PySpark jobs); the choice
@@ -94,6 +95,17 @@ resolve.
 - Every load is idempotent and restartable. If it cannot be, say so and get approval.
 - Small pull requests: one work package, reviewable in under thirty minutes.
 - Generated code is held to the same review standard as hand-written code.
+- The source pattern is given by the Stack Profile. Do not turn a file feed into a
+  database extract, or a stream into a batch, because the template is more familiar.
+- Bronze has one contract whatever the source: `_ingested_at`, `_batch_id`,
+  `_source_system`. A row or message that does not fit the declared schema goes to the
+  quarantine table with where it came from. It is never dropped and never forced in.
+- With change data capture, a delete at the source must remove the row from silver.
+  Test it with a deleted key.
+- Semi-structured values (JSON, arrays) are kept whole in bronze and validated in
+  silver. Only the paths named in the mapping become columns; do not flatten the rest.
+- Where the analytics engine has no native type for a value (see the type map), keep it
+  as text and say so in the build manifest. Do not cast it to something lossy.
 
 ## Do
 

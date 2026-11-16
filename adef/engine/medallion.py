@@ -13,9 +13,10 @@ from __future__ import annotations
 import json
 import re
 
-from ..catalog.stacks import ZERO_COPY_FORMATS, tool
+from ..catalog.stacks import PATTERN_LABELS, ZERO_COPY_FORMATS, source_pattern, tool
 from ..modeling import physical as ph
 from ..util import dump_yaml
+from . import ingest_patterns
 
 JDBC = {
     "oracle": ("oracle.jdbc.OracleDriver", "jdbc:oracle:thin:@//${SOURCE_HOST}:1521/${SOURCE_SERVICE}",
@@ -26,6 +27,16 @@ JDBC = {
     "postgres": ("org.postgresql.Driver", "jdbc:postgresql://${SOURCE_HOST}:5432/${SOURCE_DATABASE}", "org.postgresql:postgresql:42.7.4"),
     "mysql": ("com.mysql.cj.jdbc.Driver", "jdbc:mysql://${SOURCE_HOST}:3306/${SOURCE_DATABASE}", "com.mysql:mysql-connector-j:9.1.0"),
     "teradata": ("com.teradata.jdbc.TeraDriver", "jdbc:teradata://${SOURCE_HOST}/DATABASE=${SOURCE_DATABASE}", "com.teradata.jdbc:terajdbc:20.00.00.34"),
+    "sap-hana": ("com.sap.db.jdbc.Driver", "jdbc:sap://${SOURCE_HOST}:30015/?databaseName=${SOURCE_DATABASE}", "com.sap.cloud.db.jdbc:ngdbc:2.22.12"),
+    "netezza": ("org.netezza.Driver", "jdbc:netezza://${SOURCE_HOST}:5480/${SOURCE_DATABASE}", "client-supplied nzjdbc.jar (not on Maven Central)"),
+    "mainframe-db2-zos": ("com.ibm.db2.jcc.DB2Driver", "jdbc:db2://${SOURCE_HOST}:446/${SOURCE_LOCATION}", "com.ibm.db2:jcc:11.5.9.0 (needs the Db2 Connect licence)"),
+}
+# Sources read through a Spark connector instead of JDBC: (format, options that locate one collection or table)
+CONNECTOR = {
+    "mongodb": ("mongodb", {"connection.uri": "${SOURCE_URI}", "database": "${SOURCE_DATABASE}", "collection": "<table>"}),
+    "dynamodb": ("dynamodb", {"tableName": "<table>", "region": "${AWS_REGION}"}),
+    "cosmosdb": ("cosmos.oltp", {"spark.cosmos.accountEndpoint": "${SOURCE_ENDPOINT}", "spark.cosmos.database": "${SOURCE_DATABASE}",
+                                 "spark.cosmos.container": "<table>"}),
 }
 WATERMARK = "last_updated_ts"
 
@@ -47,6 +58,9 @@ class MedallionGen:
         self.cat = tool(profile, "lake_catalog")
         self.engine = tool(profile, "compute_engine")
         self.orch = tool(profile, "orchestration")
+        self.cloud = tool(profile, "cloud")
+        self.pattern = source_pattern(profile)
+        self.ingest_entry = ingest_patterns.entry_point(profile)
         self.root = (profile.get("variables") or {}).get("lake_root", "s3://acme-lake")
         self.catalog = {"unity-catalog": "main", "aws-glue-catalog": "glue_catalog", "biglake-metastore": "biglake",
                         "onelake": "onelake", "polaris": "polaris", "hive-metastore": "spark_catalog"}.get(self.cat, "lake")
@@ -90,6 +104,13 @@ class MedallionGen:
                 "run_id": self.run_id, "executor": "adef local lakehouse runner (adef/lakehouse/runner.py)",
                 "source": {"type": self.src, "watermark": WATERMARK}, "target": {"format": self.fmt, "layer": "bronze"},
                 "tables": [{k: t[k] for k in ("source", "bronze", "primary_key", "watermark")} for t in tables]})
+            return
+        if self.pattern in ("files", "event-stream", "saas-api") or (
+                self.pattern == "database-cdc" and self.ing in ("debezium-kafka", "fivetran", "airbyte", "qlik-replicate")):
+            ingest_patterns.generate(self, tables)
+            return
+        if self.src in CONNECTOR:
+            self._ingest_connector(tables)
             return
         drv = JDBC.get(self.src)
         if not drv:
@@ -169,6 +190,17 @@ def get_secret(name):
 if __name__ == "__main__":
     main()
 '''
+        if self.pattern == "database-cdc":
+            self.files["pipelines/01_ingest/fold_landing.py"] = ingest_patterns._fill(
+                ingest_patterns.FOLD, what="change events", tool=self.ing, run=self.run_id, fmt=self.fmt, lake=self.lake,
+                catalog=self.catalog, using=self.using())
+            landed = {"aws-dms": ("parquet", "op", "landing/dms"), "gcp-datastream": ("avro", "source_metadata.change_type",
+                                                                                      "landing/datastream")}.get(
+                self.ing, ("parquet", "op", f"landing/{self.src}"))
+            cfg["landing"] = {"format": landed[0], "operation_column": landed[1], "written_by": self.ing}
+            for t in cfg["tables"]:
+                t["landing"] = f"{self.root}/{landed[2]}/{lake_name(t['source'])}/"
+            self.files["pipelines/01_ingest/ingest_config.yaml"] = dump_yaml(cfg)
         if self.ing == "aws-dms":
             self.files["pipelines/01_ingest/dms/table-mappings.json"] = json.dumps({"rules": [
                 {"rule-type": "selection", "rule-id": str(i + 1), "rule-name": f"include-{lake_name(t['source'])}",
@@ -191,7 +223,9 @@ if __name__ == "__main__":
                 "name": f"pl_ingest_bronze_{self.run_id.lower().replace('-', '_')}",
                 "properties": {"parameters": {"batch_id": {"type": "string"}}, "activities": [
                     {"name": f"copy_{lake_name(t['source'])}", "type": "Copy", "typeProperties": {
-                        "source": {"type": {"db2": "Db2Source", "oracle": "OracleSource", "sqlserver": "SqlServerSource"}.get(self.src, "RelationalSource"),
+                        "source": {"type": {"db2": "Db2Source", "oracle": "OracleSource", "sqlserver": "SqlServerSource",
+                                            "postgres": "PostgreSqlV2Source", "mysql": "MySqlSource", "teradata": "TeradataSource",
+                                            "sap-hana": "SapHanaSource", "netezza": "NetezzaSource"}.get(self.src, "RelationalSource"),
                                    "query": f"SELECT * FROM {t['source']} WHERE {WATERMARK.upper()} > '@{{pipeline().parameters.batch_id}}'"},
                         "sink": {"type": "ParquetSink", "storeSettings": {"type": "AzureBlobFSWriteSettings"}}},
                      "inputs": [{"referenceName": f"ds_{self.src}_source", "type": "DatasetReference"}],
@@ -213,6 +247,18 @@ if __name__ == "__main__":
         elif self.ing not in ("spark-jdbc", "adef-local-extract"):
             self.gaps.append(f"ingestion `{self.ing}` has no template; the Spark JDBC job is generated as the fallback")
 
+    def _ingest_connector(self, tables: list[dict]) -> None:
+        """A document or key-value database read through its Spark connector: nested fields are kept as JSON text."""
+        fmt, options = CONNECTOR[self.src]
+        self.files["pipelines/01_ingest/ingest_config.yaml"] = dump_yaml({
+            "run_id": self.run_id, "source": {"type": self.src, "pattern": self.pattern, "format": fmt, "options": options,
+                                              "credentials": "${SOURCE_SECRET_REF} (resolved by the job role, never in code)"},
+            "target": {"format": self.fmt, "catalog": self.catalog, "lake_root": self.root, "layer": "bronze"},
+            "tables": [{k: t[k] for k in ("source", "bronze", "primary_key", "watermark")} for t in tables]})
+        self.files["pipelines/01_ingest/ingest_jdbc.py"] = ingest_patterns._fill(
+            CONNECTOR_JOB, src=self.src, fmt=self.fmt, run=self.run_id, lake=self.lake, using=self.using(),
+            watermark=WATERMARK)
+
     def _secret_snippet(self) -> str:
         s = tool(self.p, "secrets")
         if s == "aws-secrets-manager":
@@ -230,6 +276,7 @@ if __name__ == "__main__":
         u = self.using()
         out = [f"-- Pipeline 2a - bronze -> silver ({u}), run {self.run_id}. Typed, trimmed, de-duplicated on the key,",
                "-- latest change wins. MERGE makes every run idempotent.", ""]
+        cdc = self.pattern == "database-cdc"
         for t in self.source_tables():
             cols = t["columns"] or [{"name": "*", "type": "string"}]
             if cols[0]["name"] == "*":
@@ -240,11 +287,16 @@ if __name__ == "__main__":
             out += [f"CREATE TABLE IF NOT EXISTS {t['silver']} USING {u} AS",
                     f"SELECT {sel}, CAST(NULL AS TIMESTAMP) AS _ingested_at FROM {t['bronze']} WHERE 1 = 0;",
                     f"MERGE INTO {t['silver']} s USING (",
-                    f"  SELECT * FROM (SELECT {sel}, _ingested_at, ROW_NUMBER() OVER (PARTITION BY {', '.join(keys)} "
+                    f"  SELECT * FROM (SELECT {sel}, _ingested_at{', _op' if cdc else ''}, ROW_NUMBER() OVER (PARTITION BY {', '.join(keys)} "
                     f"ORDER BY {WATERMARK} DESC, _ingested_at DESC) AS _rn FROM {t['bronze']}) WHERE _rn = 1",
-                    f") n ON {on}",
-                    "WHEN MATCHED AND n._ingested_at > s._ingested_at THEN UPDATE SET *",
-                    "WHEN NOT MATCHED THEN INSERT *;", ""]
+                    f") n ON {on}"]
+            if cdc:   # the latest change wins; a delete at the source removes the row from silver
+                out += ["WHEN MATCHED AND n._op = 'D' THEN DELETE",
+                        "WHEN MATCHED AND n._ingested_at > s._ingested_at THEN UPDATE SET *",
+                        "WHEN NOT MATCHED AND n._op <> 'D' THEN INSERT *;", ""]
+            else:
+                out += ["WHEN MATCHED AND n._ingested_at > s._ingested_at THEN UPDATE SET *",
+                        "WHEN NOT MATCHED THEN INSERT *;", ""]
         silver_sql = "\n".join(out)
         gold = [f"-- Pipeline 2b - silver -> gold ({u}): the approved dimensional model, run {self.run_id}.",
                 "-- The SELECT bodies are generated from the approved mapping (MAP/BR IDs inline) and were executed",
@@ -323,6 +375,13 @@ if __name__ == "__main__":
                "bigquery": ("bq", 'bq query --use_legacy_sql=false --project_id "${BQ_PROJECT:?set the project}" < "$f"'),
                "redshift": ("psql", 'psql "${REDSHIFT_DSN:?set a DSN that uses IAM or pgpass, never a password}" -v ON_ERROR_STOP=1 -f "$f"'),
                "databricks": ("Databricks SQL CLI", 'dbsqlcli -e "$f"'),
+               "athena": ("the AWS CLI", 'grep -v "^--" "$f" | while IFS= read -r statement; do\n'
+                          '    [ -z "$statement" ] && continue\n'
+                          '    aws athena start-query-execution --work-group "${ATHENA_WORKGROUP:?set the workgroup}" '
+                          '--query-execution-context Database=serving --query-string "$statement"\n  done'),
+               "trino": ("the Trino CLI", 'trino --server "${TRINO_SERVER:?set the coordinator URL}" --file "$f"'),
+               "starburst": ("the Trino CLI", 'trino --server "${TRINO_SERVER:?set the coordinator URL}" --file "$f"'),
+               "postgres": ("psql", 'psql "${POSTGRES_DSN:?set a DSN that uses pgpass or IAM, never a password}" -v ON_ERROR_STOP=1 -f "$f"'),
                "fabric": ("sqlcmd", 'sqlcmd -S "${SQL_ENDPOINT:?set the SQL endpoint}" -d "${SQL_DATABASE:?set the database}" -G -b -i "$f"'),
                "synapse": ("sqlcmd", 'sqlcmd -S "${SQL_ENDPOINT:?set the SQL endpoint}" -d "${SQL_DATABASE:?set the database}" -G -b -i "$f"'),
                }.get(self.engine)
@@ -338,6 +397,11 @@ if __name__ == "__main__":
             'for f in publish.sql; do\n  echo "running $f"\n  ' + cli[1] + "\ndone\n")
 
     def _spark_cast(self, col: str, ltype: str) -> str:
+        base = ph.parse_type(ltype)[0]
+        if base in ("json", "array"):      # kept as validated JSON text in silver; gold or serving parses it natively
+            return f"CASE WHEN {col} IS NOT NULL AND get_json_object({col}, '$') IS NULL THEN NULL ELSE {col} END AS {col}"
+        if base in ("uuid", "geography", "time"):
+            return f"NULLIF(TRIM({col}), '') AS {col}"
         phys = ph.phys_type(ltype, "databricks")
         if phys == "STRING":
             return f"NULLIF(TRIM({col}), '') AS {col}"
@@ -353,25 +417,37 @@ if __name__ == "__main__":
         def view(t, src):
             cols = ", ".join(f"'***' AS {a['name']}" if a["name"] in masked[t] else a["name"]
                              for e, tt in ents if tt == t for a in e["attributes"])
+            if any(e.get("history") == "type2" for e, tt in ents if tt == t):
+                cols += ", valid_from, valid_to, is_current"      # so consumers can ask for current rows
             return f"CREATE OR REPLACE VIEW {serving}.v_{t} AS SELECT {cols} FROM {src};"
         out = [f"-- Pipeline 3 - publish gold to {self.engine} ({'zero-copy' if zero else 'copy'}), run {self.run_id}.",
                "-- Consumers get the v_ views, which mask Restricted attributes (ADR-003).", ""]
         if self.engine == "snowflake":
             out += ["CREATE SCHEMA IF NOT EXISTS SERVING;",
                     "-- one-time platform setup (A3, Platform Owner): external volume and catalog integration",
-                    "-- CREATE EXTERNAL VOLUME lake_volume STORAGE_LOCATIONS = ((NAME='lake' STORAGE_PROVIDER='S3' "
-                    "STORAGE_BASE_URL='${LAKE_ROOT}/' STORAGE_AWS_ROLE_ARN='${SNOWFLAKE_LAKE_ROLE_ARN}'));",
-                    "-- CREATE CATALOG INTEGRATION glue_catalog CATALOG_SOURCE=GLUE CATALOG_NAMESPACE='gold' "
-                    "TABLE_FORMAT=ICEBERG GLUE_AWS_ROLE_ARN='${SNOWFLAKE_GLUE_ROLE_ARN}' GLUE_CATALOG_ID='${AWS_ACCOUNT_ID}' ENABLED=TRUE;", ""]
+                    "-- CREATE EXTERNAL VOLUME lake_volume STORAGE_LOCATIONS = ((NAME='lake' " + {
+                        "aws": "STORAGE_PROVIDER='S3' STORAGE_BASE_URL='${LAKE_ROOT}/' STORAGE_AWS_ROLE_ARN='${SNOWFLAKE_LAKE_ROLE_ARN}'",
+                        "azure": "STORAGE_PROVIDER='AZURE' STORAGE_BASE_URL='azure://${STORAGE_ACCOUNT}.blob.core.windows.net/lake/' "
+                                 "AZURE_TENANT_ID='${AZURE_TENANT_ID}'",
+                        "gcp": "STORAGE_PROVIDER='GCS' STORAGE_BASE_URL='gcs://${LAKE_BUCKET}/'"}.get(self.cloud, "") + "));",
+                    ("-- CREATE CATALOG INTEGRATION lake_catalog CATALOG_SOURCE=GLUE CATALOG_NAMESPACE='gold' "
+                     "TABLE_FORMAT=ICEBERG GLUE_AWS_ROLE_ARN='${SNOWFLAKE_GLUE_ROLE_ARN}' GLUE_CATALOG_ID='${AWS_ACCOUNT_ID}' ENABLED=TRUE;"
+                     if self.cat == "aws-glue-catalog" else
+                     "-- CREATE CATALOG INTEGRATION lake_catalog CATALOG_SOURCE=ICEBERG_REST TABLE_FORMAT=ICEBERG "
+                     "CATALOG_NAMESPACE='gold' REST_CONFIG=(CATALOG_URI='${ICEBERG_REST_URI}' CATALOG_NAME='${ICEBERG_CATALOG}') "
+                     "REST_AUTHENTICATION=(TYPE=OAUTH OAUTH_CLIENT_ID='${CATALOG_CLIENT_ID}' "
+                     "OAUTH_CLIENT_SECRET='<set by the Platform Owner, never committed>' OAUTH_ALLOWED_SCOPES=('PRINCIPAL_ROLE:ALL')) "
+                     "ENABLED=TRUE;"), ""]
             for e, t in ents:
                 if zero:
                     out.append(f"CREATE OR REPLACE ICEBERG TABLE SERVING.{t.upper()} EXTERNAL_VOLUME = 'lake_volume' "
-                               f"CATALOG = 'glue_catalog' CATALOG_TABLE_NAME = '{t}';")
+                               f"CATALOG = 'lake_catalog' CATALOG_TABLE_NAME = '{t}';")
                 else:
                     out.append(f"COPY INTO SERVING.{t.upper()} FROM @lake_stage/gold/{t}/ FILE_FORMAT = (TYPE = PARQUET) "
                                "MATCH_BY_COLUMN_NAME = CASE_INSENSITIVE;")
                 out.append(view(t, f"SERVING.{t.upper()}").replace(f"{serving}.v_", "SERVING.V_"))
-            out.append("ALTER ICEBERG TABLE SERVING.* REFRESH; -- or AUTO_REFRESH = TRUE on the catalog integration")
+            if zero:
+                out += [f"ALTER ICEBERG TABLE SERVING.{t.upper()} REFRESH;" for e, t in ents]
         elif self.engine == "databricks":
             out += [f"CREATE SCHEMA IF NOT EXISTS {self.catalog}.serving;"]
             for e, t in ents:
@@ -398,6 +474,27 @@ if __name__ == "__main__":
                        f"OPENROWSET(BULK '{self.root}/gold/{t}/', FORMAT = 'DELTA') AS r")
                 out.append(f"CREATE OR ALTER VIEW serving.{t} AS SELECT * FROM {src};")
                 out.append(view(t, f"serving.{t}").replace("CREATE OR REPLACE VIEW", "CREATE OR ALTER VIEW"))
+        elif self.engine == "athena":
+            out += ["-- Athena reads the gold tables in place through the Glue Data Catalog: there is nothing to copy.",
+                    "-- Each statement is submitted on its own (Athena runs one statement per request); run_publish.sh does that."]
+            for e, t in ents:
+                out.append(view(t, f"gold.{t}"))
+        elif self.engine in ("trino", "starburst"):
+            cat = {"iceberg": "iceberg", "delta": "delta", "hudi": "hudi"}[self.using()]
+            out += [f"-- {self.engine} reads the gold tables in place through its `{cat}` catalog (connector to {self.cat}).",
+                    f"CREATE SCHEMA IF NOT EXISTS {cat}.serving;"]
+            for e, t in ents:
+                out.append(view(t, f"{cat}.gold.{t}").replace(f"{serving}.v_", f"{cat}.serving.v_"))
+        elif self.engine == "postgres":
+            out += ["-- PostgreSQL does not read lake tables in place: gold is copied in. The load is a full replace inside",
+                    "-- one transaction, so readers see either the previous version or the new one, never a partial load.",
+                    "CREATE SCHEMA IF NOT EXISTS serving;", "BEGIN;"]
+            for e, t in ents:
+                cols = ", ".join(f"{a['name']} {ph.phys_type(a['type'], 'postgres')}" for a in e["attributes"])
+                out += [f"CREATE TABLE IF NOT EXISTS serving.{t} ({cols});", f"TRUNCATE serving.{t};",
+                        f"\\copy serving.{t} FROM PROGRAM 'cat ${{GOLD_EXPORT_DIR}}/{t}/*.csv' WITH (FORMAT csv, HEADER true)",
+                        view(t, f"serving.{t}")]
+            out.append("COMMIT;")
         elif self.engine == "duckdb-local":
             out.append("-- Executed by the ADEF local lakehouse runner (adef/lakehouse/runner.py, publish step).")
         else:
@@ -430,7 +527,7 @@ with DAG(
     default_args={{"retries": 2, "retry_delay": timedelta(minutes=10)}},
     tags=["adef", "{self.run_id}", "medallion"],
 ) as dag:
-    ingest = EmptyOperator(task_id="p1_ingest_bronze")      # replace with {submit}(pipelines/01_ingest/ingest_jdbc.py)
+    ingest = EmptyOperator(task_id="p1_ingest_bronze")      # replace with {submit}({self.ingest_entry})
     silver = EmptyOperator(task_id="p2a_bronze_to_silver")  # replace with {submit}({silver_file})
     gold = EmptyOperator(task_id="p2b_silver_to_gold")      # replace with {submit}({gold_file})
     quality = EmptyOperator(task_id="quality_gate")         # quality/ rules; a critical failure stops publish
@@ -441,7 +538,7 @@ with DAG(
             self.files["resources/medallion_job.yml"] = dump_yaml({"resources": {"jobs": {f"{dag}_medallion": {
                 "name": f"{dag}_medallion", "max_concurrent_runs": 1,
                 "schedule": {"quartz_cron_expression": "0 0 2 * * ?", "timezone_id": "UTC"},
-                "tasks": [{"task_key": "p1_ingest_bronze", "spark_python_task": {"python_file": "pipelines/01_ingest/ingest_jdbc.py"}},
+                "tasks": [{"task_key": "p1_ingest_bronze", "spark_python_task": {"python_file": self.ingest_entry}},
                           {"task_key": "p2_curate", "depends_on": [{"task_key": "p1_ingest_bronze"}],
                            **({"spark_python_task": {"python_file": silver_file}} if py else {"sql_task": {"file": {"path": silver_file}}})},
                           {"task_key": "p2_gold", "depends_on": [{"task_key": "p2_curate"}],
@@ -464,9 +561,69 @@ with DAG(
     def readme(self) -> str:
         return (f"# Medallion pipelines - {self.model['name']}\n\n"
                 f"| # | Pipeline | From | To | Runs on |\n|---|---|---|---|---|\n"
-                f"| 1 | Ingest | `{self.src}` source database | bronze `{self.fmt}` in `{self.catalog}` (`{self.root}`) | {self.ing} / {self.lake} |\n"
+                f"| 1 | Ingest | `{self.src}` ({PATTERN_LABELS[self.pattern]}) | bronze `{self.fmt}` in `{self.catalog}` (`{self.root}`) | {self.ing} / {self.lake} |\n"
                 f"| 2 | Curate | bronze | silver, gold (`{self.fmt}`) | "
                 f"{'PySpark jobs' if self.curate_style == 'pyspark' else tool(self.p, 'transformation')} on {self.lake} |\n"
                 f"| 3 | Publish | gold | `{self.engine}` serving layer | {'zero-copy' if self.fmt in ZERO_COPY_FORMATS.get(self.engine, set()) else 'copy'} |\n\n"
-                "Incremental extraction uses the source `LAST_UPDATED_TS` watermark. Every step is idempotent "
-                "(partition overwrite per batch, MERGE on business keys), so a failed run can be re-run safely.\n")
+                + {"database-batch": "Incremental extraction uses the source `LAST_UPDATED_TS` watermark. ",
+                   "database-cdc": "Change events are folded into bronze with their operation; deletes reach silver. ",
+                   "files": "Each file is loaded exactly once; rows that do not fit the schema are quarantined. ",
+                   "saas-api": "Application objects are landed by the connector and folded into bronze once. ",
+                   "event-stream": "Topics are read with a checkpoint, so every message reaches bronze exactly once. "}[self.pattern]
+                + "Every step is idempotent (MERGE on business keys), so a failed run can be re-run safely.\n")
+
+
+CONNECTOR_JOB = '''"""Pipeline 1 - read __SRC__ collections into bronze (__FMT__) - run __RUN__.
+
+__SRC__ is read through its Spark connector. Documents can be nested: every nested field is written to
+bronze as JSON text, so no attribute is lost and the shape can change at the source without breaking
+the load. Silver validates the JSON; the mapping says which paths become columns.
+Incremental on the __WATERMARK__ watermark where the collection has it. Runs on __LAKE__.
+"""
+import argparse
+import json
+from datetime import datetime, timezone
+
+import yaml
+from pyspark.sql import SparkSession, functions as F
+from pyspark.sql.types import ArrayType, MapType, StructType
+
+
+def flatten_to_json(df):
+    nested = [f.name for f in df.schema.fields if isinstance(f.dataType, (StructType, ArrayType, MapType))]
+    for name in nested:
+        df = df.withColumn(name, F.to_json(F.col(name)))
+    return df
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--config", default="ingest_config.yaml")
+    ap.add_argument("--batch-id", default=datetime.now(timezone.utc).strftime("B%Y%m%dT%H%M%S"))
+    args = ap.parse_args()
+    cfg = yaml.safe_load(open(args.config))
+    spark = SparkSession.builder.appName("adef-ingest-__RUN__").getOrCreate()
+    report = []
+    for t in cfg["tables"]:
+        reader = spark.read.format(cfg["source"]["format"])
+        for key, value in cfg["source"]["options"].items():
+            reader = reader.option(key, value.replace("<table>", t["source"].split(".")[-1]))
+        df = flatten_to_json(reader.load())
+        df = df.toDF(*[c.lower() for c in df.columns])
+        try:
+            last = spark.sql(f"SELECT MAX(__WATERMARK__) AS w FROM {t['bronze']}").first()["w"]
+        except Exception:  # first run: the bronze table does not exist yet
+            last = None
+        if last is not None and "__WATERMARK__" in df.columns:
+            df = df.filter(F.col("__WATERMARK__") > F.lit(last))
+        df = (df.withColumn("_ingested_at", F.current_timestamp())
+                .withColumn("_batch_id", F.lit(args.batch_id))
+                .withColumn("_source_system", F.lit(cfg["source"]["type"])))
+        df.write.format("__USING__").mode("append").option("mergeSchema", "true").saveAsTable(t["bronze"])
+        report.append({"table": t["source"], "rows": df.count(), "watermark_from": str(last) if last else None})
+    print(json.dumps({"batch_id": args.batch_id, "tables": report}))
+
+
+if __name__ == "__main__":
+    main()
+'''

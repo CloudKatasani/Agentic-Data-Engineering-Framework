@@ -7,7 +7,8 @@ Shape:
      "name": "customer_account", "label": "Customer Account", "kind": "dimension|fact|reference|bridge",
      "subject_area": str, "description": str, "grain": str, "history": "type2|type1|snapshot|none",
      "attributes": [{
-        "name": str, "label": str, "type": "string|string(n)|integer|bigint|decimal(p,s)|boolean|date|timestamp",
+        "name": str, "label": str, "type": "string|string(n)|integer|bigint|decimal(p,s)|boolean|date|timestamp|timestamp_tz|time|"
+                                     "json|array|binary|uuid|geography",
         "nullable": bool, "pk": bool, "fk": {"entity": str, "attribute": str} | null,
         "classification": "public|internal|confidential|restricted", "description": str,
         "business_rule": "BR-###" | null, "req_ids": [str]
@@ -20,19 +21,31 @@ from __future__ import annotations
 
 import re
 
-LOGICAL_TYPES = ("string", "integer", "bigint", "decimal", "boolean", "date", "timestamp")
+LOGICAL_TYPES = ("string", "integer", "bigint", "decimal", "boolean", "date", "timestamp",
+                 # beyond flat relational data: time zones, semi-structured, binary, identifiers, location
+                 "timestamp_tz", "time", "json", "array", "binary", "uuid", "geography")
+SEMI_STRUCTURED = ("json", "array")
 CLASSIFICATIONS = ("public", "internal", "confidential", "restricted")
 
 
 def parse_type(t: str) -> tuple[str, list[int]]:
-    m = re.match(r"^\s*([a-z]+)\s*(?:\(([\d,\s]+)\))?\s*$", (t or "string").lower())
+    m = re.match(r"^\s*([a-z][a-z0-9_ ]*?)\s*(?:\(([\d,\s]+)\))?\s*$", (t or "string").lower())
     if not m:
         return "string", []
     base = m.group(1)
     args = [int(x) for x in (m.group(2) or "").split(",") if x.strip()]
     aliases = {"varchar": "string", "text": "string", "char": "string", "int": "integer", "number": "decimal",
                "numeric": "decimal", "float": "decimal", "double": "decimal", "bool": "boolean",
-               "datetime": "timestamp", "timestamp_ntz": "timestamp", "long": "bigint"}
+               "datetime": "timestamp", "timestamp_ntz": "timestamp", "long": "bigint",
+               "varchar2": "string", "nvarchar": "string", "nchar": "string", "clob": "string", "nclob": "string",
+               "smallint": "integer", "tinyint": "integer", "money": "decimal", "real": "decimal",
+               "timestamptz": "timestamp_tz", "timestamp_ltz": "timestamp_tz", "datetimeoffset": "timestamp_tz",
+               "timestamp with time zone": "timestamp_tz", "datetime2": "timestamp", "smalldatetime": "timestamp",
+               "variant": "json", "object": "json", "struct": "json", "map": "json", "super": "json", "jsonb": "json",
+               "document": "json", "xml": "json", "list": "array",
+               "bytes": "binary", "blob": "binary", "varbinary": "binary", "bytea": "binary", "raw": "binary",
+               "image": "binary", "guid": "uuid", "uniqueidentifier": "uuid", "geometry": "geography", "geo": "geography",
+               "point": "geography"}
     base = aliases.get(base, base)
     if base not in LOGICAL_TYPES:
         base = "string"

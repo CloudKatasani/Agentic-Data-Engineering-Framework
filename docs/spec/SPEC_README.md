@@ -8,7 +8,7 @@
 
 > **Status.** `BUILD_SPEC.md` is at version 2.0 and describes the product as built: what is
 > built, partly built and not built, the capabilities added since version 1.0, and the
-> known limits. The skills are at version 1.3.0. In the repository the agent files live in
+> known limits. The skills are at version 1.4.0. In the repository the agent files live in
 > `agents/` and the skills in `skills/` at the top level.
 
 A platform-agnostic, approval-gated team of nine AI agents that automates the data

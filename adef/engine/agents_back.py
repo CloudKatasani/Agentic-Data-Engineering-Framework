@@ -15,7 +15,7 @@ from ..modeling import exports
 from ..modeling import physical as ph
 from ..util import dump_yaml, md_table, now_iso, today
 from .agents_front import _csv
-from . import formats, release_bundle
+from . import consume, formats, release_bundle
 from .codegen import CodeGen
 from .context import StageCtx, StageOutput
 from .gitrepo import Repo, network_env
@@ -581,9 +581,14 @@ def consumption(ctx: StageCtx) -> StageOutput:
     bi, sem = stacks.tool(prof, "bi"), stacks.tool(prof, "semantic_layer")
     schema = ph.schema_name(prof)
     consumers = intake.get("consumers", [])
+    patterns = ws.run.get("consumption_patterns") or consume.DEFAULT
+    chosen = [o for o in consume.options(prof) if o["id"] in patterns]
     ctx.write("08-consumption/consumer-map.md", "# Consumer map\n\n" + md_table(
         ["Consumer", "Question", "Access path", "Role"],
-        [[c["name"], c["question"], f"{bi} report / semantic model", "analyst_masked"] for c in consumers]) + "\n")
+        [[c["name"], c["question"], f"{bi} report / semantic model", "analyst_masked"] for c in consumers]) + "\n\n"
+        "## How this product is consumed\n\n" + md_table(
+            ["Pattern", "For", "Delivered with", "What is handed over"],
+            [[o["label"], o["who"], o["tool"], o["what"]] for o in chosen]) + "\n")
     facts = [e for e in model["entities"] if e["kind"] == "fact"]
     sm = ["# Semantic model", "", f"Semantic layer: `{sem}`; BI: `{bi}`.", ""]
     for f in facts:
@@ -606,6 +611,8 @@ def consumption(ctx: StageCtx) -> StageOutput:
     views = []
     for e in model["entities"]:
         cols = ", ".join(f"'***' AS {a['name']}" if a["classification"] == "restricted" else a["name"] for a in e["attributes"])
+        if e.get("history") == "type2":
+            cols += ", valid_from, valid_to, is_current"
         views.append(f"CREATE OR REPLACE VIEW {schema}.v_{ph.table_name(e, prof).lower()} AS SELECT {cols} FROM {schema}.{ph.table_name(e, prof)};")
     ctx.write("08-consumption/semantic/consumer-views.sql", "-- Masked consumer views (draft; deployed after G8)\n" + "\n".join(views) + "\n")
     if bi == "looker":
@@ -650,8 +657,18 @@ def consumption(ctx: StageCtx) -> StageOutput:
                      "pass" if direct == via_view else "FAIL"])
     access = [sb.masking(e, [a["name"] for a in e["attributes"] if a["classification"] == "restricted"])
               for e in model["entities"] if any(a["classification"] == "restricted" for a in e["attributes"])]
+    # every other consumption pattern the run asked for: artifacts in the stack's own syntax, checked by execution
+    pat = consume.generate(patterns, model, prof, ws.run_id, sb, consumers)
+    pattern_files = [f"08-consumption/patterns/{f}" for f in sorted(pat["files"])]
+    for f in sorted(pat["files"]):
+        ctx.write(f"08-consumption/patterns/{f}", pat["files"][f])
     ctx.write("08-consumption/validation.md", "# Validation\n\n## Metric consistency across access paths\n\n"
-              + md_table(["Metric", "Direct table", "Consumer view", "Result"], rows) + "\n\n## Access\n\n"
+              + md_table(["Metric", "Direct table", "Consumer view", "Result"], rows) + "\n\n"
+              + ("## Consumption patterns, checked by execution\n\nEach check below ran against the sandbox copy of the "
+                 "approved model, through the masked views.\n\n"
+                 + md_table(["Pattern", "Check", "Result", "Detail"], pat["checks"]) + "\n\n"
+                 + ("### To finish by hand\n\n" + "\n".join(f"- {g}" for g in pat["gaps"]) + "\n\n" if pat["gaps"] else "")
+                 if pat["checks"] or pat["gaps"] else "") + "## Access\n\n"
               + md_table(["View", "Restricted columns", "Unmasked values", "Result"],
                          [[a["view"], ", ".join(a["restricted_columns"]), a["unmasked_values"], a["status"]] for a in access])
               + "\n\n## Consumer questions answered\n\n" + "\n".join(f"- {c['question']} -> {model['metrics'][0]['label'] if model.get('metrics') else 'curated tables'}" for c in consumers) + "\n")
@@ -659,6 +676,10 @@ def consumption(ctx: StageCtx) -> StageOutput:
               f"v{model['version']}: {len(model['entities'])} tables, {len(model.get('metrics', []))} governed metrics, masked consumer "
               f"views, {bi} semantic model, catalog entry ({stacks.tool(prof, 'catalog_governance')}).\n\n**Audience:** "
               + ", ".join(c["name"] for c in consumers) + "\n\n**Channels:** catalog listing, BI workspace, consumer guide.\n\n"
+              "**Consumption patterns:** " + "; ".join(f"{o['label']} ({o['tool']})" for o in chosen) + ".\n\n"
+              "Sharing with another organisation, syncing into a business application and adding a recipient are each a "
+              "separate outward-facing action: the generated definitions are created paused or commented out, and are "
+              "switched on by the owning person after this approval.\n\n"
               "Nothing is published or sent before this request is approved by the Product Owner and Data Steward.\n")
     guide = _narrative(ctx, f"Write a consumer guide for the data product {model['name']}: what it is, how to find it, what each "
                             f"metric means, how to request access, known limitations. Metrics: {json.dumps(model.get('metrics', []))}")
@@ -670,13 +691,17 @@ def consumption(ctx: StageCtx) -> StageOutput:
                                                                   else "atlas" if stacks.tool(prof, "catalog_governance") == "purview"
                                                                   else "datahub" if stacks.tool(prof, "catalog_governance") == "datahub"
                                                                   else "json", model, {"profile": prof, "glossary": ws.domain.get("glossary_seed", [])})[1])
-    ok = all(r[3] == "pass" for r in rows) and all(a["status"] == "pass" for a in access)
+    ok = (all(r[3] == "pass" for r in rows) and all(a["status"] == "pass" for a in access)
+          and all(k[2] == "pass" for k in pat["checks"]))
     return StageOutput(
         artifacts=["08-consumption/publication-request.md", "08-consumption/consumer-map.md", "08-consumption/semantic-model.md",
                    "08-consumption/metric-catalogue.csv", "08-consumption/access-model.md", "08-consumption/data-contract.yaml",
-                   "08-consumption/validation.md", "08-consumption/consumer-guide.md", "08-consumption/catalog-entry.json"],
+                   "08-consumption/validation.md", "08-consumption/consumer-guide.md", "08-consumption/catalog-entry.json"]
+                  + pattern_files,
         summary=f"Semantic model, {len(model.get('metrics', []))} governed metrics, masked access model, contract and catalog entry "
-                f"prepared; validation {'passed' if ok else 'FAILED'}. Draft only - requesting G8 to publish.",
+                f"prepared for {len(chosen)} consumption pattern{'s' if len(chosen) != 1 else ''} "
+                f"({', '.join(o['label'].lower() for o in chosen)}); {len(pat['checks'])} pattern checks executed; "
+                f"validation {'passed' if ok else 'FAILED'}. Draft only - requesting G8 to publish.",
         requirement_ids=[r["id"] for r in reqs["requirements"]],
         gate_meta={"risk": "Publication is outward-facing (A3).", "cost": "None.",
                    "rollback": "Unpublish listing; revoke role grants.", "options": ["Approve publication", "Reject"]},

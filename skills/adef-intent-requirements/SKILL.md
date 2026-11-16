@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs read/write to the run workspace and read access to the catalog and glossary. Load adef-shared-guardrails first.
 metadata:
   owner: adef-platform
-  version: "1.3.0"
+  version: "1.4.0"
   role: requirements-analyst
   stage: "1-business-intent-to-requirements"
   gate: G1

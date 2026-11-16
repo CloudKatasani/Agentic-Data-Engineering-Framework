@@ -20,14 +20,14 @@ def _run(engine, **kw):
 
 def test_every_stage_declares_what_its_agent_needs():
     d = c.get("/api/context/sources").json()
-    assert set(d["sources"]) == {"confluence", "jira", "github", "servicenow"}
+    assert set(d["sources"]) == {"confluence", "jira", "github", "servicenow", "azure-devops", "gitlab", "sharepoint", "collibra"}
     assert all(d["stages"][k]["needs"] for k in ("intake", "requirements", "mapping", "design", "build", "test", "release",
                                                   "operations", "consumption"))
     known = set(d["sources"]) | set(d["manual"])
     assert all(set(n["sources"]) <= known for v in d["stages"].values() for n in v["needs"])
 
 
-@pytest.mark.parametrize("sid", ["confluence", "github", "servicenow", "jira"])
+@pytest.mark.parametrize("sid", ["confluence", "github", "servicenow", "jira", "azure-devops", "gitlab", "sharepoint", "collibra"])
 def test_demo_sources_search_and_fetch(sid):
     r = c.post(f"/api/integrations/{sid}/search", json={"query": "", "domain": "telco", "stage": "release"}).json()
     assert r["mode"] == "demo" and r["results"]

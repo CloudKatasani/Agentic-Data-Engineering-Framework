@@ -212,7 +212,7 @@ function pipelineFlow(profile, counts) {
   const node = (title, sub, k, cls = "") => `<div class="fnode ${cls}"><div class="ft">${esc(title)}</div><div class="fs">${esc(sub)}</div>${c[k] ? `<div class="fc">${esc(c[k])}</div>` : ""}</div>`;
   const arrow = (label, sub) => `<div class="farrow"><div class="fl">${esc(label)}</div><div class="fs">${esc(sub)}</div><div class="fa">→</div></div>`;
   return `<div class="flow">
-    ${node("Source database", t("source_database"), "source", "src")}
+    ${node("Source", `${t("source_database")}${profile?.slots?.source_pattern?.tool && profile.slots.source_pattern.tool !== "none" ? ` · ${profile.slots.source_pattern.tool.replace("database-", "")}` : ""}`, "source", "src")}
     ${arrow("Pipeline 1 · Ingest", t("ingestion"))}
     ${node("Bronze", `${t("table_format")} · ${t("object_storage")}`, "bronze", "bronze")}
     ${arrow("Pipeline 2 · Curate", `${t("transformation")} on ${t("lakehouse_compute")}`)}
@@ -475,11 +475,16 @@ function addContextDialog(st, stage, need, src) {
   $$("#cxTabs .tab").forEach((t) => (t.onclick = () => { kind = t.dataset.k; draw(); }));
   draw();
 }
-// Settings cards for the optional context integrations (Confluence, GitHub, ServiceNow).
+// Settings cards for the optional context integrations.
 const INTEG_FIELDS = {
-  base_url: ["Base URL", { confluence: "https://your-company.atlassian.net", github: "https://api.github.com", servicenow: "https://your-instance.service-now.com" }],
-  email: ["Account email (Cloud)", {}], space: ["Space key (optional)", { confluence: "DATA" }], repo: ["Repository (owner/name)", { github: "acme/data-platform" }],
-  branch: ["Branch", { github: "main" }], user: ["User name (leave empty for a bearer token)", {}],
+  base_url: ["Base URL", { confluence: "https://your-company.atlassian.net", github: "https://api.github.com", servicenow: "https://your-instance.service-now.com",
+    "azure-devops": "https://dev.azure.com/your-organisation", gitlab: "https://gitlab.com", collibra: "https://your-company.collibra.com" }],
+  email: ["Account email (Cloud)", {}], space: ["Space key (optional)", { confluence: "DATA" }],
+  repo: ["Repository (owner/name)", { github: "acme/data-platform", gitlab: "acme/data/data-platform" }],
+  branch: ["Branch", { github: "main", gitlab: "main" }], user: ["User name (leave empty for a bearer token)", { collibra: "svc-datacrew" }],
+  project: ["Project", { "azure-devops": "Data Platform" }], tenant: ["Tenant (directory) ID or domain", { sharepoint: "acme.onmicrosoft.com" }],
+  client_id: ["Application (client) ID", { sharepoint: "00000000-0000-0000-0000-000000000000" }],
+  site: ["Site (host:/sites/name)", { sharepoint: "acme.sharepoint.com:/sites/data" }],
 };
 async function renderIntegrationCards(el) {
   const [d, secrets] = await Promise.all([api("GET", "/context/sources"), api("GET", "/secrets")]);
@@ -887,7 +892,17 @@ function wzReview(d) {
     <div class="table-wrap"><table id="wzTeam"><thead><tr><th style="width:24%">Agent</th><th>Provider</th><th>Model</th><th>Effort</th><th>Key</th></tr></thead><tbody>${rows}</tbody></table></div>
     <h3 style="margin-top:16px">Review and output</h3>
     <label class="chk"><input type="checkbox" id="wzCouncil" ${d.council_enabled !== false ? "checked" : ""}> <span><b>Council of three.</b> Three independent reviewers (${(SETTINGS.council?.members || []).map((m) => esc(m.model)).join(", ")}) check every stage's output before it is handed over. Two approvals pass it on; otherwise the agent revises. Their report goes to the gate. Change the reviewers on <a href="#/agents">Agents &amp; models</a>.</span></label>
+    ${wzConsumption(d)}
     ${wzOutputs(d)}`;
+}
+// How the finished product will be used. Each pattern is delivered with the tool this stack binds for it.
+function wzConsumption(d) {
+  const opts = WZ.consOpts?.[d.stack_id];
+  if (!opts) return "";
+  const on = d.consumption_patterns || opts.filter((o) => o.default && o.available).map((o) => o.id);
+  return `<div style="margin-top:14px"><b>How will the data product be consumed?</b><div class="small muted">Choose every way people and systems will use it. The Analytics and AI Engineer hands over the artifacts for each one in this stack's own syntax, and checks them by running them against the masked views. A pattern is greyed out when the stack has no tool bound for it: bind one on <a href="#/stacks">Technology stacks</a>.</div>
+    <div class="cons-grid">${opts.map((o) => `<label class="cons ${o.available ? "" : "off"}" title="${esc(o.reason || o.what)}"><input type="checkbox" data-cons="${esc(o.id)}" ${on.includes(o.id) && o.available ? "checked" : ""} ${o.available ? "" : "disabled"}>
+      <span><b>${esc(o.label)}</b><span class="small muted"> · ${esc(o.who)}</span><div class="small muted">${esc(o.what)}</div><div class="small">${o.available ? `<span class="chip approved">${esc(o.tool)}</span>` : '<span class="chip">no tool bound</span>'}</div></span></label>`).join("")}</div></div>`;
 }
 // What each stage hands over: a document format, or for Build and Release the code output for this stack.
 function wzOutputs(d) {
@@ -919,6 +934,15 @@ function bindWizard() {
   if ($("#wzResetTeam")) $("#wzResetTeam").onclick = () => { d.agent_bindings = {}; collect(); renderWizard(); };
   if ($("#wzCouncil")) $("#wzCouncil").onchange = (e) => (d.council_enabled = e.target.checked);
   $$("[data-fmt]").forEach((el) => (el.onchange = () => { d.output_formats = { ...(d.output_formats || {}), [el.dataset.fmt]: el.value }; }));
+  $$("[data-cons]").forEach((el) => (el.onchange = () => { d.consumption_patterns = $$("[data-cons]").filter((x) => x.checked).map((x) => x.dataset.cons); }));
+  if ($("#wzTeam") && !WZ.consOpts?.[d.stack_id]) {
+    api("POST", "/consumption-options", { stack_profile: allStacks().find((x) => x.profile_id === d.stack_id) }).then((o) => {
+      WZ.consOpts = { ...(WZ.consOpts || {}), [d.stack_id]: o };
+      // a pattern chosen for another stack may have no tool on this one
+      if (d.consumption_patterns) d.consumption_patterns = d.consumption_patterns.filter((x) => o.some((y) => y.id === x && y.available));
+      if ($("#wzTeam")) { collect(); renderWizard(); }
+    });
+  }
   $$("[data-fmt-all]").forEach((b) => (b.onclick = () => { const o = WZ.outOpts[d.stack_id]; d.output_formats = { ...(d.output_formats || {}), ...Object.fromEntries(CATALOG.stages.filter((st) => o[st.key].kind === "documents").map((st) => [st.key, b.dataset.fmtAll])) }; collect(); renderWizard(); }));
   if ($("#wzTeam") && !WZ.outOpts?.[d.stack_id]) {
     api("POST", "/output-options", { stack_profile: allStacks().find((x) => x.profile_id === d.stack_id) }).then((o) => {
@@ -961,7 +985,8 @@ async function launch() {
   const body = { source_connection, client_code: d.client_code, domain_pack: d.domain_pack, use_case: d.use_case || undefined,
     request: d.req_source === "jira" ? "" : d.request, documents: d.req_source === "jira" ? "" : d.documents,
     jira_issues: issues, stack_profile: allStacks().find((s) => s.profile_id === d.stack_id),
-    source_metadata: d.source_metadata, approvers: d.approvers, compute_cost_cap: +d.compute_cost_cap, autopilot: d.autopilot, agent_bindings: d.agent_bindings || {}, council_enabled: d.council_enabled !== false, output_formats: d.output_formats || {} };
+    source_metadata: d.source_metadata, approvers: d.approvers, compute_cost_cap: +d.compute_cost_cap, autopilot: d.autopilot, agent_bindings: d.agent_bindings || {}, council_enabled: d.council_enabled !== false, output_formats: d.output_formats || {},
+    ...(d.consumption_patterns ? { consumption_patterns: d.consumption_patterns } : {}) };
   const r = await guard(() => api("POST", "/runs", body), "Run started");
   store.set("adef_pending_metadata", null);
   WZ.data = null;
@@ -999,6 +1024,7 @@ function renderRunHead(st) {
   $("#runHead").innerHTML = `<div class="spread"><div><h1>${esc(r.run_id)} · ${esc(r.use_case)}</h1>
     <div class="sub">${esc(r.client_code)} · domain <b>${esc(r.domain_pack)}</b> · stack <b>${esc(st.stack.label || st.stack.profile_id)}</b> · ${badge(st.status)}</div></div>
     <div class="row">${st.status === "active" ? '<button class="btn bad" id="stopBtn" title="Any named approver can halt the run">Stop run</button>' : ""}<button class="btn" id="bundleBtn">Download run bundle</button><button class="btn" id="integrityBtn">Verify audit logs</button></div></div>
+    ${st.consumption?.length ? `<div class="small muted" style="margin-top:4px">Consumed as: ${st.consumption.map((o) => `<span class="chip" title="${esc(o.what)} Delivered with ${esc(o.tool)}.">${esc(o.label)}</span>`).join(" ")}</div>` : ""}
     ${r.policy?.separation_of_duties || r.policy?.approved_providers?.length ? `<div class="small muted" style="margin-top:4px">Enterprise policy: ${[r.policy.separation_of_duties ? "segregation of duties" : "", r.policy.approved_providers?.length ? `approved model providers: ${esc(r.policy.approved_providers.join(", "))}` : ""].filter(Boolean).join(" · ")}</div>` : ""}`;
   if ($("#stopBtn")) $("#stopBtn").onclick = () => stopDialog(st, false);
   $("#bundleBtn").onclick = () => download(`/runs/${RUN.id}/bundle.zip`, `${RUN.id}.zip`);
@@ -1482,6 +1508,8 @@ route("stacks", async () => {
   const list = allStacks();
   let cur = JSON.parse(JSON.stringify(list[0]));
   main().innerHTML = `<h1>Technology stacks</h1><div class="sub">Agents reason in capability slots; a Stack Profile binds each slot to a tool. Pick a reference stack, adjust any slot, validate (stack-binding T1) and save it for your runs.</div>
+    <div class="card" id="composeCard"></div>
+    <h3 style="margin-top:16px">Reference stacks</h3>
     <div class="option-cards" id="stackCards"></div>
     <div class="card" style="margin-top:16px"><div class="spread"><h2 id="stackTitle"></h2><div class="row"><button class="btn" id="valBtn">Validate</button><button class="btn primary" id="saveStack">Save as custom profile</button></div></div>
       <div class="field-row"><div><label>Profile ID</label><input id="sId"></div><div><label>Label</label><input id="sLabel"></div><div><label>Naming case</label><select id="sCase"><option>upper_snake</option><option>lower_snake</option></select></div>
@@ -1494,6 +1522,7 @@ route("stacks", async () => {
   const form = () => {
     $("#stackTitle").textContent = cur.label || cur.profile_id;
     $("#sId").value = CATALOG.presets.some((p) => p.profile_id === cur.profile_id) ? `${cur.profile_id}-custom` : cur.profile_id;
+    cur.slots = Object.fromEntries(Object.entries(cur.slots).filter(([, v]) => v));
     $("#sLabel").value = cur.label || ""; $("#sCase").value = cur.standards.naming_case; $("#sSize").value = cur.limits.max_compute_size;
     $("#sCap").value = cur.limits.monthly_cost_cap; $("#sPrefix").value = cur.variables.org_prefix; $("#sLayers").value = cur.standards.layers.join(", ");
     $("#slotGrid").innerHTML = CATALOG.slots.map((sl) => { const t = cur.slots[sl.slot]?.tool || ""; const opts = [...new Set([...sl.options, ...(sl.required ? [] : ["none"]), t].filter(Boolean))];
@@ -1513,6 +1542,29 @@ route("stacks", async () => {
   const showVal = (v) => ($("#valOut").innerHTML = `${v.ok ? '<div class="notice">No blocking gaps - this profile can pass G0.</div>' : `<div class="notice bad">${v.blocking.map(esc).join("<br>")}</div>`}
     ${v.warnings.length ? `<details style="margin-top:8px"><summary class="small">${v.warnings.length} warnings</summary><ul class="small">${v.warnings.map((w) => `<li>${esc(w)}</li>`).join("")}</ul></details>` : ""}`);
   cards(); form();
+  const co = await api("GET", "/stacks/compose");
+  const opt = (v, l, sel) => `<option value="${esc(v)}" ${v === sel ? "selected" : ""}>${esc(l)}</option>`;
+  const nice = (s) => s.replace(/-/g, " ").replace(/^./, (x) => x.toUpperCase());
+  const drawCompose = (c) => {
+    const engines = co.engines[c.cloud]; if (!engines.includes(c.engine)) c.engine = engines[0];
+    const pats = co.sources[c.source]; if (!pats.includes(c.pattern)) c.pattern = pats[0];
+    $("#composeCard").innerHTML = `<h2>Build a stack for your client</h2><div class="small muted">Not one of the reference stacks? Choose the cloud, the analytics engine and where the data comes from. Every other slot is filled with the usual choice for that cloud and engine, and the result is checked for tools that do not fit together. You can then change any slot below and save it.</div>
+      <div class="field-row" style="margin-top:8px"><div><label>Cloud</label><select data-co="cloud">${Object.entries(co.clouds).map(([k, l]) => opt(k, l, c.cloud)).join("")}</select></div>
+        <div><label>Analytics engine</label><select data-co="engine">${engines.map((e) => opt(e, co.engine_labels[e], c.engine)).join("")}</select></div>
+        <div><label>Source system</label><select data-co="source">${Object.keys(co.sources).map((s) => opt(s, co.source_labels[s] || nice(s), c.source)).join("")}</select></div>
+        <div><label>How the data arrives</label><select data-co="pattern">${pats.map((x) => opt(x, nice(co.patterns[x]), c.pattern)).join("")}</select></div>
+        <div><label>Table format</label><select data-co="table_format">${opt("", "Usual for the engine", c.table_format)}${co.table_formats.map((f) => opt(f, nice(f), c.table_format)).join("")}</select></div>
+        <div><label>BI tool</label><select data-co="bi">${opt("", "Usual for the cloud", c.bi)}${co.bi.map((b) => opt(b, nice(b), c.bi)).join("")}</select></div></div>
+      <div class="row" style="margin-top:10px"><button class="btn primary" id="coGo">Build this stack</button><span class="small muted" id="coOut"></span></div>`;
+    $$("[data-co]").forEach((s) => (s.onchange = () => { c[s.dataset.co] = s.value; drawCompose(c); }));
+    $("#coGo").onclick = async () => {
+      const r = await guard(() => api("POST", "/stacks/compose", c));
+      cur = r.profile; cards(); form(); showVal(r.validation);
+      $("#coOut").textContent = `${r.profile.label}: review the slots below, then save.`;
+      $("#stackTitle").scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+  };
+  drawCompose({ cloud: "aws", engine: "snowflake", source: "oracle", pattern: "database-batch", table_format: "", bi: "" });
   $("#stackCards").addEventListener("click", async (e) => {
     if (e.target.dataset.sdel) { e.preventDefault(); await guard(() => api("DELETE", `/stacks/${e.target.dataset.sdel}`), "Deleted"); navigate(); return; }
     const o = e.target.closest("[data-s]"); if (!o) return;
@@ -1527,7 +1579,7 @@ route("integrations", async () => {
   await refreshSettings();
   const secrets = await api("GET", "/secrets");
   const j = SETTINGS.jira;
-  main().innerHTML = `<h1>Integrations</h1><div class="sub">Connect the systems where your project knowledge lives: Jira, Confluence, GitHub, ServiceNow, catalogs and source databases. All read-only (action class A0) and all optional.</div>
+  main().innerHTML = `<h1>Integrations</h1><div class="sub">Connect the systems where your project knowledge lives: Jira or Azure DevOps, Confluence or SharePoint, GitHub or GitLab, ServiceNow, the Collibra catalog and source databases. All read-only (action class A0) and all optional.</div>
     <div class="card" id="integCards"></div>
     <div class="grid g2">
       <div class="card"><h2>Jira connection</h2>

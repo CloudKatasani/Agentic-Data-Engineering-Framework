@@ -64,6 +64,14 @@ STAGE_CONTEXT: dict[str, dict] = {
         {"id": "bi", "need": "BI standards and existing reports", "why": "The product fits how consumers already work.", "sources": ["confluence", "upload"]}]},
     "assembly": {"job": "Assemble the audit-ready delivery pack.", "needs": []},
 }
+# The same kind of knowledge lives in different tools at different clients.
+_ALSO = {"confluence": ["sharepoint"], "github": ["gitlab"], "jira": ["azure-devops"]}
+for _stage in STAGE_CONTEXT.values():
+    for _need in _stage["needs"]:
+        for _src in list(_need["sources"]):
+            _need["sources"] += [x for x in _ALSO.get(_src, []) if x not in _need["sources"]]
+        if _need["id"] in ("glossary", "catalog") and "collibra" not in _need["sources"]:
+            _need["sources"].insert(0, "collibra")
 STAGE_KEYS = list(STAGE_CONTEXT)
 _BUILTIN_FILES = {"jira": ("00-intake/inputs/jira-issues.json", "Jira issues chosen when the run was created"),
                   "metadata": ("00-intake/inputs/source-metadata.json", "Source metadata imported when the run was created"),
