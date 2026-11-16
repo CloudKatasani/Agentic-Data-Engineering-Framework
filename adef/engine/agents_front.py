@@ -163,8 +163,8 @@ def requirements(ctx: StageCtx) -> StageOutput:
              "out_of_scope": intake_brief.get("out_of_scope", []),
              "assumptions": [ctx.a("ASM-101", "Source systems are the systems of record for their entities.",
                                    "Mapping would target the wrong source", ROLE_DS)],
-             "open_questions": [ctx.q("OQ-101", f"Jira item {i['key']} ('{i['summary'][:60]}') is not part of this slice; "
-                                      "confirm it is parked in the backlog.", ROLE_PO) for i in uncovered]}
+             "open_questions": [ctx.q(f"OQ-{101 + n}", f"Jira item {i['key']} ('{i['summary'][:60]}') is not part of this slice; "
+                                      "confirm it is parked in the backlog.", ROLE_PO) for n, i in enumerate(uncovered)]}
     else:
         prompt = ("Produce the requirements baseline as JSON with keys: outcome, consumers[{name, questions[]}], "
                   "requirements[{id 'REQ-###', text, acceptance[] (Given/When/Then), priority must|should|could, source "

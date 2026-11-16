@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Runtime-neutral. Needs read access to the run workspace and to the adapter library. Load adef-shared-guardrails first.
 metadata:
   owner: adef-platform
-  version: "1.2.0"
+  version: "1.3.0"
   scope: shared
   used-by: orchestrator design build test release operations consumption
 ---

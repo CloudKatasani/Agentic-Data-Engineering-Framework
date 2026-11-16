@@ -61,7 +61,7 @@ def test_skills_are_versioned_together_and_free_of_the_old_name():
     for d in sorted(SKILLS_DIR.iterdir()):
         text = (d / "SKILL.md").read_text()
         front = yaml.safe_load(text.split("---")[1])
-        assert front["name"] == d.name and front["metadata"]["version"] == "1.2.0", d.name
+        assert front["name"] == d.name and front["metadata"]["version"] == "1.3.0", d.name
         assert not re.search(r"\bADEF\b", text), d.name
 
 

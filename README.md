@@ -183,6 +183,23 @@ person can attach more at any time from an integration, a file or a note. Open a
 - The Demo Simulator does not read attached context; the context pack says so. Use a live model key to see
   context change the output.
 
+## The team learns: standards, answered questions, consistency check
+
+Three features adopted after reviewing comparable open-source projects
+([the comparison](docs/OPEN_SOURCE_REVIEW.md)):
+
+- **Team standards.** When you send a stage back for rework, tick *Also keep this as a team
+  standard*. The instruction is stored as `STD-###` and given to that stage's agent in every new
+  run, so a correction made once is not needed again. Write or remove standards on **Agents &
+  models**. Only a named person can add one.
+- **Open questions, answered.** Agents ask instead of inventing. Their questions are listed on a
+  run's **Approvals** tab with who should answer and whether it blocks. A named approver answers
+  in a sentence, and the answer becomes context every later agent can cite.
+- **Consistency check.** Twelve checks (`C01`-`C12`) run at every gate without calling a model:
+  every requirement is mapped, every business rule implemented, every quality rule in the code
+  and tested, tests ran on the merged commit, blocking questions are answered. A finding is a
+  fact about the artifacts, shown in **Before you decide** above the gates.
+
 ## Council of three: every output reviewed before handover
 
 When an agent finishes a stage, three independent reviewers read its output before anything is handed
@@ -355,7 +372,7 @@ and Terraform. The choice follows the Stack Profile.
 
 Each agent's instructions are its definition in `agents/` plus every skill it declares in `skills/`
 (shared guardrails first, then its stage skill, then stack binding where declared). All skills are at
-version 1.2.0 and every stage skill has the same sections, in the same order:
+version 1.3.0 and every stage skill has the same sections, in the same order:
 
 | Section | Purpose |
 |---|---|

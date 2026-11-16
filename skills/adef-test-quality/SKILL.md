@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs read access to the repository and all upstream artifacts, an isolated test sandbox, and the ability to run the stack's test tooling. Must run as a separate agent from adef-pipeline-build. Load adef-shared-guardrails and adef-stack-binding first.
 metadata:
   owner: adef-platform
-  version: "1.2.0"
+  version: "1.3.0"
   role: quality-engineer
   stage: "5-testing"
   gate: G5

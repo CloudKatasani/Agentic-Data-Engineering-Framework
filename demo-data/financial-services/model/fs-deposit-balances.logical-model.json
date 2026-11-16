@@ -192,7 +192,7 @@
           "fk": null,
           "classification": "internal",
           "description": "OPEN, DORMANT or CLOSED",
-          "business_rule": null,
+          "business_rule": "BR-003",
           "req_ids": [],
           "nullable": true,
           "label": "Status"
@@ -272,7 +272,8 @@
           "description": "Ledger balance",
           "business_rule": "BR-001",
           "req_ids": [
-            "REQ-001"
+            "REQ-001",
+            "REQ-003"
           ],
           "nullable": true,
           "label": "Ledger Balance"

@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs read/write to the run workspace, metadata read access to source systems and the catalog, and capped read-only profiling. Load adef-shared-guardrails first.
 metadata:
   owner: adef-platform
-  version: "1.2.0"
+  version: "1.3.0"
   role: mapping-analyst
   stage: "2-mapping"
   gate: G2

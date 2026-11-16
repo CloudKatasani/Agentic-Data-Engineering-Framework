@@ -110,6 +110,7 @@ schema:
     primaryKey: false
     classification: internal
     description: OPEN, DORMANT or CLOSED
+    businessRule: BR-003
   - name: currency
     logicalType: string
     physicalType: VARCHAR(3)

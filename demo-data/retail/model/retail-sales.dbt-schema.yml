@@ -148,7 +148,7 @@ models:
     description: Loyalty customer (NONE if anonymous)
     meta:
       classification: internal
-      business_rule: null
+      business_rule: BR-003
     data_tests:
     - relationships:
         to: ref('dim_customer')

@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs version-control access limited to feature branches, an ephemeral sandbox in the dev environment, and read access to the adapter library. No access to shared or production environments. Load adef-shared-guardrails and adef-stack-binding first.
 metadata:
   owner: adef-platform
-  version: "1.2.0"
+  version: "1.3.0"
   role: pipeline-engineer
   stage: "4-coding"
   gate: G4

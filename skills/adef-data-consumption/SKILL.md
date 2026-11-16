@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs read access to curated data objects (metadata, and data within classification rules), write access to a consumption-layer feature branch and draft catalog entries, and the approval channel. Publication rights are exercised only after G8. Load adef-shared-guardrails and adef-stack-binding first.
 metadata:
   owner: adef-platform
-  version: "1.2.0"
+  version: "1.3.0"
   role: data-product-and-analytics-engineer
   stage: "8-data-consumption"
   gate: G8

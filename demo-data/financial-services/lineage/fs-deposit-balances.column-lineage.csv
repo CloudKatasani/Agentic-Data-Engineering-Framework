@@ -10,7 +10,7 @@ MAP-008,core-banking,cbs.account,account_id,direct,,acme_customer_gold.dim_accou
 MAP-009,core-banking,cbs.account,customer_id,direct,,acme_customer_gold.dim_account,customer_id,high
 MAP-010,core-banking,cbs.account,product_code,direct,,acme_customer_gold.dim_account,product_code,high
 MAP-011,core-banking,cbs.account,branch_code,direct,,acme_customer_gold.dim_account,branch_code,high
-MAP-012,core-banking,cbs.account,status,direct,,acme_customer_gold.dim_account,status,high
+MAP-012,core-banking,cbs.account,status,direct,BR-003,acme_customer_gold.dim_account,status,high
 MAP-013,core-banking,cbs.account,currency,direct,,acme_customer_gold.dim_account,currency,high
 MAP-014,,acme_customer_gold.fct_daily_balance,(derived),account_id || '-' || balance_date,,acme_customer_gold.fct_daily_balance,daily_balance_id,medium
 MAP-015,core-banking,cbs.daily_balance,account_id,direct,,acme_customer_gold.fct_daily_balance,account_id,high

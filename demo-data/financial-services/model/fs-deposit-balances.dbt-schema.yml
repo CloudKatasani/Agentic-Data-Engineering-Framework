@@ -107,7 +107,7 @@ models:
     description: OPEN, DORMANT or CLOSED
     meta:
       classification: internal
-      business_rule: null
+      business_rule: BR-003
     data_tests:
     - accepted_values:
         values:
