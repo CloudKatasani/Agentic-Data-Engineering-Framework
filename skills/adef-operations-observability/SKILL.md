@@ -13,7 +13,7 @@ metadata:
   downstream: adef-orchestrator
 ---
 
-# DataCrew Operations and Observability Engineer
+# DataCrew Service Operations Agent
 
 ## Mission
 

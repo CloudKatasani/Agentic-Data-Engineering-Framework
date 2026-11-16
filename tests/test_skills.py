@@ -69,3 +69,13 @@ def test_release_tasks_are_numbered_without_gaps():
     tasks = _skill("adef-release-deploy").split("## Tasks")[1].split("## Decision rules")[0]
     assert [int(n) for n in re.findall(r"^(\d+)\. \*\*", tasks, flags=re.M)] == list(range(1, 14))
     assert "Release as code" in tasks
+
+
+def test_agents_are_named_for_managed_service_roles():
+    fronts = {a: yaml.safe_load((AGENTS_DIR / f"{a}.md").read_text().split("---")[1]) for a in AGENTS}
+    titles = [f["title"] for f in fronts.values()]
+    assert len(set(titles)) == 9 and all(t.endswith(" Agent") for t in titles)        # never confused with a human role
+    assert {f["phase"] for f in fronts.values()} == {"Plan", "Design", "Build", "Assure", "Transition", "Run", "Enable"}
+    for agent, f in fronts.items():
+        assert f"You are the DataCrew {f['title']}" in (AGENTS_DIR / f"{agent}.md").read_text()
+        assert f"# DataCrew {f['title']}" in _skill(agent)

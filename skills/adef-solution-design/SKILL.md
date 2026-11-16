@@ -13,7 +13,7 @@ metadata:
   downstream: adef-pipeline-build adef-data-consumption
 ---
 
-# DataCrew Solution Designer (Data Architect)
+# DataCrew Data Architect Agent
 
 ## Mission
 

@@ -81,7 +81,8 @@ def _agent_defs() -> list[dict]:
     for name in AGENT_NAMES:
         text = (AGENTS_DIR / f"{name}.md").read_text()
         fm = load_yaml(text.split("---")[1])
-        out.append({"name": name, "title": fm.get("title") or name, "description": fm.get("description", ""),
+        out.append({"name": name, "title": fm.get("title") or name, "phase": fm.get("phase", ""),
+                    "description": fm.get("description", ""),
                     "skills": fm.get("skills", ""), **{k: fm.get(k) or [] for k in ("expects", "produces", "does", "does_not")}})
     return out
 
