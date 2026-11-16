@@ -1,4 +1,4 @@
-# ADEF with optional source databases and HTTPS.
+# DataCrew- BuildWithAI (ADEF) with optional source databases and HTTPS.
 #   docker compose up -d                                  # ADEF only
 #   docker compose --profile oracle up -d                 # + Oracle Database Free (synthetic source)
 #   docker compose --profile db2 up -d                    # + IBM Db2 Community (synthetic source)
@@ -17,6 +17,9 @@ services:
       ADEF_API_TOKEN: ${ADEF_API_TOKEN:?set ADEF_API_TOKEN in .env}
       ADEF_MASTER_KEY: ${ADEF_MASTER_KEY:-}
       ADEF_TEAM_PRESET: ${ADEF_TEAM_PRESET:-}
+      ADEF_MODEL_TIMEOUT_SECONDS: ${ADEF_MODEL_TIMEOUT_SECONDS:-}
+      ADEF_BRAND_NAME: ${ADEF_BRAND_NAME:-}
+      ADEF_BRAND_TAGLINE: ${ADEF_BRAND_TAGLINE:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}

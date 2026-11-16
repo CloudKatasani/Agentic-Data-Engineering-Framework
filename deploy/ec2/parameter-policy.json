@@ -1,0 +1,26 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadDataCrewParameters",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:GetParametersByPath"
+      ],
+      "Resource": "arn:aws:ssm:REGION:ACCOUNT_ID:parameter/adef/*"
+    },
+    {
+      "Sid": "DecryptThroughParameterStore",
+      "Effect": "Allow",
+      "Action": [
+        "kms:Decrypt"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "kms:ViaService": "ssm.REGION.amazonaws.com"
+        }
+      }
+    }
+  ]
+}
