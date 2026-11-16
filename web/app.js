@@ -251,7 +251,9 @@ const STAGE_OUTPUT = {
   release: "Release plan, rollback rehearsal, deployment", operations: "Runbooks, monitors, SLOs",
   consumption: "Semantic layer, access, data product docs", assembly: "Audit-ready delivery pack",
 };
-const agentShort = (a) => String(a || "").replace(/^adef-/, "");
+// Agents are shown by role title; the short form drops the "Agent" suffix where the AI lane already says so.
+const agentTitle = (a) => CATALOG?.agents?.find((x) => x.name === a)?.title || String(a || "").replace(/^adef-/, "");
+const agentShort = (a) => agentTitle(a).replace(/ Agent$/, "");
 const dur = (s) => (s < 1 ? "under 1s" : s < 60 ? `${Math.round(s)}s` : s < 3600 ? `${Math.floor(s / 60)}m ${Math.round(s % 60)}s` : `${Math.floor(s / 3600)}h ${Math.round((s % 3600) / 60)}m`);
 const since = (iso) => (iso ? dur(Math.max(0, (Date.now() - new Date(iso)) / 1000)) : "");
 const people = (list) => {
@@ -265,18 +267,19 @@ function operatingModel() {
     const roles = [...new Set(s.gates.flatMap((g) => CATALOG.gate_roles[g] || []))];
     const b = SETTINGS.agents[s.agent] || {};
     return `<tr><td><b>${i}. ${esc(s.label)}</b></td>
-      <td><span class="who ai">AI</span> ${esc(CATALOG.agents.find((a) => a.name === s.agent)?.title || agentShort(s.agent))}<div class="small muted mono">${esc(b.model || "")}</div></td>
+      <td>${esc(CATALOG.agents.find((a) => a.name === s.agent)?.phase || "")}</td>
+      <td><span class="who ai">AI</span> ${esc(agentTitle(s.agent))}<div class="small muted mono">${esc(b.model || "")}</div></td>
       <td class="small">${esc(STAGE_OUTPUT[s.key] || "")}</td>
       <td>${s.gates.map((g) => `<span class="chip">${esc(g)}</span>`).join(" ") || '<span class="muted small">-</span>'}</td>
       <td>${roles.length ? `<span class="who hu">Human</span> ${roles.map((r) => esc(CATALOG.role_labels[r])).join(", ")}` : '<span class="muted small">Handed to the team</span>'}</td></tr>`;
   }).join("");
   return `<h2>How the AI team works with your team</h2>
     <div class="om-points">
-      <div><b>Agents do the work.</b> One specialist agent per lifecycle stage drafts, builds, tests and documents.</div>
+      <div><b>Agents do the work.</b> One specialist agent per stage, named for the role it plays in a managed-service team, drafts, builds, tests and documents.</div>
       <div><b>People make the decisions.</b> ${Object.keys(CATALOG.gate_labels).length} approval gates, each owned by a named role. Agents can never approve.</div>
       <div><b>Every decision is evidence.</b> Each approval is tied to the exact artifact version and kept in a tamper-evident log.</div>
     </div>
-    <div class="table-wrap"><table><thead><tr><th>Stage</th><th>Who does the work</th><th>What it produces</th><th>Gate</th><th>Who decides</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    <div class="table-wrap"><table><thead><tr><th>Stage</th><th>Service phase</th><th>Who does the work</th><th>What it produces</th><th>Gate</th><th>Who decides</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 // Two swimlanes across the lifecycle: the AI team on top, the human team underneath, so the hand-offs are visible.
 function teamLanes(st) {
@@ -612,7 +615,7 @@ function stopDialog(st, resume) {
 function agentProfile(a) {
   const list = (items) => `<ul>${(items || []).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`;
   const stages = CATALOG.stages.filter((s) => s.agent === a.name).map((s) => s.label).join(", ");
-  return `<b>${esc(a.title)}</b><div class="small muted mono">${esc(a.name)}${stages ? ` · ${esc(stages)}` : ""}</div>
+  return `<b>${esc(a.title)}</b><div class="small muted">${a.phase ? `${esc(a.phase)} phase · ` : ""}${esc(stages)} · <span class="mono">${esc(a.name)}</span></div>
     <div class="small" style="margin-top:4px">${esc(a.description)}</div>
     <details class="agent-prof"><summary class="small">What it does and what it does not do</summary>
       <div class="prof-grid">
@@ -1224,7 +1227,7 @@ async function renderAudit(el) {
     <div class="card"><h2>Action log (${act.length})</h2><div class="table-wrap" style="max-height:420px;overflow:auto"><table><thead><tr><th>When</th><th>Agent</th><th>Action</th><th>Class</th><th>Phase</th><th>Target</th></tr></thead><tbody>${act.slice().reverse().map((a) => `<tr><td class="small">${new Date(a.ts).toLocaleTimeString()}</td><td class="mono small">${esc(a.agent)}</td><td>${esc(a.action)}</td><td>${badge(a.class === "A4" ? "fail" : a.class === "A3" ? "awaiting-approval" : a.class === "A2" ? "running" : "", a.class)}</td><td>${esc(a.phase)}</td><td class="small mono">${esc(a.target)}</td></tr>`).join("")}</tbody></table></div></div>`;
 }
 function renderMetrics(st, el) {
-  const rows = CATALOG.agents.map((a) => { const u = st.usage[a.name]; const b = st.run.agent_bindings?.[a.name] || {}; return [a.name, `${b.provider_id || "?"} / ${b.model || "?"}`, (u?.models || ["-"]).join(", ") + (u?.fallback ? ` - ${u.fallback}` : ""), u?.calls ?? 0, u?.tokens ?? 0, u ? `$${u.llm_cost_usd.toFixed(4)}` : "-"]; });
+  const rows = CATALOG.agents.map((a) => { const u = st.usage[a.name]; const b = st.run.agent_bindings?.[a.name] || {}; return [a.title, `${b.provider_id || "?"} / ${b.model || "?"}`, (u?.models || ["-"]).join(", ") + (u?.fallback ? ` - ${u.fallback}` : ""), u?.calls ?? 0, u?.tokens ?? 0, u ? `$${u.llm_cost_usd.toFixed(4)}` : "-"]; });
   if (st.usage.council) { const u = st.usage.council; rows.push(["council of three (reviewers)", (st.run.council?.members || []).map((m) => m.model).join(", "), u.models.length ? u.models.join(", ") : "structural checks only (no model reached)", u.calls, u.tokens, `$${u.llm_cost_usd.toFixed(4)}`]); }
   const tot = Object.values(st.usage).reduce((a, u) => ({ t: a.t + u.tokens, c: a.c + u.llm_cost_usd }), { t: 0, c: 0 });
   el.innerHTML = `${teamCard(st)}<div class="grid g3" style="margin-top:16px"><div class="card kpi"><div class="l">LLM tokens</div><div class="v">${tot.t.toLocaleString()}</div></div><div class="card kpi"><div class="l">LLM cost (list price)</div><div class="v">$${tot.c.toFixed(3)}</div></div><div class="card kpi"><div class="l">Guardrail blocks</div><div class="v">${st.metrics.guardrail_blocks || 0}</div></div></div>

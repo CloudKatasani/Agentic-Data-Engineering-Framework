@@ -113,17 +113,24 @@ server.
 Nine agents: one coordinator and eight stage owners. Each artifact folder has exactly one
 writer. Agent identifiers are unchanged from version 1.0.
 
-| # | Agent (identifier) | Role title | Produces | Gate | Hands to |
-|---|---|---|---|---|---|
-| 0 | `adef-orchestrator` | Orchestrator (delivery lead) | Intake brief, backlog, stack validation; routing; delivery pack | G0 | Requirements |
-| 1 | `adef-intent-requirements` | Requirements Analyst | Requirements, acceptance criteria, business rules, glossary delta, open items | G1 | Mapping |
-| 2 | `adef-source-target-mapping` | Mapping Analyst | Source-to-target mapping, quality rules, classification, profile summary, gaps | G2 | Design |
-| 3 | `adef-solution-design` | Solution Designer | Logical model, physical design, decision records, cost estimate, work packages | G3 | Build, Consumption |
-| 4 | `adef-pipeline-build` | Pipeline Builder | **A code base** on a feature branch, manifest, local results, pull request | G4 | Test |
-| 5 | `adef-test-quality` | Test and Quality Engineer (independent) | Test plan, executed results, defects, evidence pack, pipeline rehearsal | G5 | Release |
-| 6 | `adef-release-deploy` | Release and Deploy Engineer | Release plan, pre-checks, rollback, **release scripts as code** on a release branch | G6a, G6b | Operations, Consumption |
-| 7 | `adef-operations-observability` | Operations Engineer | Monitoring spec, runbook, pre-approved actions, incident records | G7 | Orchestrator |
-| 8 | `adef-data-consumption` | Data Consumption Engineer | Semantic model, metric catalogue, access model, contract, consumer guide | G8 | Orchestrator |
+| # | Agent (identifier) | Role title | Service phase | Produces | Gate | Hands to |
+|---|---|---|---|---|---|---|
+| 0 | `adef-orchestrator` | Service Delivery Lead Agent | Plan | Intake brief, backlog, stack validation; routing; delivery pack | G0 | Business Analyst Agent |
+| 1 | `adef-intent-requirements` | Business Analyst Agent | Plan | Requirements, acceptance criteria, business rules, glossary delta, open items | G1 | Data Mapping Analyst Agent |
+| 2 | `adef-source-target-mapping` | Data Mapping Analyst Agent | Design | Source-to-target mapping, quality rules, classification, profile summary, gaps | G2 | Data Architect Agent |
+| 3 | `adef-solution-design` | Data Architect Agent | Design | Logical model, physical design, decision records, cost estimate, work packages | G3 | Data Engineer Agent |
+| 4 | `adef-pipeline-build` | Data Engineer Agent | Build | **A code base** on a feature branch, manifest, local results, pull request | G4 | Quality Engineer Agent |
+| 5 | `adef-test-quality` | Quality Engineer Agent (independent) | Assure | Test plan, executed results, defects, evidence pack, pipeline rehearsal | G5 | Release Engineer Agent |
+| 6 | `adef-release-deploy` | Release Engineer Agent | Transition | Release plan, pre-checks, rollback, **release scripts as code** on a release branch | G6a, G6b | Service Operations Agent |
+| 7 | `adef-operations-observability` | Service Operations Agent | Run | Monitoring spec, runbook, pre-approved actions, incident records | G7 | Analytics and AI Engineer Agent |
+| 8 | `adef-data-consumption` | Analytics and AI Engineer Agent | Enable | Semantic model, metric catalogue, access model, contract, consumer guide | G8 | Service Delivery Lead Agent |
+
+The role titles are the roles a client already knows from a managed-service team for data
+and AI engineering, with "Agent" added so an AI agent is never confused with the human
+who holds a similar role and approves its work (for example the *Data Architect Agent*
+drafts the design and the human *Data Architect* approves it at G3). The service phases
+follow the managed-service lifecycle: Plan, Design, Build, Assure, Transition, Run, Enable.
+Agent identifiers (`adef-*`) are technical keys and do not change.
 
 Each agent has a published profile (expects, produces, does, does not) shown on the
 **Agents & models** page. Existing task-level generators are tools called by the owning

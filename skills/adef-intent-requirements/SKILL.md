@@ -13,7 +13,7 @@ metadata:
   downstream: adef-source-target-mapping
 ---
 
-# DataCrew Intent and Requirements Analyst
+# DataCrew Business Analyst Agent
 
 ## Mission
 
