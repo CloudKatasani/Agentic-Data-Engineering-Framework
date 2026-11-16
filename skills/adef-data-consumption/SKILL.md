@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs read access to curated data objects (metadata, and data within classification rules), write access to a consumption-layer feature branch and draft catalog entries, and the approval channel. Publication rights are exercised only after G8. Load adef-shared-guardrails and adef-stack-binding first.
 metadata:
   owner: adef-platform
-  version: "1.3.0"
+  version: "1.4.0"
   role: data-product-and-analytics-engineer
   stage: "8-data-consumption"
   gate: G8
@@ -79,26 +79,45 @@ seems likely to want the data.
    list; default to a certified dataset plus one starter report.
 8. **AI consumption (if bound).** Provide the assistant only with the governed semantic
    model, approved synonyms, and verified example questions with expected answers.
+9. **Every other consumption pattern the run chose.** A run lists its consumption
+   patterns; build each one with the tool the Stack Profile binds for it, and nothing
+   for a pattern the run did not choose:
+   - *Data API*: a specification plus named, parameterised queries. The API never
+     builds SQL from a request.
+   - *Data sharing*: a share of the masked views only. Recipient statements stay
+     commented out until G8 names the recipient.
+   - *Reverse ETL*: a sync model with one row per business key, created paused.
+     Destination field names are proposals for the application owner to confirm.
+   - *Machine learning features*: one row per business key, aggregates only, with a
+     note on label leakage.
+   - *Retrieval index*: documents that describe tables, columns and metrics. No row of
+     business data goes into an index.
+   - *File exports*: export statements with a manifest and a control total per file.
 
 ### T3. Validate
 
-9. **Answer check.** Every consumer question from requirements is answered from the
+10. **Answer check.** Every consumer question from requirements is answered from the
    consumption layer, and the result matches the tested pipeline output and the
    reconciliation targets.
-10. **Consistency check.** The same metric gives the same number across every access
+11. **Consistency check.** The same metric gives the same number across every access
     path (report, query, assistant).
-11. **Access check.** Each role sees only what the access model allows.
-12. **Usability check.** Names are business names; every field has a description; no
+12. **Access check.** Each role sees only what the access model allows.
+13. **Usability check.** Names are business names; every field has a description; no
     technical or staging objects are exposed.
+14. **Pattern check.** Run the SQL each chosen pattern relies on against the sandbox,
+    through the masked views, and report the result per pattern: queries execute, one
+    row per key where one is promised, verified queries return the governed metric
+    value, and no Restricted attribute is selected. A pattern that was not executed is
+    reported as not executed, never as passed.
 
 ### T4. Publish (G8)
 
-13. **Prepare draft entries**: catalog record, glossary links, lineage, owner,
+15. **Prepare draft entries**: catalog record, glossary links, lineage, owner,
     classification, contract, sample questions, known limitations, how to request access.
-14. **Request G8** with the exact content to be published and the audience.
-15. **Publish after approval**, through the tool's publishing mechanism. Announce only
+16. **Request G8** with the exact content to be published and the audience.
+17. **Publish after approval**, through the tool's publishing mechanism. Announce only
     with approved text to the approved audience.
-16. **Hand over** usage monitoring signals to Operations and enhancement requests to
+18. **Hand over** usage monitoring signals to Operations and enhancement requests to
     the backlog.
 
 ## Decision rules
@@ -113,6 +132,15 @@ seems likely to want the data.
   Design, not something to patch in a report.
 - A breaking contract change follows the versioning policy and needs consumer-owner
   approval (A3).
+- Every consumption pattern reads the masked consumer views, never a base table. There
+  is no pattern through which a Restricted attribute may leave unmasked.
+- Anything that sends data outside the platform (a share recipient, a sync into a
+  business application, an export location owned by someone else) is a separate A3
+  action. Generate it switched off; the owning person switches it on after G8.
+- A pattern whose slot is bound to `none` is not available. Say so; do not build it with
+  a tool the profile does not name.
+- For a history-keeping entity, consumers get the validity columns, and anything that
+  promises one row per key reads current rows only.
 
 ## Do
 

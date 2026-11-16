@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs the ability to invoke the other adef-* agents, read/write the run workspace, and reach the approval channel. Load adef-shared-guardrails first.
 metadata:
   owner: adef-platform
-  version: "1.3.0"
+  version: "1.4.0"
   role: delivery-lead
   stage: intake-and-assembly
   gates: G0 plus enforcement of G1-G8

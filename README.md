@@ -183,6 +183,29 @@ person can attach more at any time from an integration, a file or a note. Open a
 - The Demo Simulator does not read attached context; the context pack says so. Use a live model key to see
   context change the output.
 
+## Any enterprise stack: clouds, engines, sources, consumption
+
+Full reference, with every table generated from the code: [docs/STACKS_AND_PATTERNS.md](docs/STACKS_AND_PATTERNS.md).
+
+- **Thirteen reference stacks** across AWS, Azure and Google Cloud: Snowflake, Databricks,
+  BigQuery, Redshift, Athena, Synapse and Microsoft Fabric.
+- **A stack composer.** On **Technology stacks**, pick a cloud, an analytics engine and a source;
+  the other slots are filled and validated. 620 combinations are covered by tests.
+- **Five ways data arrives**: batch database extract, change data capture, files (CSV, JSON,
+  Parquet, Avro, XML), application APIs (Salesforce, SAP, Workday and others) and event streams
+  (Kafka, Kinesis, Event Hubs, Pub/Sub). Pipeline 1 is generated for the pattern.
+- **More data types**: time zones, JSON, arrays, binary, identifiers and location, mapped to each
+  engine's native type.
+- **Nine consumption patterns**, chosen per run on **Review & launch**: dashboards, governed SQL,
+  a plain-language assistant, a data API, sharing with other organisations, reverse ETL, machine
+  learning features, a retrieval index and file exports. Each is generated in the stack's own
+  syntax and checked by running it against the masked views.
+- **Eight context integrations**: Jira, Azure DevOps, Confluence, SharePoint, GitHub, GitLab,
+  ServiceNow and Collibra.
+
+Only the local stack runs its pipelines for real. Cloud code is generated, syntax-checked and
+rehearsed locally; it has not been run on a real cloud account.
+
 ## The team learns: standards, answered questions, consistency check
 
 Three features adopted after reviewing comparable open-source projects
@@ -372,7 +395,7 @@ and Terraform. The choice follows the Stack Profile.
 
 Each agent's instructions are its definition in `agents/` plus every skill it declares in `skills/`
 (shared guardrails first, then its stage skill, then stack binding where declared). All skills are at
-version 1.3.0 and every stage skill has the same sections, in the same order:
+version 1.4.0 and every stage skill has the same sections, in the same order:
 
 | Section | Purpose |
 |---|---|

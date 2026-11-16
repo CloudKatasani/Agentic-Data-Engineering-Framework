@@ -550,6 +550,12 @@ ENGINE_LABELS = {"snowflake": "Snowflake", "databricks": "Databricks", "bigquery
                  "starburst": "Starburst", "postgres": "PostgreSQL"}
 CLOUD_LABELS = {"aws": "AWS", "azure": "Azure", "gcp": "Google Cloud"}
 STORAGE_LABELS = {"s3": "S3", "adls": "ADLS", "gcs": "GCS", "onelake": "OneLake"}
+SOURCE_LABELS = {"oracle": "Oracle", "db2": "IBM Db2", "sqlserver": "SQL Server", "postgres": "PostgreSQL", "mysql": "MySQL",
+                 "teradata": "Teradata", "sap-hana": "SAP HANA", "netezza": "Netezza", "mongodb": "MongoDB",
+                 "dynamodb": "DynamoDB", "cosmosdb": "Azure Cosmos DB", "salesforce": "Salesforce", "sap-s4hana": "SAP S/4HANA",
+                 "workday": "Workday", "servicenow": "ServiceNow", "dynamics-365": "Dynamics 365",
+                 "files": "Files (CSV, JSON, Parquet, Avro, XML)", "kafka-topics": "Event topics",
+                 "mainframe-db2-zos": "Mainframe Db2 for z/OS"}
 
 
 def compose_options() -> dict:
@@ -558,6 +564,7 @@ def compose_options() -> dict:
     src = next(s for s in SLOTS if s["slot"] == "source_database")["options"]
     sources = {s: sorted(SOURCE_PATTERNS.get(s, {"database-batch", "database-cdc"})) for s in src if s != "sqlite-local"}
     return {"clouds": CLOUD_LABELS, "engines": engines, "engine_labels": ENGINE_LABELS, "sources": sources,
+            "source_labels": SOURCE_LABELS,
             "patterns": PATTERN_LABELS, "table_formats": ["iceberg", "delta"],
             "bi": next(s for s in SLOTS if s["slot"] == "bi")["options"][:-1]}
 
@@ -602,7 +609,7 @@ def compose(cloud: str, engine: str, source: str, pattern: str | None = None, ta
     if pattern != "event-stream":
         s["streaming"] = "none"
     pid = f"{cloud}-{engine}-{source}".replace("_", "-")
-    label = (f"{source.replace('-', ' ').title()} → {CLOUD_LABELS[cloud]} {STORAGE_LABELS[s['object_storage']]} "
+    label = (f"{SOURCE_LABELS.get(source, source).split(' (')[0]} → {CLOUD_LABELS[cloud]} {STORAGE_LABELS[s['object_storage']]} "
              f"{s['table_format'].title()} → {ENGINE_LABELS[engine]}")
     prefix = {"aws": "secrets/adef", "azure": "kv/adef", "gcp": "projects/adef/secrets"}[cloud]
     prof = _profile(pid, label, f"Composed stack: {source} ({PATTERN_LABELS[pattern]}) into {s['table_format']} tables on "

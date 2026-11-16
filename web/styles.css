@@ -156,6 +156,10 @@ pre.code { background: var(--code); color: var(--code-text); padding: 14px; bord
 .modal-card { background: var(--panel); border-radius: 12px; padding: 20px; width: min(920px, 100%); max-height: 88vh; overflow: auto; border: 1px solid var(--border); }
 .pill-list { display: flex; gap: 6px; flex-wrap: wrap; }
 .notice { background: var(--info-bg); color: var(--info); border-radius: 8px; padding: 10px 12px; font-size: 13px; }
+.cons-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 8px; margin-top: 8px; }
+.cons { display: flex; gap: 8px; align-items: flex-start; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; margin: 0; cursor: pointer; }
+.cons.off { opacity: .55; cursor: not-allowed; }
+.cons input { margin-top: 3px; width: auto; }
 .q-row { border-top: 1px solid var(--border); padding: 10px 0; }
 .notice.warn { background: var(--warn-bg); color: var(--warn); }
 .notice.bad { background: var(--bad-bg); color: var(--bad); }

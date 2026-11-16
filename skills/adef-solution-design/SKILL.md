@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs read/write to the run workspace and read access to the adapter library and catalog. No deployment access. Load adef-shared-guardrails and adef-stack-binding first.
 metadata:
   owner: adef-platform
-  version: "1.3.0"
+  version: "1.4.0"
   role: data-architect
   stage: "3-design"
   gate: G3
@@ -108,6 +108,14 @@ rollback; cost estimate within budget or flagged; logical files free of vendor t
 - Any design that weakens a control, exceeds budget, or introduces a new tool is a
   human decision at G3, presented with options.
 - A breaking change to an existing contract needs consumer-owner approval (A3).
+- Design for the source pattern the Stack Profile declares (batch extract, change data
+  capture, files, application API, event stream). State the latency each consumer needs
+  and show that the pattern meets it; do not design a stream for a daily report.
+- Use the logical types beyond flat data where the data needs them (`timestamp_tz`,
+  `json`, `array`, `binary`, `uuid`, `geography`), and check the type map for the
+  analytics engine. Where the engine keeps a type as text, record how it is validated.
+- For every consumption pattern the run chose, name the object it reads (a masked view)
+  and the tool that serves it. A pattern with no bound tool is a binding gap for G3.
 
 ## Do
 

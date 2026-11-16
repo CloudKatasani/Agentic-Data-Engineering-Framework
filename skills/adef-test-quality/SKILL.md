@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs read access to the repository and all upstream artifacts, an isolated test sandbox, and the ability to run the stack's test tooling. Must run as a separate agent from adef-pipeline-build. Load adef-shared-guardrails and adef-stack-binding first.
 metadata:
   owner: adef-platform
-  version: "1.3.0"
+  version: "1.4.0"
   role: quality-engineer
   stage: "5-testing"
   gate: G5
@@ -113,6 +113,10 @@ the measured value and asks for the threshold; it does not choose one.
 - Flaky test: quarantine, raise a defect, and count it as not passing.
 - Never lower a threshold. Waivers are human decisions (A3) with an expiry date.
 - Severity is set by business impact, not by how hard the fix is.
+- Test the promise of the source pattern, not only the data: a file loaded twice adds no
+  rows; a malformed row or message lands in quarantine; a source delete under change
+  data capture removes the row from silver; a stream restarted from its checkpoint adds
+  no duplicates.
 
 ## Do
 

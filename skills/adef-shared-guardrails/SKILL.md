@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Runtime-neutral. Assumes file read/write in a run workspace and a human approval channel. No network access required.
 metadata:
   owner: adef-platform
-  version: "1.3.0"
+  version: "1.4.0"
   scope: all-agents
   precedence: overrides-stage-skills
 ---

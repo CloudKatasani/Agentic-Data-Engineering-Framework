@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs read/write to the run workspace, metadata read access to source systems and the catalog, and capped read-only profiling. Load adef-shared-guardrails first.
 metadata:
   owner: adef-platform
-  version: "1.3.0"
+  version: "1.4.0"
   role: mapping-analyst
   stage: "2-mapping"
   gate: G2
@@ -91,6 +91,16 @@ expect to exist is a gap.
   raise it.
 - Profile results contradicting the data dictionary are a finding, not noise. Report.
 - If a required attribute has no source, the requirement goes back; do not synthesise it.
+- For a source that is not a table (a file feed, an application object, a topic), the
+  mapping source is still `system.object.field`. State the format and, for nested data,
+  the path to the field (for example `orders.payload.customer.id`).
+- A nested or repeating value needs a decision, recorded in the mapping: keep it whole
+  as JSON, take named paths as columns, or split it into a child entity with its own
+  key. Never map "the JSON column" without saying which.
+- State time zones. A source timestamp without a zone is mapped with the zone the source
+  owner confirms, or it is an open question.
+- With change data capture, say for each entity what a source delete means in the
+  target: remove the row, or keep it and mark it closed.
 
 ## Do
 

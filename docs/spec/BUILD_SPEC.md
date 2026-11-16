@@ -42,7 +42,7 @@ Business Intent -> Requirements -> Mapping -> Design -> Coding -> Testing -> Dep
 |---|---|
 | One run = one thin use-case slice for one client | Multiple runs sharing state |
 | Batch pipelines, structured sources | Streaming, unstructured data, machine-learning pipelines |
-| Six reference Stack Profiles; one of them (local lakehouse) executes for real | Deployment to a client's cloud platform (promotion is simulated and labelled) |
+| Thirteen reference Stack Profiles and a stack composer; one of them (local lakehouse) executes for real | Deployment to a client's cloud platform (promotion is simulated and labelled) |
 | Human approval at every gate, per artifact | Any autonomous production change |
 | Four Domain Packs: utilities, telco, financial services, retail | Client-specific packs (added per engagement) |
 | Web console, REST API, command line, file-based run workspace | Multi-tenant control plane, single sign-on |
@@ -54,7 +54,7 @@ Business Intent -> Requirements -> Mapping -> Design -> Coding -> Testing -> Dep
 |---|---|---|
 | A1 | One person may operate the team at first, holding several approver roles | Name a different person per role and switch on segregation of duties (section 13) |
 | A2 | The runtime is this product: it classifies actions, enforces gates, writes files and calls models. Agents produce content only | To use another agent harness, map sections 3 and 6 to its equivalents; the skills are runtime-neutral |
-| A3 | The first stack is one of the six reference profiles | Write your own Stack Profile; logical artifacts are unaffected |
+| A3 | The first stack is one of the thirteen reference profiles, or one built with the composer | Write your own Stack Profile; logical artifacts are unaffected |
 | A4 | A source database is available, or the bundled synthetic one is used | Use the synthetic SQLite source, or seed Oracle or Db2 (section 17) |
 | A5 | No agent holds write access to a shared or production platform | Keep it that way; deployment belongs to the CI/CD pipeline identity |
 | A6 | Model keys are supplied by the operator through the environment or the encrypted vault | Without keys the Demo Simulator runs and every simulated stage is labelled |
@@ -260,7 +260,7 @@ Version 1.0 epics, with their status in version 2.0.
 
 | ID | Task | Status |
 |---|---|---|
-| E3-1 | Stack Profiles | Built: six reference profiles and a profile editor with validation |
+| E3-1 | Stack Profiles | Built: thirteen reference profiles, a composer, and a profile editor with validation |
 | E3-2 | Adapters per bound slot, with conformance tests | Not built: code generation is built into the product per tool; no separate adapter library exists |
 | E3-3 | Tools for the bound slots on a client platform | Not built, except source database read (SQLite, Oracle, Db2) and Git |
 | E3-4 | Domain Pack review with Security and Compliance | Not built: the four packs are starters |
@@ -296,6 +296,7 @@ simulator. E4-7 (release) executes for real only on the local lakehouse profile.
 | E14 | Output format per stage; code outputs for Build and Release; push to Git | 14 |
 | E15 | Skills version 1.2.0: grounding, stable identifiers, self-review, worked examples | 18 |
 | E16 | Learning and consistency (skills version 1.3.0): team standards kept from rework, open questions answered by named people, a twelve-point consistency check at every gate. Adopted after a review of comparable open-source projects: see `docs/OPEN_SOURCE_REVIEW.md` | 12, 16 |
+| E17 | Any enterprise stack (skills version 1.4.0): thirteen reference stacks and a composer covering 620 combinations; five source patterns; seven more data types; nine consumption patterns checked by execution; eight context integrations. See `docs/STACKS_AND_PATTERNS.md` | 3, 12, 14 |
 
 ### Open backlog (next)
 
@@ -381,7 +382,7 @@ Guardrails page.
 | GT-17 | Ticket text contains an email, a phone number and a card number | Redacted before any model call |
 | GT-18 | An approver stops the run; someone tries to approve and continue | Everything refused until resumed |
 
-**Automated tests.** 171 tests in `tests/` cover the lifecycle on four domains and stacks,
+**Automated tests.** 219 tests in `tests/` cover the lifecycle on four domains and stacks,
 approvals and per-artifact review, guardrails and enterprise policy, the local lakehouse,
 context and integrations, the council, output formats, code outputs and Git push, the
 synthetic data kit, run clean-up, recovery, and the structure of the skills.
@@ -575,7 +576,7 @@ All data is synthetic. Nothing is derived from real people, accounts or systems.
 
 ## 18. Skills
 
-Eleven skills at version 1.3.0: nine stage skills, shared guardrails and stack binding.
+Eleven skills at version 1.4.0: nine stage skills, shared guardrails and stack binding.
 Every stage skill has the same sections in the same order: Mission, Use when, Do not use
 for, Inputs, **Context this stage needs**, Tasks, Decision rules, Do, Do not, Escalate,
 **Enterprise controls**, **Self-review before handover**, Outputs, Definition of done,
