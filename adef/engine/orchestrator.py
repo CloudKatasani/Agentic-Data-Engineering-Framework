@@ -29,7 +29,7 @@ from ..workspace import handoff as ho
 from ..workspace.run import GATE_ROLES, ROLE_LABELS, RunWorkspace
 from . import agents_back as back
 from . import agents_front as front
-from . import analyze, council, formats
+from . import analyze, consume, council, formats
 from .agent_runtime import AgentCall, Usage
 from .context import StageCtx, StageOutput
 from .scenarios import for_domain
@@ -205,6 +205,10 @@ class Engine:
             if clashes:
                 raise InputRejected("Segregation of duties is on: name a different person for each approving role at "
                                     + "; ".join(clashes) + ".")
+        try:
+            patterns = consume.resolve(profile, p.get("consumption_patterns"))
+        except ValueError as e:
+            raise InputRejected(str(e)) from e
         run_id = self.new_run_id()
         sc = for_domain(domain)
         approvers = {**self.settings.load()["approver_defaults"], **(p.get("approvers") or {})}
@@ -221,7 +225,7 @@ class Engine:
                                          if k != "password"},
                    "agent_bindings": {a: {k: v for k, v in binding_for(a, team, overrides.get(a)).items()
                                           if k in ("provider_id", "model", "effort")} for a in team["agents"]},
-                   "agent_overrides": sorted(overrides), "policy": policy,
+                   "agent_overrides": sorted(overrides), "policy": policy, "consumption_patterns": patterns,
                    "council": {**team.get("council", council.DEFAULT_COUNCIL),
                                **({"enabled": bool(p["council_enabled"])} if "council_enabled" in p else {})}}
         ws = RunWorkspace(run_id)
@@ -869,7 +873,9 @@ class Engine:
                 "role_labels": ROLE_LABELS, "now": self._now(ws, st, gates), "team": self._team(ws, st),
                 "context_counts": {k: sum(1 for i in context_hub.items(ws) if i["stage"] in (k, "all")) for k in STAGE_KEYS},
                 "output_options": {k: formats.output_options(k, ws.stack) for k in STAGE_KEYS},
-                "consistency": analyze.analyze(ws), "questions": questions.collect(ws)}
+                "consistency": analyze.analyze(ws), "questions": questions.collect(ws),
+                "consumption": [o for o in consume.options(ws.stack)
+                                if o["id"] in (ws.run.get("consumption_patterns") or consume.DEFAULT)]}
 
     def metrics(self, ws) -> dict:
         st = self._state(ws)

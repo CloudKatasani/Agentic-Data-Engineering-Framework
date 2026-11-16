@@ -107,7 +107,9 @@ def catalog():
             "pipeline_slots": stacks.PIPELINE_SLOTS,
             "preset_pipelines": {p["profile_id"]: {"steps": stacks.pipeline_summary(p), "local": stacks.is_local(p)}
                                  for p in stacks.PRESETS}, "slots": stacks.SLOTS,
-            "presets": stacks.PRESETS, "domain_packs": list_packs(), "exporters": exports.list_exporters(),
+            "presets": stacks.PRESETS, "source_patterns": stacks.PATTERN_LABELS,
+            "preset_patterns": {p["profile_id"]: stacks.source_pattern(p) for p in stacks.PRESETS},
+            "domain_packs": list_packs(), "exporters": exports.list_exporters(),
             "dialects": list(exports.ph.DIALECT_LABELS.items()), "stages": STAGES, "gate_labels": GATE_LABELS,
             "gate_roles": GATE_ROLES, "role_labels": ROLE_LABELS, "agents": _agent_defs(),
             "output_formats": {k: v["label"] for k, v in _formats().items()},
@@ -364,6 +366,33 @@ def synthetic_kit_download(domain: str = "telco", scale: str = "medium"):
 
 
 # ----------------------------------------------------------------------------- stacks
+@app.get("/api/stacks/compose")
+def compose_options():
+    """What the stack composer offers: clouds, the engines on each, sources and how each arrives."""
+    return stacks.compose_options()
+
+
+@app.post("/api/stacks/compose")
+def compose_stack(body: dict = Body(...)):
+    """Build a complete stack profile from a cloud, an analytics engine and a source. Nothing is saved."""
+    try:
+        profile = stacks.compose(body.get("cloud", ""), body.get("engine", ""), body.get("source", ""),
+                                 body.get("pattern") or None, body.get("table_format") or None, body.get("bi") or None)
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+    return {"profile": profile, "validation": stacks.validate(profile), "pipeline": stacks.pipeline_summary(profile)}
+
+
+@app.post("/api/consumption-options")
+def consumption_options(body: dict = Body(...)):
+    """The consumption patterns a stack can deliver, and with which tool (used before a run exists)."""
+    from ..engine import consume
+    profile = body.get("stack_profile") or {}
+    if isinstance(profile, str):
+        profile = engine().stack_by_id(profile)
+    return consume.options(profile)
+
+
 @app.post("/api/stacks/validate")
 def validate_stack(profile: dict = Body(...)):
     return stacks.validate(profile)

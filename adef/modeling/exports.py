@@ -188,7 +188,7 @@ def export_odcs(model: dict, ctx: Ctx) -> str:
             base, args = parse_type(a["type"])
             p = {"name": a["name"], "logicalType": {"string": "string", "integer": "integer", "bigint": "integer",
                                                     "decimal": "number", "boolean": "boolean", "date": "date",
-                                                    "timestamp": "date"}[base],
+                                                    "timestamp": "date"}.get(base, "string"),
                  "physicalType": ph.phys_type(a["type"], ph.dialect_for(prof)) if prof else a["type"],
                  "required": not a["nullable"], "primaryKey": a["pk"], "classification": a["classification"],
                  "description": a.get("description", "")}
@@ -302,7 +302,7 @@ def export_datahub(model: dict, ctx: Ctx) -> str:
         for a in e["attributes"]:
             base, _ = parse_type(a["type"])
             dh = {"string": "StringType", "integer": "NumberType", "bigint": "NumberType", "decimal": "NumberType",
-                  "boolean": "BooleanType", "date": "DateType", "timestamp": "TimeType"}[base]
+                  "boolean": "BooleanType", "date": "DateType", "timestamp": "TimeType"}.get(base, "StringType")
             f = {"fieldPath": a["name"], "nativeDataType": ph.phys_type(a["type"], ph.dialect_for(prof)),
                  "type": {"type": {f"com.linkedin.schema.{dh}": {}}}, "nullable": bool(a["nullable"]),
                  "description": a.get("description", ""), "isPartOfKey": bool(a["pk"])}
