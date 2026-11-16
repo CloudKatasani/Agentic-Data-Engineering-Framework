@@ -66,9 +66,13 @@ docker compose up -d --build
 ```
 
 Optional profiles: `--profile oracle` and `--profile db2` start synthetic source databases, and
-`--profile https` adds Caddy with automatic TLS for `DOMAIN`. For AWS, see
-[deploy/ec2/README.md](deploy/ec2/README.md): a user-data script that pulls keys from SSM Parameter
-Store. For a VM without Docker, use [deploy/systemd/adef.service](deploy/systemd/adef.service).
+`--profile https` adds Caddy with automatic TLS for `DOMAIN`. For a VM without Docker, use
+[deploy/systemd/adef.service](deploy/systemd/adef.service).
+
+**AWS EC2, step by step:** [deploy/ec2/README.md](deploy/ec2/README.md). About 20 minutes with either the
+AWS command line or the AWS console: store your keys in SSM Parameter Store, create an instance role and a
+security group limited to your IP address, and launch Amazon Linux 2023 with `deploy/ec2/user-data.sh`.
+The guide also covers HTTPS on your own domain, updates, backup, troubleshooting, cost and teardown.
 
 ### Source databases
 
