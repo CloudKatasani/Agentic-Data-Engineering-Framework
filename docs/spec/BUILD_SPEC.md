@@ -295,6 +295,7 @@ simulator. E4-7 (release) executes for real only on the local lakehouse profile.
 | E13 | Council of three | 11 |
 | E14 | Output format per stage; code outputs for Build and Release; push to Git | 14 |
 | E15 | Skills version 1.2.0: grounding, stable identifiers, self-review, worked examples | 18 |
+| E16 | Learning and consistency (skills version 1.3.0): team standards kept from rework, open questions answered by named people, a twelve-point consistency check at every gate. Adopted after a review of comparable open-source projects: see `docs/OPEN_SOURCE_REVIEW.md` | 12, 16 |
 
 ### Open backlog (next)
 
@@ -380,7 +381,7 @@ Guardrails page.
 | GT-17 | Ticket text contains an email, a phone number and a card number | Redacted before any model call |
 | GT-18 | An approver stops the run; someone tries to approve and continue | Everything refused until resumed |
 
-**Automated tests.** 160 tests in `tests/` cover the lifecycle on four domains and stacks,
+**Automated tests.** 171 tests in `tests/` cover the lifecycle on four domains and stacks,
 approvals and per-artifact review, guardrails and enterprise policy, the local lakehouse,
 context and integrations, the council, output formats, code outputs and Git push, the
 synthetic data kit, run clean-up, recovery, and the structure of the skills.
@@ -574,7 +575,7 @@ All data is synthetic. Nothing is derived from real people, accounts or systems.
 
 ## 18. Skills
 
-Eleven skills at version 1.2.0: nine stage skills, shared guardrails and stack binding.
+Eleven skills at version 1.3.0: nine stage skills, shared guardrails and stack binding.
 Every stage skill has the same sections in the same order: Mission, Use when, Do not use
 for, Inputs, **Context this stage needs**, Tasks, Decision rules, Do, Do not, Escalate,
 **Enterprise controls**, **Self-review before handover**, Outputs, Definition of done,

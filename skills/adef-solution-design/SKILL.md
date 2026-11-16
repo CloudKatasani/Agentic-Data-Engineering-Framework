@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs read/write to the run workspace and read access to the adapter library and catalog. No deployment access. Load adef-shared-guardrails and adef-stack-binding first.
 metadata:
   owner: adef-platform
-  version: "1.2.0"
+  version: "1.3.0"
   role: data-architect
   stage: "3-design"
   gate: G3

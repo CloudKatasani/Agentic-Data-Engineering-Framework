@@ -539,6 +539,24 @@ function renderCouncilCard(el, ready) {
     await refreshSettings();
   };
 }
+// Team standards: conventions the team agreed (often learned from a rejected gate), given to the agents in every new run.
+function renderStandardsCard(el) {
+  const items = SETTINGS.standards || [];
+  const stages = [["all", "Every stage"], ...CATALOG.stages.map((s) => [s.key, s.label])];
+  el.innerHTML = `<h2>Team standards</h2><div class="small muted">What the team has taught the agents. Each standard is given to the agent of its stage in every new run, as context it must apply and cite. Add one here, or tick "keep this as a team standard" when you send a stage back for rework, so a correction made once is not needed again.</div>
+    ${items.length ? `<div class="table-wrap" style="margin-top:10px"><table class="small"><thead><tr><th>ID</th><th>Applies to</th><th>Standard</th><th>From</th><th></th></tr></thead><tbody>
+      ${items.map((s) => `<tr><td class="mono">${esc(s.id)}</td><td>${esc(stageLabel(s.stage))}</td><td><b>${esc(s.title)}</b><div class="muted" style="white-space:pre-line">${esc(s.text.length > 400 ? `${s.text.slice(0, 400)}…` : s.text)}</div></td>
+        <td>${esc(s.added_by)}<div class="muted">${esc(s.source || "")}</div></td><td><button class="btn small" data-std-del="${esc(s.id)}">Remove</button></td></tr>`).join("")}</tbody></table></div>` : '<div class="empty" style="margin-top:10px">No standards yet.</div>'}
+    <div class="field-row" style="margin-top:10px"><div><label>Applies to</label><select id="stdStage">${stages.map(([k, l]) => `<option value="${esc(k)}">${esc(l)}</option>`).join("")}</select></div>
+      <div><label>Title</label><input id="stdTitle" placeholder="Surrogate keys are named <entity>_sk"></div><div><label>Added by (your name)</label><input id="stdBy"></div></div>
+    <label>Standard</label><textarea id="stdText" style="min-height:58px" placeholder="State the convention the agent must follow, specifically enough to check."></textarea>
+    <div class="row" style="margin-top:8px"><button class="btn primary small" id="stdAdd">Add standard</button></div>`;
+  $("#stdAdd").onclick = async () => {
+    const r = await guard(() => api("POST", "/standards", { stage: $("#stdStage").value, title: $("#stdTitle").value, text: $("#stdText").value, added_by: $("#stdBy").value }), "Standard added. It applies to runs created from now on.");
+    if (r) { await refreshSettings(); renderStandardsCard(el); }
+  };
+  $$("[data-std-del]", el).forEach((b) => (b.onclick = async () => { await guard(() => api("DELETE", `/standards/${b.dataset.stdDel}`), "Standard removed"); await refreshSettings(); renderStandardsCard(el); }));
+}
 // The client's code repository: Build starts its branch from its main branch, and branches are pushed there.
 async function renderGitCard(el) {
   await refreshSettings();
@@ -953,7 +971,7 @@ async function launch() {
 // ------------------------------------------------------------------ run detail
 const RUN = { id: null, tab: "approvals", eventsNext: 0, file: null, status: null };
 route("run", async (rid) => {
-  RUN.id = rid; RUN.eventsNext = 0; RUN.file = null;
+  RUN.id = rid; RUN.eventsNext = 0; RUN.file = null; RUN.readyOpen = undefined;
   RUN.tab = store.get("adef_run_tab", "approvals");
   main().innerHTML = `<div id="runHead"></div><div id="stepper"></div><div id="nowBar"></div>
     <div class="run-layout"><div><div class="tabs" id="runTabs"></div><div id="runBody"></div></div>
@@ -963,7 +981,8 @@ route("run", async (rid) => {
 });
 async function refreshRun(first) {
   const st = await api("GET", `/runs/${RUN.id}`);
-  const changed = JSON.stringify(st.stages) + JSON.stringify(st.gates_detail) !== JSON.stringify(RUN.status?.stages) + JSON.stringify(RUN.status?.gates_detail);
+  const sig = (x) => JSON.stringify(x?.stages) + JSON.stringify(x?.gates_detail) + JSON.stringify(x?.questions) + JSON.stringify(x?.consistency?.counts);
+  const changed = sig(st) !== sig(RUN.status);
   RUN.status = st;
   renderRunHead(st);
   const ev = await api("GET", `/runs/${RUN.id}/events?after=${RUN.eventsNext}`);
@@ -1013,6 +1032,8 @@ function renderApprovals(st, el) {
       blocks.push(`<div class="card gate-card rejected"><div class="spread"><h2>${esc(s.label)} · ${badge(ss.status)}</h2></div>
         <div class="notice bad" style="white-space:pre-line">${esc(ss.error || "")}</div>
         <label>Rework instructions for ${esc(s.agent)}</label><textarea id="fb-${s.key}" placeholder="What exactly must change (artifact, section, defect)">${esc(reworkPrefill(ss.error))}</textarea>
+        <label class="chk" style="margin-top:8px"><input type="checkbox" id="std-${s.key}"> <span><b>Also keep this as a team standard</b> <span class="small muted">so ${esc(agentShort(s.agent))} applies it in every future run, saved by</span></span>
+          <select id="stdby-${s.key}" style="width:auto">${namedPeople(st).map((n) => `<option>${esc(n)}</option>`).join("")}</select></label>
         <div class="row" style="margin-top:8px"><button class="btn primary" data-rework="${s.key}">Send back for rework</button><button class="btn" data-retry="${s.key}">Retry as-is</button></div></div>`);
     }
   });
@@ -1022,8 +1043,29 @@ function renderApprovals(st, el) {
   gates.forEach(([g, gd]) => blocks.push(gateCard(st, g, gd)));
   const running = st.stage_defs.filter((s) => st.stages[s.key].status === "running");
   if (running.length && !blocks.length) blocks.push(`<div class="empty">${running.map((s) => `${esc(s.label)} is in progress. Its approval gate appears here when ${esc(agentShort(s.agent))} hands over.`).join("<br>")}</div>`);
-  el.innerHTML = blocks.join("") || '<div class="empty">No gates requested yet.</div>';
-  $$("[data-rework]").forEach((b) => (b.onclick = () => guard(() => api("POST", `/runs/${RUN.id}/stages/${b.dataset.rework}/rework`, { feedback: $(`#fb-${b.dataset.rework}`).value }), "Sent back for rework")));
+  el.innerHTML = readinessCard(st) + (blocks.join("") || '<div class="empty">No gates requested yet.</div>');
+  if ($("#readyBox")) $("#readyBox").ontoggle = () => { RUN.readyOpen = $("#readyBox").open; };
+  $$("[data-answer]", el).forEach((b) => (b.onclick = async () => {
+    const row = b.closest("[data-q]"); const text = $("textarea", row).value.trim();
+    if (text.length < 2) { toast("Write the answer first.", "err"); return; }
+    const r = await guard(() => api("POST", `/runs/${RUN.id}/questions/answer`, { key: row.dataset.q, answer: text, by: $("select", row).value }), "Answer recorded. It is now context for the agents.");
+    if (r) refreshRun(true);
+  }));
+  $$("[data-reanswer]", el).forEach((a) => (a.onclick = (e) => { e.preventDefault(); const row = a.closest("[data-q]"); $(".q-form", row).hidden = false; a.hidden = true; }));
+  $$("[data-rework]").forEach((b) => (b.onclick = async () => {
+    const k = b.dataset.rework; const feedback = $(`#fb-${k}`).value.trim(); const keep = $(`#std-${k}`).checked; const by = $(`#stdby-${k}`).value;
+    if (keep && feedback.length < 10) { toast("Write the instruction you want kept as a standard (at least a sentence).", "err"); return; }
+    if (keep) {
+      // keep the lesson, not this run's file names: drop the "Fix these..." heading and the artifact path before each reason
+      const lesson = feedback.split("\n").filter((l) => !/^fix these rejected artifacts:?$/i.test(l.trim()))
+        .map((l) => l.replace(/^(\s*[-*]\s*)?[\w.\/-]+\.[a-z0-9]{2,5}:\s+/i, "$1")).join("\n").trim() || feedback;
+      const title = lesson.split("\n").map((l) => l.replace(/^[-*\s]+/, "").trim()).find((l) => l && !l.endsWith(":")) || lesson;
+      const saved = await guard(() => api("POST", "/standards", { stage: k, title: title.slice(0, 100), text: lesson, added_by: by, source: `Learned from a rework in ${RUN.id}` }));
+      if (!saved) return;
+      toast(`${saved.id} saved: applied to ${stageLabel(k)} in every new run`, "ok");
+    }
+    await guard(() => api("POST", `/runs/${RUN.id}/stages/${k}/rework`, { feedback }), "Sent back for rework");
+  }));
   $$("[data-retry]").forEach((b) => (b.onclick = () => guard(() => api("POST", `/runs/${RUN.id}/stages/${b.dataset.retry}/start`), "Retrying")));
   $$("[data-decide]").forEach((b) => (b.onclick = async () => {
     const [gate, role, decision] = b.dataset.decide.split("|");
@@ -1053,6 +1095,34 @@ function renderApprovals(st, el) {
   $$("[data-rereq]").forEach((b) => (b.onclick = () => guard(() => api("POST", `/runs/${RUN.id}/gates/${b.dataset.rereq}/rerequest`), "Gate re-opened").then(() => refreshRun(true))));
   $$("[data-open]").forEach((a) => (a.onclick = (e) => { e.preventDefault(); RUN.tab = "artifacts"; RUN.file = a.dataset.open; renderRunHead(st); renderRunBody(); }));
   if ($("#openPack")) $("#openPack").onclick = (e) => { e.preventDefault(); RUN.tab = "artifacts"; RUN.file = "final/delivery-pack.md"; renderRunHead(st); renderRunBody(); };
+}
+// Named people on this run (questions are answered, and standards saved, by a named approver).
+const namedPeople = (st) => [...new Set(Object.values(st.run.approvers || {}).filter(Boolean))];
+// What a reviewer should know before deciding: do the artifacts agree with each other, and what did the agents ask?
+function readinessCard(st) {
+  const c = st.consistency; const qs = st.questions || [];
+  if (!c) return "";
+  const ran = c.checks.filter((x) => x.status !== "pending");
+  if (!ran.length && !qs.length) return "";
+  const mark = { pass: ["pass", "pass"], fail: ["fail", "to resolve"], warn: ["awaiting-approval", "check"], pending: ["", "not yet"] };
+  const open = qs.filter((q) => !q.answer);
+  const head = `${c.counts.fail ? badge("fail", `${c.counts.fail} to resolve`) : badge("pass", "consistent")} ${c.counts.warn ? badge("awaiting-approval", `${c.counts.warn} to check`) : ""}
+    ${qs.length ? (open.length ? badge("awaiting-approval", `${open.length} open question${open.length === 1 ? "" : "s"}`) : badge("pass", "all questions answered")) : ""}`;
+  const rows = c.checks.map((x) => `<tr><td class="mono">${esc(x.id)}</td><td>${esc(x.title)}${x.items.length ? `<ul class="small" style="margin:4px 0 0 16px">${x.items.map((i) => `<li>${esc(i)}</li>`).join("")}${x.more ? `<li>and ${x.more} more</li>` : ""}</ul>` : ""}</td>
+    <td style="white-space:nowrap">${badge(mark[x.status][0], mark[x.status][1])}</td></tr>`).join("");
+  const who = namedPeople(st).map((n) => `<option>${esc(n)}</option>`).join("");
+  const qRows = qs.map((q) => `<div class="q-row" data-q="${esc(q.key)}"><div><span class="mono">${esc(q.id)}</span> ${q.blocking ? badge("fail", "blocking") : badge("", "non-blocking")}
+      <span class="small muted">${esc(stageLabel(q.stage))} · asked by ${esc(agentShort(q.from_agent || ""))}${q.ask_whom ? ` · for the ${esc(q.ask_whom)}` : ""}</span></div>
+    <div style="margin:4px 0">${esc(q.question)}</div>
+    ${q.answer ? `<div class="notice" style="white-space:pre-line"><b>${esc(q.answer.by)}:</b> ${esc(q.answer.answer)} <span class="small">[${esc(q.answer.context_id)}]</span> <a href="#" data-reanswer="1" class="small">Change the answer</a></div>` : ""}
+    <div class="q-form" ${q.answer ? "hidden" : ""}><textarea placeholder="Answer in a sentence or two. The answer is attached as context for every stage." style="min-height:44px"></textarea>
+      <div class="row" style="margin-top:6px"><span class="small">Answered by</span><select style="width:auto">${who}</select><button class="btn small primary" data-answer="1">Record answer</button></div></div></div>`).join("");
+  return `<div class="card"><details id="readyBox" ${RUN.readyOpen ?? (c.counts.fail || open.some((q) => q.blocking)) ? "open" : ""}><summary class="spread" style="cursor:pointer"><div><h2 style="margin:0">Before you decide</h2>
+      <div class="small muted">Checked by the platform, not by a model: do the artifacts agree with each other, and what did the agents ask instead of guessing?</div></div><div>${head}</div></summary>
+    <h3 style="margin-top:12px">Consistency check <span class="small muted">requirement → mapping → model → code → test, re-run on every change</span></h3>
+    <div class="table-wrap"><table class="small"><tbody>${rows}</tbody></table></div>
+    ${qs.length ? `<h3 style="margin-top:14px">Open questions from the agents (${qs.length})</h3>
+      <div class="small muted">An answer becomes a fact every later agent can cite. Re-run a stage to make its own agent use it.</div>${qRows}` : ""}</details></div>`;
 }
 function reworkPrefill(err) {
   const lines = String(err || "").split("\n").filter((l) => l.startsWith("- "));
@@ -1282,6 +1352,7 @@ route("agents", async () => {
       <label style="display:flex;gap:8px;align-items:center;color:var(--text);font-weight:400;margin-top:10px"><input type="checkbox" id="simToggle" style="width:auto" ${rt.simulate_unavailable_providers !== false ? "checked" : ""}>
       Demo fallback: if an agent's provider has no key, can't be reached or rejects the key, run that stage on the Demo Simulator and label it as simulated. Turn this off for real client work.</label></div>
     <div class="card" id="councilCard"></div>
+    <div class="card" id="standardsCard"></div>
     <div class="card tight"><div class="row"><b>Apply to all agents:</b><select id="allProv" style="width:auto">${provOpts(SETTINGS.agents["adef-orchestrator"].provider_id)}</select><div class="model-box" style="width:300px"><input id="allModel" list="dl-all" placeholder="model">${modelPick(SETTINGS.agents["adef-orchestrator"].provider_id)}</div><datalist id="dl-all"></datalist><select id="allEffort" style="width:auto">${CATALOG.effort_levels.map((e) => `<option ${e === "medium" ? "selected" : ""}>${e}</option>`).join("")}</select><button class="btn" id="applyAll">Apply</button></div></div>
     <div class="card"><div class="table-wrap"><table><thead><tr><th style="width:38%">Agent</th><th>Provider</th><th>Model</th><th>Effort</th><th>Max tokens</th><th>Key</th><th></th></tr></thead><tbody>
     ${CATALOG.agents.map((a) => { const b = SETTINGS.agents[a.name]; return `<tr data-agent="${esc(a.name)}"><td>${agentProfile(a)}</td>
@@ -1314,6 +1385,7 @@ route("agents", async () => {
   });
   const gather = () => Object.fromEntries($$("tr[data-agent]").map((tr) => [tr.dataset.agent, Object.fromEntries($$("[data-k]", tr).map((x) => [x.dataset.k, x.value]))]));
   renderCouncilCard($("#councilCard"), ready);
+  renderStandardsCard($("#standardsCard"));
   $("#saveAgents").onclick = async () => { await guard(() => api("PUT", "/settings/agents", gather()), "Agent bindings saved"); await refreshSettings(); };
   $$("[data-test]").forEach((b) => (b.onclick = async () => {
     const tr = b.closest("tr"); const pid = $("select[data-k=provider_id]", tr).value; const model = $("input[data-k=model]", tr).value;

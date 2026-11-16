@@ -258,7 +258,7 @@
           },
           "classification": "internal",
           "description": "Loyalty customer (NONE if anonymous)",
-          "business_rule": null,
+          "business_rule": "BR-003",
           "req_ids": [
             "REQ-003"
           ],
@@ -302,7 +302,8 @@
           "description": "Net sales amount",
           "business_rule": "BR-001",
           "req_ids": [
-            "REQ-001"
+            "REQ-001",
+            "REQ-004"
           ],
           "nullable": true,
           "label": "Net Amount"

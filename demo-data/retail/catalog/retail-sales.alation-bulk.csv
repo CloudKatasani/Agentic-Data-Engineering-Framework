@@ -18,7 +18,7 @@ acme_customer_gold.fct_sales_line,order_line_id,Order Line Id,Business key,Inter
 acme_customer_gold.fct_sales_line,order_id,Order Id,Order (basket),Internal,
 acme_customer_gold.fct_sales_line,store_id,Store Id,Store,Internal,
 acme_customer_gold.fct_sales_line,product_id,Product Id,Product,Internal,
-acme_customer_gold.fct_sales_line,customer_id,Customer Id,Loyalty customer (NONE if anonymous),Internal,
+acme_customer_gold.fct_sales_line,customer_id,Customer Id,Loyalty customer (NONE if anonymous),Internal,BR-003
 acme_customer_gold.fct_sales_line,order_date,Order Date,Sales date,Internal,
 acme_customer_gold.fct_sales_line,quantity,Quantity,Units,Internal,
 acme_customer_gold.fct_sales_line,net_amount,Net Amount,Net sales amount,Internal,BR-001

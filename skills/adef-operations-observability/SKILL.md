@@ -5,7 +5,7 @@ license: Proprietary
 compatibility: Needs read-only access to platform telemetry, orchestration state, quality results, and cost data, plus the ability to raise tickets. Production write actions are limited to pre-approved runbook actions. Load adef-shared-guardrails and adef-stack-binding first.
 metadata:
   owner: adef-platform
-  version: "1.2.0"
+  version: "1.3.0"
   role: reliability-and-finops-engineer
   stage: "7-operations"
   gate: G7

@@ -164,7 +164,9 @@
           "classification": "internal",
           "description": "Business key of the meter",
           "business_rule": null,
-          "req_ids": [],
+          "req_ids": [
+            "REQ-002"
+          ],
           "nullable": false,
           "label": "Meter Id"
         },

@@ -144,6 +144,7 @@ schema:
     primaryKey: false
     classification: internal
     description: Loyalty customer (NONE if anonymous)
+    businessRule: BR-003
   - name: order_date
     logicalType: date
     physicalType: DATE

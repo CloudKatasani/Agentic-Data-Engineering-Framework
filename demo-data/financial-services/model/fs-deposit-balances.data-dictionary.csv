@@ -10,10 +10,10 @@ account,dim_account,dimension,type2,account_id,account_id,string(20),VARCHAR(20)
 account,dim_account,dimension,type2,customer_id,customer_id,string(20),VARCHAR(20),,customer.customer_id,Y,internal,,,Account holder
 account,dim_account,dimension,type2,product_code,product_code,string(10),VARCHAR(10),,product.product_code,Y,internal,,REQ-001,Product
 account,dim_account,dimension,type2,branch_code,branch_code,string(8),VARCHAR(8),,,Y,internal,,REQ-002,Servicing branch
-account,dim_account,dimension,type2,status,status,string(10),VARCHAR(10),,,Y,internal,,,"OPEN, DORMANT or CLOSED"
+account,dim_account,dimension,type2,status,status,string(10),VARCHAR(10),,,Y,internal,BR-003,,"OPEN, DORMANT or CLOSED"
 account,dim_account,dimension,type2,currency,currency,string(3),VARCHAR(3),,,Y,internal,,,ISO currency
 daily_balance,fct_daily_balance,fact,none,daily_balance_id,daily_balance_id,string(32),VARCHAR(32),Y,,N,internal,,,Business key
 daily_balance,fct_daily_balance,fact,none,account_id,account_id,string(20),VARCHAR(20),,account.account_id,Y,internal,,REQ-001,Account
 daily_balance,fct_daily_balance,fact,none,balance_date,balance_date,date,DATE,,,Y,internal,,REQ-001,Business date
-daily_balance,fct_daily_balance,fact,none,ledger_balance,ledger_balance,"decimal(18,2)","DECIMAL(18,2)",,,Y,confidential,BR-001,REQ-001,Ledger balance
+daily_balance,fct_daily_balance,fact,none,ledger_balance,ledger_balance,"decimal(18,2)","DECIMAL(18,2)",,,Y,confidential,BR-001,REQ-001;REQ-003,Ledger balance
 daily_balance,fct_daily_balance,fact,none,available_balance,available_balance,"decimal(18,2)","DECIMAL(18,2)",,,Y,confidential,,,Available balance

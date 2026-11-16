@@ -8,7 +8,7 @@ premise,DIM_PREMISE,dimension,type1,premise_id,PREMISE_ID,string(20),VARCHAR(20)
 premise,DIM_PREMISE,dimension,type1,customer_account_id,CUSTOMER_ACCOUNT_ID,string(20),VARCHAR(20),,customer_account.customer_account_id,Y,internal,,,Owning account
 premise,DIM_PREMISE,dimension,type1,premise_type,PREMISE_TYPE,string(20),VARCHAR(20),,,Y,internal,,REQ-004,"Residential, commercial, industrial"
 premise,DIM_PREMISE,dimension,type1,region_code,REGION_CODE,string(10),VARCHAR(10),,,Y,internal,,REQ-004,Operating region
-meter,DIM_METER,dimension,type1,meter_id,METER_ID,string(20),VARCHAR(20),Y,,N,internal,,,Business key of the meter
+meter,DIM_METER,dimension,type1,meter_id,METER_ID,string(20),VARCHAR(20),Y,,N,internal,,REQ-002,Business key of the meter
 meter,DIM_METER,dimension,type1,premise_id,PREMISE_ID,string(20),VARCHAR(20),,premise.premise_id,Y,internal,,,Premise where installed
 meter,DIM_METER,dimension,type1,meter_type,METER_TYPE,string(10),VARCHAR(10),,,Y,internal,,,AMI or legacy
 meter,DIM_METER,dimension,type1,install_date,INSTALL_DATE,date,DATE,,,Y,internal,,,Installation date

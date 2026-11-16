@@ -24,6 +24,7 @@ from ..connectors import context_sources as cs
 from ..connectors import jira_export
 from ..connectors.jira import JiraClient, JiraError
 from ..engine.orchestrator import InputRejected, get_engine
+from ..util import now_iso  # noqa: E402
 from ..engine.stages import GATE_LABELS, STAGES
 from ..guardrails.actions import ACTION_TABLE, GuardrailBlocked
 from ..guardrails.gt_suite import run_suite
@@ -852,6 +853,52 @@ def run_repo_push(rid: str, body: dict = Body(...)):
         raise HTTPException(400, str(e)) from e
     except RuntimeError as e:
         raise HTTPException(502, str(e)) from e
+
+
+@app.post("/api/runs/{rid}/questions/answer")
+def run_question_answer(rid: str, body: dict = Body(...)):
+    """A named approver answers an open question; the answer becomes context for every stage."""
+    from .. import questions
+    e = engine()
+    ws = e.ws(rid)
+    try:
+        out = questions.answer(ws, body.get("key", ""), body.get("answer", ""), body.get("by", ""))
+    except KeyError as err:
+        raise HTTPException(404, "No such open question") from err
+    except (ValueError, context_hub.ContextError) as err:
+        raise HTTPException(400, str(err)) from err
+    e.event(ws, f"{out['answer']['by']} answered {out['id']} ({out['stage']}); the answer is now context for the agents", "info")
+    return out
+
+
+@app.post("/api/standards")
+def add_standard(body: dict = Body(...)):
+    """Add a team standard: a convention given to one stage's agent (or all) in every new run."""
+    from ..guardrails.scanners import scan_secrets
+    stage, title, text, by = (str(body.get(k) or "").strip() for k in ("stage", "title", "text", "added_by"))
+    if stage != "all" and stage not in context_hub.STAGE_CONTEXT:
+        raise HTTPException(400, "Choose a stage, or all stages")
+    if len(text) < 10 or not title:
+        raise HTTPException(400, "A standard needs a title and at least a sentence of text")
+    if not by or by.lower().startswith("adef-"):
+        raise HTTPException(400, "A standard is added by a named person")
+    if scan_secrets(text):
+        raise HTTPException(400, "The text looks like it contains a credential; it was not stored")
+    items = settings.load().get("standards") or []
+    nxt = max([int(s["id"].split("-")[1]) for s in items] + [0]) + 1
+    std = {"id": f"STD-{nxt:03d}", "stage": stage, "title": title[:120], "text": text[:8000], "added_by": by,
+           "added_at": now_iso(), "source": str(body.get("source") or "written by hand")[:160], "active": True}
+    settings.update("standards", items + [std])
+    return std
+
+
+@app.delete("/api/standards/{sid}")
+def delete_standard(sid: str):
+    items = settings.load().get("standards") or []
+    if not any(s["id"] == sid for s in items):
+        raise HTTPException(404, "No such standard")
+    settings.update("standards", [s for s in items if s["id"] != sid])
+    return {"ok": True}
 
 
 @app.put("/api/settings/git-remote")

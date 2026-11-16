@@ -13,7 +13,7 @@ import traceback
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
-from .. import context_hub
+from .. import context_hub, questions
 from ..catalog import stacks
 from ..catalog.domains import load_pack_text
 from ..config import adef_home, runs_dir
@@ -29,7 +29,7 @@ from ..workspace import handoff as ho
 from ..workspace.run import GATE_ROLES, ROLE_LABELS, RunWorkspace
 from . import agents_back as back
 from . import agents_front as front
-from . import council, formats
+from . import analyze, council, formats
 from .agent_runtime import AgentCall, Usage
 from .context import StageCtx, StageOutput
 from .scenarios import for_domain
@@ -244,6 +244,13 @@ class Engine:
               "stages": {s["key"]: {"status": "pending", "attempts": 0, "returns": 0} for s in STAGES},
               "gates": {}, "usage": {}, "metrics": {"guardrail_blocks": 0}}
         self._save(ws, st)
+        for std in team.get("standards") or []:
+            if std.get("active", True) and (std.get("stage") == "all" or std.get("stage") in STAGE_KEYS):
+                try:
+                    context_hub.add(ws, std["stage"], "standard", f"{std['id']} {std['title']}", std["text"],
+                                    added_by=std.get("added_by") or "team", ref=std["id"])
+                except context_hub.ContextError:
+                    pass     # an empty or duplicate standard is skipped, never a reason to refuse the run
         ws.log_decision("Run created", ["proceed", "do not start"], ["control/run.yaml"], "adef-orchestrator")
         self.event(ws, f"Run {run_id} created for {run_def['client_code']}: {run_def['use_case']}")
         if start:
@@ -730,6 +737,11 @@ class Engine:
     def _recover(self, ws, st: dict) -> dict:
         """A stage marked running that no worker in this process owns was cut off (server restart): make it retryable."""
         orphans = [k for k, ss in st["stages"].items() if ss["status"] == "running" and (ws.run_id, k) not in self._live]
+        if orphans:
+            # a worker records its result before it lets go of the stage, so a stage that finished between the
+            # caller's read and this check shows its real status on a fresh read: only fail what is still running
+            fresh = self._state(ws)["stages"]
+            orphans = [k for k in orphans if fresh[k]["status"] == "running"]
         for k in orphans:
             self._fail(ws, k, "Interrupted: the server restarted while this stage was running. Retry to run it again.")
         return self._state(ws) if orphans else st
@@ -856,7 +868,8 @@ class Engine:
         return {**st, "gates_detail": gates, "run": run, "stack": ws.stack, "stage_defs": STAGES, "gate_labels": GATE_LABELS,
                 "role_labels": ROLE_LABELS, "now": self._now(ws, st, gates), "team": self._team(ws, st),
                 "context_counts": {k: sum(1 for i in context_hub.items(ws) if i["stage"] in (k, "all")) for k in STAGE_KEYS},
-                "output_options": {k: formats.output_options(k, ws.stack) for k in STAGE_KEYS}}
+                "output_options": {k: formats.output_options(k, ws.stack) for k in STAGE_KEYS},
+                "consistency": analyze.analyze(ws), "questions": questions.collect(ws)}
 
     def metrics(self, ws) -> dict:
         st = self._state(ws)

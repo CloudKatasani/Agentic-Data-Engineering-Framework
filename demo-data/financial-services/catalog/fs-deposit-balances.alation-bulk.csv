@@ -13,7 +13,7 @@ acme_customer_gold.dim_account,account_id,Account Id,Business key,Internal,
 acme_customer_gold.dim_account,customer_id,Customer Id,Account holder,Internal,
 acme_customer_gold.dim_account,product_code,Product Code,Product,Internal,
 acme_customer_gold.dim_account,branch_code,Branch Code,Servicing branch,Internal,
-acme_customer_gold.dim_account,status,Status,"OPEN, DORMANT or CLOSED",Internal,
+acme_customer_gold.dim_account,status,Status,"OPEN, DORMANT or CLOSED",Internal,BR-003
 acme_customer_gold.dim_account,currency,Currency,ISO currency,Internal,
 acme_customer_gold.fct_daily_balance,,Daily Balance,End-of-day deposit balance,,
 acme_customer_gold.fct_daily_balance,daily_balance_id,Daily Balance Id,Business key,Internal,
